@@ -13,8 +13,9 @@ const baseCheck = (res: { data: any }, accountStore) => {
   const error = code !== '0'
 
   if (error) {
-    message.error(codes[code]?.message || res.data.msg)
-    codes[code]?.func && codes[code]?.func()
+    const errorMsg = codes[code]?.message || res?.data?.msg || '请求失败或发生错误';
+    message.error(errorMsg);
+    codes[code]?.func && codes[code]?.func();
   }
   return error
 }

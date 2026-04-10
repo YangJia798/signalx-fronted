@@ -1,11 +1,6 @@
-import React, { ReactNode, useState, HTMLProps, useEffect } from 'react'
+import React, { HTMLProps } from 'react'
 import { Link } from "react-router-dom"
 
-import { constants } from '@/stores'
-import ILogoStandardWhite from '@/assets/image/component/Logo/standard-white.svg?react'
-import ILogoStandardWhitePng from '@/assets/image/component/Logo/standard-white.png'
-import ILogoMarkWhite from '@/assets/image/component/Logo/mark-white.svg?react'
-import ILogoMarkWhitePng from '@/assets/image/component/Logo/mark-white.png'
 
 type SizeType = 'small' | 'middle' | 'large';
 interface LogoProps extends Omit<HTMLProps<HTMLDivElement>, 'size'> {
@@ -13,7 +8,7 @@ interface LogoProps extends Omit<HTMLProps<HTMLDivElement>, 'size'> {
   mark?: boolean
 }
 
-const Logo: React.FC<LogoProps> = ({ size = 'middle', mark, className = '', ...rest }) => {
+const Logo: React.FC<LogoProps> = ({ size = 'middle', className = '' }) => {
   const SIZES: Record<SizeType, { height: number }> = {
     small: { height: 32 },
     middle: { height: 40 },
@@ -22,12 +17,20 @@ const Logo: React.FC<LogoProps> = ({ size = 'middle', mark, className = '', ...r
   const norm = SIZES[size]
 
   return (
-    <Link to='/' className={`d-flex align-items-center linker flex-shrink-0 ${className}`}>
-      {
-        mark
-          ? <img src={ILogoMarkWhitePng} height={norm.height} />
-          : <img src={ILogoStandardWhitePng} height={norm.height} />
-      }
+    <Link to='/' className={`d-flex align-items-center linker flex-shrink-0 logo-custom gap-2 ${className}`}>
+      <img src="https://hyperbot.network/assets/mark-white-BnzEC8cz.png" height="32" alt="Signalxbot Logo" />
+      {size !== 'large' && (
+        <span
+          className="fw-bold font-size-22"
+          style={{
+            color: 'rgba(222, 250, 246, 0.8)',
+            letterSpacing: '0.2px',
+            fontFamily: "'Outfit', 'Inter', sans-serif"
+          }}
+        >
+          Signalxbot
+        </span>
+      )}
     </Link>
   );
 }

@@ -27,7 +27,9 @@ export const discoverRecommend: TDiscoverRecommend = {
 
     const res = await baseApi.get('/leaderboard/smart/recommend', {
       params: {
-        lang: discoverRecommendStore.selectedLanguage
+        lang: discoverRecommendStore.selectedLanguage,
+        pnlList: false,
+        period: 7
       }
     })
 
@@ -47,13 +49,13 @@ export const discoverRecommend: TDiscoverRecommend = {
           spotValue: new BN(item.spot).toFixed(constants.decimalPlaces.__COMMON__), // 现货价值
 
           winRate: formatPer(item.winRate),
-          accountTotalValue: new BN(item.accountTotalValue).toFixed(constants.decimalPlaces.__COMMON__),
+          accountTotalValue: new BN(item.accountTotalValue || 0).toFixed(constants.decimalPlaces.__COMMON__),
 
-          marginUsed: new BN(item.marginUsage).toFixed(constants.decimalPlaces.__COMMON__), // 
-          marginUsedRatio: formatPer(item.marginUsageRate, true),
+          marginUsed: new BN(item.marginUsage || 0).toFixed(constants.decimalPlaces.__COMMON__), // 
+          marginUsedRatio: formatPer(item.marginUsageRate || 0, true),
 
           note: item.remark,
-          pnl: new BN(item.realizedPnL).toFixed(constants.decimalPlaces.__uPnl__),
+          pnl: new BN(item.realizedPnL || 0).toFixed(constants.decimalPlaces.__uPnl__),
           tags: item.labels,
           tradesCount: item.tradesCount,
           lastActionTs: item.lastOperationAt,

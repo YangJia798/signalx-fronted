@@ -21,9 +21,9 @@ export const userEvmLogin: TUserEvmLogin = {
 
     this.userEvmLoginBusy = true
 
-    const res = await baseApi.post('/login/address', {
-      address: accountStore.evmAddress,
-      signContent: accountStore.evmSignMessage,
+    const res = await baseApi.post('/user/walletLogin', {
+      main_account_address: accountStore.evmAddress,
+      message: accountStore.evmSignMessage,
       signature: accountStore.evmSignedMessage
     })
 
@@ -40,8 +40,8 @@ export const userEvmLogin: TUserEvmLogin = {
 
     const session = data.token
     const accountInfo = {
-      id: data.userId,
-      evmAddress: data.address
+      id: data.userId ?? accountStore.id,
+      evmAddress: data.address || data.main_account_address || accountStore.evmAddress
     }
     result.data = {
       session,

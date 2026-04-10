@@ -1,16 +1,17 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Button, Progress, Popconfirm, Tooltip, Dropdown, message, Select } from 'antd'
 import dayjs from 'dayjs'
 import { useTranslation, withTranslation, Trans } from 'react-i18next'
 import BN from 'bignumber.js'
 import { isAddress } from 'viem'
 
-import { IOutlineMoreSquare, IShare, IOutlineCopy, IOutlineEdit, IOutlineAdd, IOutlineShare, IOutlineMonitor, IOutlineTrash } from '@/components/icon'
+import { IOutlineMoreSquare, IShare, IOutlineCopy, IOutlineEdit, IOutlineAdd, IOutlineShare, IOutlineMonitor, IOutlineTrash, IOutlineWallet3 } from '@/components/icon'
 import { formatNumber, merge } from '@/utils'
 import { constants, useAccountStore, useTraderDetailsOpenOrdersAdditionalStore, usePrivateWalletStore, useReqStore, useCopyTradingStore } from '@/stores'
 import ColumnTooltip from '@/components/Column/Tooltip'
 import ColumnList from '@/components/Column/List'
 import TabBase from '@/components/Tab/Base'
+import WalletChainIcon from '@/components/Wallet/ChainIcon';
 import ModalClosePosition from '@/components/Modal/ClosePosition'
 import TabSwitch from '@/components/Tab/Switch'
 import ModalCreateCopyTrading from '@/components/Modal/CreateCopyTrading'
@@ -20,6 +21,7 @@ import PositionItemUPnl from '@/components/PositionItem/UPnl'
 import PositionItemAddress from '@/components/PositionItem/Address'
 import PositionItemMarginUsedRatio from '@/components/PositionItem/MarginUsedRatio'
 import ModalCreatePrivateWallet from '@/components/Modal/CreatePrivateWallet'
+import ModalImportPrivateWallet from '@/components/Modal/ImportPrivateWallet'
 import ModalDeposit from '@/components/Modal/Deposit'
 import ModalExportPrivateKey from '@/components/Modal/ExportPrivateKey'
 import ModalRemoveWallet from '@/components/Modal/RemoveWallet'
@@ -32,6 +34,7 @@ import ButtonIcon from '@/components/ButtonIcon'
 import TraderDetailsNonFunding from '@/views/TraderDetails/NonFunding'
 import TraderDetailsRecentFills from '@/views/TraderDetails/RecentFills'
 import TraderDetailsTWAP from '@/views/TraderDetails/TWAP'
+import TraderDetailsCompletedTrades from '@/views/TraderDetails/CompletedTrades'
 import { TraderDetailsOpenOrdersAdditional } from '@/views/TraderDetails/OpenOrdersAdditional'
 import TraderDetailsHistoricalOrders from '@/views/TraderDetails/HistoricalOrders'
 
@@ -43,100 +46,162 @@ const CopyTrading = () => {
   const traderDetailsOpenOrdersAdditionalStore = useTraderDetailsOpenOrdersAdditionalStore()
   const { t, i18n } = useTranslation()
 
+  const [activeListTab, setActiveListTab] = useState('targets')
+
   const ownWalletsColumn = [
-    { id: 'walletId', label: t('common.walletId'), className: 'd-none d-lg-flex col-lg-1' },
-    { id: 'address', label: t('common.address'), className: 'col-5 col-sm-2 col-md-2 col-xl-2' },
-    { id: 'createTs', label: t('common.createTime'), className: 'justify-content-end d-none d-xl-flex col-xl-1' },
-    { id: 'balance', label: t('common.balance'), className: 'justify-content-end text-end col-6 col-sm-3 col-md-2 col-xl-2' },
-    { id: 'uPnl', label: t('common.uPnl'), className: 'justify-content-end d-none d-md-flex col-md-2 col-xl-2' },
-    { id: 'marginUsed', label: t('common.marginUsed'), className: 'justify-content-end d-none d-sm-flex col-3 col-md-2 col-xl-2' },
-    { id: 'withdrawable', label: t('common.withdrawable'), className: 'justify-content-end d-none d-sm-flex col-sm-3 col-md-2 col-xl-1' },
-    { id: 'operator', label: '', className: 'justify-content-end text-end col' },
+    { id: 'address_note', label: t('common.addressNote') || '地址/备注', className: 'col-4' },
+    { id: 'createTs', label: t('common.createImportTime') || '创建/导入时间', className: 'd-none d-xl-flex col-xl-2' },
+    { id: 'balance', label: t('common.totalAccountValue') || '账户总价值', className: 'justify-content-center text-center col' },
+    { id: 'uPnl', label: t('common.uPnl') || '未实现盈亏', className: 'justify-content-center text-center col' },
+    { id: 'withdrawable', label: t('common.withdrawable') || '可提取', className: 'justify-content-center text-center col' },
+    { id: 'operator', label: '', className: 'justify-content-end text-end col-2' },
   ]
 
   const ownCopyTradesColumn = [
-    { id: 'note', label: t('common.addressNote'), className: 'd-none d-md-block col-md-2 col-xl-1' },
-    { id: 'address', label: t('common.address'), className: 'col-3 col-md-3 col-xl-2' },
-    { id: 'balance', label: t('common.balance'), className: 'justify-content-end text-end col-3 col-md-2 col-xl-2' },
-    { id: 'pnl', label: t('common.pnl'), className: 'justify-content-end text-end col-3 col-md-3' },
-    { id: 'marginUsedRatio', label: t('common.marginUsedRatio'), className: 'justify-content-end text-end d-none d-xl-flex col-xl-2' },
-    { id: 'operator', label: '', className: 'justify-content-end text-end col' },
+    { id: 'status', label: t('common.status', '状态'), className: 'd-none d-md-flex align-items-center col-1' },
+    { id: 'note', label: t('common.note', '备注'), className: 'align-items-center col-2' },
+    { id: 'target', label: t('common.copyTarget', '跟单目标'), className: 'align-items-center col-3' },
+    { id: 'mode', label: t('common.copyMode', '跟单模式'), className: 'd-none d-xl-flex align-items-center col-2' },
+    { id: 'address', label: t('common.executionAddress', '执行地址'), className: 'd-none d-lg-flex align-items-center col-3' },
+    { id: 'operator', label: t('common.operator', '操作'), className: 'justify-content-end text-end align-items-center col-1' },
+  ]
+
+  const copyRecordsColumn = [
+    { id: 'address_note', label: t('common.addressNote', '地址/备注'), className: 'col-4' },
+    { id: 'accountValue', label: t('common.totalAccountValue', '账户总价值'), className: 'justify-content-center text-center col-4' },
+    { id: 'uPnl', label: t('common.uPnl', '未实现盈亏'), className: 'justify-content-end text-end col-4' },
   ]
 
   const tabPosition = [
-    { id: 'walletId', label: t('common.walletId'), className: 'd-none d-xl-flex col-xl-1' },
-    { id: 'symbol', label: t('common.symbol'), className: 'col-2 col-sm-2 col-md-1 col-xl-1' },
-    { id: 'leverage', label: t('common.directionLeverage'), className: 'd-none d-sm-flex col-sm-2 col-md-2 col-lg-1' },
-    { id: 'positionValue', label: t('common.positionValue'), className: 'justify-content-end text-end col-3 col-md-2 col-xl-2' },
-    { id: 'uPnl', label: t('common.uPnl'), className: 'justify-content-end text-end col-3 col-sm-2 col-md-2 col-lg-1' },
-    { id: 'margin', label: t('common.margin'), className: 'justify-content-end text-end d-none d-md-flex col-md-2 col-lg-2 col-xl-2' },
-    { id: 'openingPrice', label: t('common.openingPrice'), className: 'justify-content-end text-end d-none d-xl-flex col-xl-1' },
-    { id: 'markPrice', label: t('common.markPrice'), className: 'justify-content-end text-end d-none d-lg-flex col-lg-2 col-xl-1 ' },
-    { id: 'liquidationPrice', label: t('common.liquidationPrice'), className: 'justify-content-end text-end d-none d-md-flex col-md-1 col-xl-1' },
-    { id: 'operator', label: '', className: 'ms-auto justify-content-end' },
+    { id: 'symbol', label: t('common.asset', '币种'), filter: 'symbol', className: 'd-none d-sm-flex col-sm-2 col-md-2 col-lg-1' },
+    { id: 'positionValue', label: t('common.positionValue', '持仓价值'), sort: true, sortByKey: 'positionValue', className: 'col-3 col-md-2 col-xl-1' },
+    { id: 'uPnl', label: t('common.uPnl', '未实现盈亏'), sort: true, sortByKey: 'uPnl', className: 'col-3 col-sm-2 col-md-2 col-lg-1' },
+    { id: 'openingPrice', label: t('common.openingPrice', '入场均价'), sort: true, sortByKey: 'openingPrice', className: 'd-none d-xl-flex col-xl-1' },
+    { id: 'markPrice', label: t('common.markPrice', '标记价'), sort: true, sortByKey: 'markPrice', className: 'd-none d-lg-flex col-lg-2 col-xl-1' },
+    { id: 'liquidationPrice', label: t('common.liquidationPrice', '清算价'), sort: true, sortByKey: 'liquidationPrice', className: 'd-none d-md-flex col-md-1 col-xl-1' },
+    { id: 'margin', label: t('common.margin', '保证金'), sort: true, sortByKey: 'margin', className: 'd-none d-md-flex col-md-2 col-lg-1 col-xl-1' },
+    { id: 'fundingFee', label: t('common.fundingFee', '资金费用'), sort: true, sortByKey: 'fundingFee', className: 'd-none d-xl-flex col-xl-1' },
+    { id: 'tpSl', label: t('common.tpSl', '止盈/止损'), className: 'd-none d-xl-flex col-xl-1' },
+    { id: 'operator', label: t('common.closePos', '平仓'), className: 'ms-auto justify-content-end col' },
   ]
 
-  const renderOwnWalletItem = (item, columnIndex) => {
+  const renderOwnWalletItem = (item: any, columnIndex: number) => {
     switch (ownWalletsColumn[columnIndex].id) {
-      case 'walletId':
-        return item.walletId
-      case 'address':
-        return <PositionItemAddress item={item} />
+      case 'address_note':
+        return (
+          <div className="d-flex align-items-center gap-3 w-100">
+            <WalletChainIcon platform={item.platform || 'hyperliquid'} />
+            <div className="d-flex flex-column" style={{ overflow: 'hidden' }}>
+              <PositionItemAddress item={item} link={false} shortener={true} className="fw-600 color-white" />
+              <div className="color-secondary font-size-12 mt-1">{item.nickname || 'h'}</div>
+            </div>
+          </div>
+        )
       case 'createTs':
-        return <TimeAgo ts={item.createTs} />
+        return (
+          <div className="d-flex flex-column w-100">
+            <div className="color-white font-size-13"><TimeAgo ts={item.createTs} /></div>
+            <div className="color-secondary font-size-12 mt-1">Hyperbot 创建</div>
+          </div>
+        )
       case 'balance':
-        return <>$ {formatNumber(item.balance)}</>
+        return <div className="text-center w-100 fw-600 color-white">$ {formatNumber(item.balance)}</div>
       case 'uPnl':
-        return <span className={`${ item.uPnlStatusClassName }`} >$ {new BN(item.uPnl).gt(0) && '+'}{formatNumber(item.uPnl)}</span>
-      case 'marginUsed':
-        return <>$ {formatNumber(item.totalMarginUsed)}</>
+        return <div className={`text-center w-100 fw-600 ${ item.uPnlStatusClassName }`} >$ {new BN(item.uPnl).gt(0) && '+'}{formatNumber(item.uPnl)}</div>
       case 'withdrawable':
-        return <>$ {formatNumber(item.withdrawable)}</>
+        return (
+          <div className="d-flex align-items-center justify-content-center gap-2 w-100 fw-600 color-white">
+            $ {formatNumber(item.withdrawable)}
+            <span style={{color: '#ea3943', opacity: 0.8, cursor: 'pointer', display: 'flex', alignItems: 'center'}}>
+              {/* Optional withdraw error cross icon placeholder */}
+            </span>
+          </div>
+        )
       case 'operator':
         return (
-          <Dropdown placement="bottomRight" className='br-4'
-            menu={{ items: [
-              { content: <div onClick={() => merge(privateWalletStore, { openExportPrivateKey: true, operaWalletIdx: item.idx}) }>{ t('common.exportPrivateKey') }</div> },
-              { content: <div onClick={() => merge(privateWalletStore, { openDeposit: true, operaWalletIdx: item.idx}) }>{ t('common.deposit') }</div> },
-              // { content: <div onClick={() => merge(privateWalletStore, { openWithdraw: true, operaWalletIdx: item.idx}) }>Withdraw</div> },
-              { danger: true, content: <div onClick={() => merge(privateWalletStore, { openRemove: true, operaWalletIdx: item.idx}) }>{ t('common.removeWallet') }</div> },
-            ].map((item, idx) => ({ key: idx, label: item.content, danger: item.danger }))}}>
-            <IOutlineMoreSquare className='linker' />
-          </Dropdown>
+          <div className="d-flex align-items-center justify-content-end gap-2 w-100">
+            <button
+              className="border-0 cursor-pointer fw-500 font-size-12 transition-2 d-none d-md-block"
+              style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '24px', padding: '6px 16px', color: '#00d1b2' }}
+              onClick={(e) => { e.stopPropagation(); merge(privateWalletStore, { openDeposit: true, operaWalletIdx: item.idx}) }}
+            >
+              {t('common.deposit') || '存款'}
+            </button>
+            <button
+              className="border-0 cursor-pointer fw-500 font-size-12 transition-2 d-none d-md-block"
+              style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '24px', padding: '6px 16px', color: '#00d1b2' }}
+              onClick={(e) => { e.stopPropagation() /* TODO Withdraw action */ }}
+            >
+              提现
+            </button>
+            <Dropdown placement="bottomRight"
+              menu={{ items: [
+                { content: <div onClick={(e) => { e.stopPropagation(); merge(privateWalletStore, { openExportPrivateKey: true, operaWalletIdx: item.idx}) }}>{ t('common.exportPrivateKey') }</div> },
+                { danger: true, content: <div onClick={(e) => { e.stopPropagation(); merge(privateWalletStore, { openRemove: true, operaWalletIdx: item.idx}) }}>{ t('common.removeWallet') }</div> },
+              ].map((menuItem, idx) => ({ key: idx, label: menuItem.content, danger: menuItem.danger }))}}
+            >
+              <button
+                className="d-flex align-items-center justify-content-center border-0 cursor-pointer transition-2"
+                style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '50%', width: '28px', height: '28px', color: 'rgba(255,255,255,0.6)' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                ...
+              </button>
+            </Dropdown>
+          </div>
         )
       default:
         return null
     }
   }
 
-  const renderOwnCopyTradesItem = (item, columnIndex) => {
+  const renderOwnCopyTradesItem = (item: any, columnIndex: number) => {
     switch (ownCopyTradesColumn[columnIndex].id) {
-      case 'address':
-        return <PositionItemAddress item={item} />
+      case 'status':
+        return <span className="color-success font-size-14">-</span>
       case 'note':
-        return item.note
-      case 'balance':
-        return <>$ {formatNumber(item.balance)}</>
-      case 'marginUsedRatio':
-        return <PositionItemMarginUsedRatio item={item} />
-      case 'pnl':
-        return (
-          <span className={`${ item.pnlStatusClassname }`} >
-            $ {new BN(item.pnl).gt(0) && '+'}{formatNumber(item.pnl)}
-          </span>
-        )
+        return <span className="color-white fw-500 font-size-14">{item.note || '-'}</span>
+      case 'target':
+        return <PositionItemAddress item={item} link={false} shortener={true} className="fw-600 color-white" />
+      case 'mode':
+        return <span className="color-white font-size-14">{item.mode || '-'}</span>
+      case 'address':
+        return <span className="color-white font-size-14">
+          <PositionItemAddress item={{address: item.operaAddress || '-'}} link={false} shortener={true} className="fw-500 color-white" />
+        </span>
       case 'operator':
         return (
-          <span className='d-flex gap-3 align-items-center justify-content-end'>
+          <span className='d-flex gap-3 align-items-center justify-content-end w-100'>
             {
               [
                 { icon: <IShare className='zoom-85' />, title: t('common.share'), onClick: () => handleOpenShareCopyTrade(item) },
                 { icon: <IOutlineEdit className='zoom-85' />, title: t('common.editCopyTrading'), onClick: () => handleOpenCreateCopyTrade(item, true) },
                 { icon: <Popconfirm title={t('common.removeCopyTrading')} onConfirm={() => handleOpenRemoveCopyTrade(item)} okText={t('common.remove')} icon={<IOutlineTrash className='zoom-80' />} showCancel={false}><IOutlineTrash className='zoom-90 linker' /></Popconfirm>, title: t('common.removeCopyTrading'), logged: true},
-              ].map((item, idx) => <SideButtonIcon key={idx} title={item.title} onClick={item.onClick} logged={item.logged} icon={item.icon} />)
+              ].map((op, idx) => <SideButtonIcon key={idx} title={op.title} onClick={op.onClick} logged={op.logged} icon={op.icon} />)
             }
           </span>
         )
+      default:
+        return null
+    }
+  }
+
+  const renderCopyRecordsItem = (item: any, columnIndex: number) => {
+    switch (copyRecordsColumn[columnIndex].id) {
+      case 'address_note':
+        return (
+          <div className="d-flex align-items-center gap-3 w-100">
+            <WalletChainIcon platform={item.platform || 'hyperliquid'} />
+            <div className="d-flex flex-column" style={{ overflow: 'hidden' }}>
+              <PositionItemAddress item={item} link={false} shortener={true} className="fw-600 color-white" />
+              <div className="color-secondary font-size-12 mt-1">{item.note || '-'}</div>
+            </div>
+          </div>
+        )
+      case 'accountValue':
+        return <div className="text-center w-100 fw-600 color-white">$ {formatNumber(item.balance || 0)}</div>
+      case 'uPnl':
+        return <div className={`text-center w-100 fw-600 ${ new BN(item.uPnl || 0).gt(0) ? 'color-success' : 'color-danger' }`} >$ {new BN(item.uPnl || 0).gt(0) && '+'}{formatNumber(item.uPnl || 0)}</div>
       default:
         return null
     }
@@ -232,15 +297,50 @@ const CopyTrading = () => {
       <div className="container-fluid px-0 d-flex flex-column my-5 pt-5">
         <div className="container-xl d-flex flex-column px-3 px-md-4 gap-3 gap-md-4 my-3 my-md-5 py-0">
           <div className="d-flex gap-4 align-items-center justify-content-between col">
-            <h4 className="fw-bold">{ t('common.myWallets') }</h4>
-            <div>
-              <ColumnTooltip title={ privateWalletStore.list.length ? t('copyTrading.walletCreationLimit') : '' }>
-                <>
-                  <ButtonIcon type='primary' logged icon={<IOutlineAdd />} disabled={!!privateWalletStore.list.length} className='gap-1 fw-bold px-3 br-4' onClick={() => privateWalletStore.openCreatePrivateWallet = true }>
-                    <span className='d-none d-sm-block'>{ t('common.createWallet') }</span>
-                  </ButtonIcon>
-                </>
-              </ColumnTooltip>
+            <h4 className="d-flex gap-3 align-items-center fw-bold m-0">
+              <IOutlineWallet3 className='zoom-110' />
+              <span>
+                { t('common.myWallets') || '我的钱包' }
+                {accountStore.logged && <span className="ms-2">({privateWalletStore.list.length})</span>}
+              </span>
+            </h4>
+            <div className="d-flex gap-2">
+              <button
+                className="d-flex align-items-center justify-content-center gap-2 cursor-pointer transition-2"
+                style={{
+                  background: 'rgba(0, 209, 178, 0.1)',
+                  border: '1px solid #00d1b2',
+                  borderRadius: '24px',
+                  color: '#00d1b2',
+                  padding: '8px 20px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                }}
+                onClick={() => privateWalletStore.openCreatePrivateWallet = true}
+              >
+                <IOutlineAdd />
+                <span className="d-none d-sm-block">{t('common.createWallet') || '创建钱包'}</span>
+              </button>
+              <button
+                className="d-flex align-items-center justify-content-center gap-2 cursor-pointer transition-2"
+                style={{
+                  background: 'transparent',
+                  border: '1px solid #00d1b2',
+                  borderRadius: '24px',
+                  color: '#00d1b2',
+                  padding: '8px 20px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                }}
+                onClick={() => privateWalletStore.openImportPrivateWallet = true}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="me-1">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span className="d-none d-sm-block">{t('common.importWallet', '导入钱包')}</span>
+              </button>
             </div>
           </div>
           <ColumnList className='br-3' logged columns={ownWalletsColumn} data={privateWalletStore.list} busy={reqStore.userPrivateWalletBusy} renderItem={renderOwnWalletItem} />
@@ -248,22 +348,78 @@ const CopyTrading = () => {
 
         <div className="container-xl d-flex flex-column px-3 px-md-4 gap-3 gap-md-4 my-3 my-md-5 py-0">
           <div className="d-flex gap-4 align-items-center justify-content-between col">
-            <h4 className="d-flex gap-3 align-items-center fw-bold">
-              <IOutlineShare className='zoom-110' />{ t('common.copyTradingTarget') }
-              {
-                accountStore.logged && <span>({copyTradingStore.copyTradingList.length})</span>
-              }
+            <h4 className="d-flex gap-3 align-items-center fw-bold m-0">
+              <IOutlineShare className='zoom-110' />{ t('header.copyTrading') }
             </h4>
             <div>
-              <ButtonIcon type='primary' logged icon={<IOutlineAdd />} className='gap-1 fw-bold px-3 br-4' onClick={() => handleOpenCreateCopyTrade() }><span className='d-none d-sm-block'>{ t('common.createCopyTrading') }</span></ButtonIcon>
+              <button
+                className="d-flex align-items-center justify-content-center gap-2 cursor-pointer transition-2"
+                style={{
+                  background: 'rgba(0, 209, 178, 0.1)',
+                  border: '1px solid #00d1b2',
+                  borderRadius: '24px',
+                  color: '#00d1b2',
+                  padding: '8px 20px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                }}
+                onClick={() => handleOpenCreateCopyTrade() }
+              >
+                <IOutlineAdd />
+                <span className="d-none d-sm-block">{t('common.createCopyTrading') || '创建跟单交易'}</span>
+              </button>
             </div>
           </div>
-          <ColumnList className='br-3' logged columns={ownCopyTradesColumn} data={copyTradingStore.copyTradingList} busy={reqStore.copyTradingMyCopyTradingBusy} renderItem={renderOwnCopyTradesItem} />
+          
+          <div className="d-flex align-items-center justify-content-start gap-4 mt-2 border-bottom border-secondary-subtle">
+             <div className={`py-2 fw-bold font-size-15 cursor-pointer pb-2 ${activeListTab === 'targets' ? 'color-white' : 'color-secondary hover-text-white transition-2'}`}
+                  style={activeListTab === 'targets' ? { borderBottom: '2px solid white', marginBottom: '-1px' } : {}}
+                  onClick={() => setActiveListTab('targets')}
+             >
+                跟单目标 {accountStore.logged && `(${copyTradingStore.copyTradingList.length})`}
+             </div>
+             <div className={`py-2 fw-bold font-size-15 cursor-pointer pb-2 ${activeListTab === 'records' ? 'color-white' : 'color-secondary hover-text-white transition-2'}`}
+                  style={activeListTab === 'records' ? { borderBottom: '2px solid white', marginBottom: '-1px' } : {}}
+                  onClick={() => setActiveListTab('records')}
+             >
+                跟单记录
+             </div>
+          </div>
+
+          {activeListTab === 'targets' ? (
+            <ColumnList className='br-3 mt-2' logged columns={ownCopyTradesColumn} data={copyTradingStore.copyTradingList} busy={reqStore.copyTradingMyCopyTradingBusy} renderItem={renderOwnCopyTradesItem} />
+          ) : (
+            <ColumnList className='br-3 mt-2' logged columns={copyRecordsColumn} data={[]} busy={false} renderItem={renderCopyRecordsItem} />
+          )}
         </div>
 
         <div className="container-xl d-flex flex-column px-3 px-md-4 gap-3 gap-md-4 my-3 my-md-5 py-0">
+          <div className="d-flex gap-4 align-items-center justify-content-between col mb-0">
+            <h4 className="d-flex gap-2 align-items-center fw-bold m-0 text-white">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path><path d="M12 7v5l3 3"></path></svg>
+              {t('common.addressOverview', '地址概览')}
+            </h4>
+            {
+              privateWalletStore.addresses[0] && (() => {
+                const wAddr = privateWalletStore.addresses[0];
+                const wData = privateWalletStore.list.find(w => w.address === wAddr);
+                const wBalance = wData ? formatNumber(wData.balance) : '0';
+                return (
+                  <div className="d-flex align-items-center gap-2 border bg-gray-alpha-4 px-3 py-1 cursor-pointer hover-gray br-4" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+                    <WalletChainIcon platform="hyperliquid" />
+                    <span className="color-white font-size-14 fw-bold">{wAddr.slice(0, 6)}...{wAddr.slice(-6)}</span>
+                    <span className="color-secondary font-size-13 ms-1">h</span>
+                    <span className="color-white font-size-14 fw-bold ms-1">$ {wBalance}</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="color-secondary ms-1"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </div>
+                );
+              })()
+            }
+          </div>
+
           <div className='d-flex flex-column br-3 overflow-hidden'>
             <TabSwitch
+              className="color-white"
               labelSuffixes={[` (${copyTradingStore.positionList.length})`, ` (${traderDetailsOpenOrdersAdditionalStore.list.length})`]}
               data={copyTradingStore.tabs}
               currId={copyTradingStore.tabId}
@@ -286,7 +442,7 @@ const CopyTrading = () => {
             }
             {
               copyTradingStore.tabId === 'completedTrades' &&
-                <>completedTrades</>
+                <TraderDetailsCompletedTrades address={privateWalletStore.addresses[0]} />
             }
             {
               copyTradingStore.tabId === 'twap' &&
@@ -301,6 +457,7 @@ const CopyTrading = () => {
       </div>
 
       <ModalCreatePrivateWallet />
+      <ModalImportPrivateWallet />
       <ModalDeposit />
       <ModalExportPrivateKey />
       <ModalRemoveWallet />

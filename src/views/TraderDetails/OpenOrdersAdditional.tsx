@@ -36,15 +36,16 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
   const { t, i18n } = useTranslation()
 
   const column = [
-    { id: 'time', sort: true, sortByKey: 'createTs', label: t('common.time'), className: 'col-5 col-sm-3 col-md-2 col-xl-1' },
-    { id: 'symbol', filter: filterCoin, label: t('common.symbol'), className: 'col-4 col-sm-2 col-md-2 col-lg-1' },
-    { id: 'orderType', label: t('common.type'), className: 'col-2 col-md-2 col-lg-1' },
-    { id: 'side', label: t('common.side'), className: 'col-2 col-sm-2 col-md-2 col-lg-1' },
-    { id: 'size', sort: true, sortByKey: 'size', label: t('common.orderSize'), className: 'justify-content-end text-end col-4 col-sm-3 col-md-3 col-lg-2' },
-    { id: 'price', sort: true, sortByKey: 'limitPrice', label: t('common.price'), className: 'justify-content-end text-end col-6 col-sm-5 col-md-3 col-xl-2' },
-    { id: 'trigger', label: t('common.trigger'), className: 'justify-content-end text-end col-3 col-lg-2 col-xl-1' },
-    { id: 'status', label: t('common.status'), className: 'justify-content-end text-end col-4 col-sm-3 col-md-2 col-lg-1' },
-    { id: 'orderId', label: t('common.orderId'), className: 'justify-content-end text-end col-5 col-sm-4 col-md-3 col-lg-2' },
+    { id: 'time', sort: true, sortByKey: 'createTs', label: t('common.time'), className: 'col-5 col-md-2' },
+    { id: 'symbol', filter: 'symbol', label: t('common.symbol'), className: 'col-4 col-md-1' },
+    { id: 'orderType', label: t('common.type'), className: 'col-2 col-md-1' },
+    { id: 'side', label: t('common.side'), className: 'col-2 col-md-1' },
+    { id: 'value', sort: true, sortByKey: 'value', label: t('common.value'), className: 'justify-content-center text-center col-3 col-md-1' },
+    { id: 'size', sort: true, sortByKey: 'size', label: t('common.amount'), className: 'justify-content-end text-end col-4 col-md-1' },
+    { id: 'price', sort: true, sortByKey: 'limitPrice', label: t('common.price'), className: 'justify-content-end text-end col-6 col-md-2' },
+    { id: 'trigger', label: t('common.trigger'), className: 'justify-content-end text-end col-3 col-md-1' },
+    { id: 'status', label: t('common.status'), className: 'justify-content-end text-end col-4 col-md-1' },
+    { id: 'operator', label: t('common.cancelAll'), className: 'justify-content-end text-end col-5 col-md-1' },
   ]
 
   const renderItem = (item, columnIndex) => {
@@ -58,6 +59,9 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
           || t(`orderType.${item.orderType}`)
       case 'side':
         return <PositionItemSide size='small' item={item} />
+      case 'value':
+        let orderValue = Number(item.limitPrice || 0) * Number(item.size || 0)
+        return <>$ {formatNumber(orderValue)}</>
       case 'size':
         return <PositionItemSize item={item} />
       case 'price':
@@ -69,8 +73,8 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
         return item.isTPSL && t('common.tpSl')
           || item.reduceOnly && t('common.reduceOnly')
           || t('common.openPosition')
-      case 'orderId':
-        return <># {item.orderId}</>
+      case 'operator':
+        return <span className="hover-primary cursor-pointer fw-500">_</span>
       default:
         return null
     }
@@ -132,6 +136,7 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
             createTs: order.timestamp,
             limitPrice: order.limitPx,
             orderType: 'limit',
+            value: Number(order.limitPx || 0) * Number(order.sz || 0)
           })
           break
         // case 'triggered':

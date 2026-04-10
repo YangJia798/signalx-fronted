@@ -169,7 +169,7 @@ const Rewards = () => {
                   <h2 className='fw-bold'>{t('rewards.headline')}</h2>
                   <span className='h5 color-secondary col-12 col-md-10 text-center text-md-start'>{t('rewards.subheadline')}</span>
                   <div className="mt-1">
-                    <Button href='https://hyperbots-organization.gitbook.io/hyperbots-organization/hyperbot-official/points-system' className='br-4 border-w-2 fw-500 gap-2' ghost type='dashed'  target='_blank'>{t('common.learnMore')}<IOutlineExport2 className="w-20" /></Button>
+                    <Button href='https://signalxbots-organization.gitbook.io/signalxbots-organization/signalxbot-official/points-system' className='br-4 border-w-2 fw-500 gap-2' ghost type='dashed'  target='_blank'>{t('common.learnMore')}<IOutlineExport2 className="w-20" /></Button>
                   </div>
                 </div>
               </div>
@@ -251,8 +251,8 @@ const Rewards = () => {
               <ColumnList noDataSize='small' logged className='br-3' columns={taskColumn}
                 data={[
                   { label: t('rewards.invite3friends'), point: 5, status: rewardStore.invite3Friends, invite: true },
-                  { label: t('rewards.trade1000'), point: 5, status: rewardStore.trade1000Today, href: 'https://t.me/Hyperbotai_bot?start=ref_7582143522' },
-                  { label: t('rewards.trade5Times'), point: 5, status: rewardStore.trade5Times, href: 'https://t.me/Hyperbotai_bot?start=ref_7582143522' },
+                  { label: t('rewards.trade1000'), point: 5, status: rewardStore.trade1000Today, href: 'https://t.me/Signalxbotai_bot?start=ref_7582143522' },
+                  { label: t('rewards.trade5Times'), point: 5, status: rewardStore.trade5Times, href: 'https://t.me/Signalxbotai_bot?start=ref_7582143522' },
                   // { label: t('rewards.copyTrade3Times'), point: 5, status: rewardStore.copyTrade3Times, to: '/discover' },
                 ]}
                 renderItem={renderTask} />

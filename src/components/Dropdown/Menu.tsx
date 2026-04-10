@@ -1,13 +1,13 @@
 import React from 'react';
 import { Button, Dropdown } from 'antd';
-import { useTranslation, withTranslation, Trans } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 
 import { IOutlineArrowUp1 } from '@/components/icon';
 
 interface DropdownMenuItem {
-  label: string;
+  label: string | React.ReactNode;
   i18n?: string;
-  value?: string;
+  value: string;
 }
 
 interface DropdownMenuProps {
@@ -29,25 +29,24 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({
   suffix = '',
   className = '',
   buttonSize = 'middle',
-  btnClassName = '',
   placement = 'bottomRight',
   icon
 }) => {
   const selectedItem = items.find(item => item.value === selectedValue);
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
 
   return (
     <div className={`d-flex bg-gray-alpha-4 br-2 ${className}`}>
       <Dropdown placement={placement}
         menu={{
-          items: items.map((item) => ({ 
+          items: items.map((item) => ({
             key: item.value,
             label: (
               <div onClick={() => onSelect(item.value)}>
-                { item.i18n ? t(item.i18n) : item.label}{suffix}
+                {item.i18n ? t(item.i18n) : item.label}{suffix}
               </div>
             )
-          })) 
+          }))
         }}
       >
         <Button size={buttonSize} className='br-2 px-3 py-1 gap-2 fw-bold' type='text'>

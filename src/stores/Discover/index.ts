@@ -1,30 +1,51 @@
 import { createStore } from '@/stores/helpers'
-
 import { merge } from '@/utils'
-import { constants } from '@/stores'
-import i18n from '@/i18n'
 
 export * from './trading-statistics'
 export * from './recommend'
 export * from './kol'
 
-interface TDiscoverItem {
-
+export interface TDiscoverItem {
+  address: string
+  sharpe?: string
+  maxDrawdown?: string
+  totalPositions?: number
+  winRate?: string
+  longWinRate?: string
+  shortWinRate?: string
+  accountTotalValue?: string
+  perpValue?: string
+  spotValue?: string
+  pnl?: string
+  longPnl?: string
+  shortPnl?: string
+  pnlList?: any[]
+  rank?: number
 }
+
 interface TCycleItem {
   value: string
   i18n?: string
   label: string
 }
 
-
 export type TDiscoverStore = {
-  mainTypeValue: string
-  mainTypeRadios: Array<{value: string, i18n: string}>
+  mainTypeValue: string // 'popular' | 'all' | 'kol'
+  mainTypeRadios: Array<{ value: string, i18n: string, label: string }>
+
+  // Advanced Filters (Whale/Discover parity)
+  filterAccountValue: string[]
+  filterPnlScale: string[]
+  filterSidePreference: string[]
+  filterTradingRhythm: string[]
+  filterPnlStatus: string[]
+  filterTradingStyle: string[]
+
+  filterMainForce: string // 主力吸筹监测
+  filterMemberCoins: string[] // 会员币种选择
 
   CYCLE_KEYS: Record<string, TCycleItem>
-  // id 与 key 相同
-  SORT_KEYS: Record<string, { id: string, i18n?: string, value: number, label: string }>
+  SORT_KEYS: Record<string, { id: string, i18n?: string, value: string, label: string }>
 
   openTradingStatistics: boolean
 
@@ -44,35 +65,46 @@ export type TDiscoverStore = {
   isFirst: boolean
   isLast: boolean
   count: number
+
   next(): void
   resetList: () => void
+  resetAddress(): void
 
-  searchAddressInput: string
-  searchAddress: string
-  searchList: Array<any>
-  resetSearch: () => void
+  removeFilter(category: string, value: string): void
+  clearAllFilters(): void
 
   reset: () => void
+  [key: string]: any
 }
 
 const CYCLE_KEYS = {
-  day: { value: '1', i18n: 'common.oneD', label: '1D' },
-  week: { value: '7', i18n: 'common.sevenD', label: '7D' },
-  month: { value: '30', i18n: 'common.thirtyD', label: '30D' },
-  allTime:  { value: '0', i18n: 'common.all', label: 'All' },
+  day: { value: '1', i18n: 'common.oneD', label: '1天' },
+  week: { value: '7', i18n: 'common.oneW', label: '1周' },
+  month: { value: '30', i18n: 'common.oneM', label: '1月' },
+  allTime: { value: '0', i18n: 'common.all', label: '全部' },
 }
 
-// NOTE: 对应接口
 const SORT_KEYS = {
-  winRate: { id: 'winRate', i18n: 'common.winRate', value: 0, label: 'Win Rate' },
-  accountTotalValue: { id: 'accountTotalValue', i18n: 'common.accountTotalValue', value: 1, label: 'Account Total Value' },
-  roi: { id: 'roi', i18n: 'common.roi', value: 2, label: 'ROI' },
-  pnl: { id: 'pnl', i18n: 'common.pnl', value: 3, label: 'Pnl' },
-  executedTrades: { id: 'executedTrades', i18n: 'common.tradesCount', value: 4, label: 'Executed Trades' },
-  profitableTrades: { id: 'profitableTrades', i18n: 'common.profitableTradesCount', value: 5, label: 'Profitable Trades' },
-  lastOperation: { id: 'lastOperation', i18n: 'common.lastOperationTime', value: 6, label: 'Last Operation Time' },
-  avgHoldingPeriod: { id: 'avgHoldingPeriod', i18n: 'common.avgHoldingPeriod', value: 7, label: 'Avg Holding Period' },
-  currentPosition: { id: 'currentPosition', i18n: 'common.currentPosition', value: 8, label: 'Current Position' },
+  winRate: { id: 'winRate', i18n: 'common.winRate', value: '0', label: 'Win Rate' },
+  accountTotalValue: { id: 'accountTotalValue', i18n: 'common.accountTotalValue', value: '1', label: 'Account Total Value' },
+  roi: { id: 'roi', i18n: 'common.roi', value: '2', label: 'ROI' },
+  pnl: { id: 'pnl', i18n: 'common.pnl', value: '3', label: 'Pnl' },
+  executedTrades: { id: 'executedTrades', i18n: 'common.tradesCount', value: '4', label: 'Executed Trades' },
+  profitableTrades: { id: 'profitableTrades', i18n: 'common.profitableTradesCount', value: '5', label: 'Profitable Trades' },
+  lastOperation: { id: 'lastOperation', i18n: 'common.lastOperationTime', value: '6', label: 'Last Operation Time' },
+  avgHoldingPeriod: { id: 'avgHoldingPeriod', i18n: 'common.avgHoldingPeriod', value: '7', label: 'Avg Holding Period' },
+  currentPosition: { id: 'currentPosition', i18n: 'common.currentPosition', value: '8', label: 'Current Position' },
+}
+
+const DEFAULT_FILTERS = {
+  filterAccountValue: [],
+  filterPnlScale: [],
+  filterSidePreference: [],
+  filterTradingRhythm: [],
+  filterPnlStatus: [],
+  filterTradingStyle: [],
+  filterMainForce: 'all',
+  filterMemberCoins: ['ETH']
 }
 
 const DEFAULT_SEARCH = {
@@ -84,31 +116,29 @@ const DEFAULT_SEARCH = {
 const DEFAULT_LIST = {
   list: [],
   _last: [],
-
-  // pagination
-  size: 10,
+  size: 12,
   current: 1,
   total: 0,
   isEnd: false,
 }
 
-
-
 const DEFAULT = {
+  mainTypeValue: 'popular',
   sortByKey: SORT_KEYS.profitableTrades.id,
-
+  selectedCycleValue: CYCLE_KEYS.week.value,
+  openTradingStatistics: false,
   ...DEFAULT_LIST,
   ...DEFAULT_SEARCH,
-}
+  ...DEFAULT_FILTERS,
+} as any
 
 const discoverStore: TDiscoverStore = {
-  // XXX: 最好移到别的地方
-  openTradingStatistics: false,
+  ...DEFAULT,
 
-  mainTypeValue: 'smart',
   mainTypeRadios: [
-    { value: 'smart', i18n: 'discover.smartTrader' },
-    { value: 'kol', i18n: 'discover.kolTrader' },
+    { value: 'popular', i18n: 'discover.popularAddresses', label: 'Popular Addresses' },
+    { value: 'all', i18n: 'discover.allTraders', label: 'All Traders' },
+    { value: 'kol', i18n: 'discover.kolTrader', label: 'Twitter KOL' },
   ],
 
   CYCLE_KEYS,
@@ -120,12 +150,9 @@ const discoverStore: TDiscoverStore = {
     CYCLE_KEYS.month,
     CYCLE_KEYS.allTime
   ],
-  selectedCycleValue: CYCLE_KEYS.week.value,
 
-  ...DEFAULT,
-
-  get selectedCycleItem () {
-    return this.cycles.find(item => item.value === this.selectedCycleValue)
+  get selectedCycleItem(): TCycleItem {
+    return this.cycles.find(item => item.value === this.selectedCycleValue) || this.cycles[1]
   },
 
   get last() {
@@ -133,9 +160,7 @@ const discoverStore: TDiscoverStore = {
   },
   set last(val) {
     const result = this._last = val
-
-    // update
-    this.list = this.list.concat(result)
+    this.list = this.list.concat(result as any)
   },
   get isFirst() {
     return this.current <= 1
@@ -145,7 +170,6 @@ const discoverStore: TDiscoverStore = {
   },
   get count() {
     const { total, size } = this
-
     return Math.ceil(total / size || 1)
   },
   next() {
@@ -154,13 +178,22 @@ const discoverStore: TDiscoverStore = {
   resetList() {
     merge(this, DEFAULT_LIST)
   },
-  resetSearch() {
+  resetAddress() {
     merge(this, DEFAULT_SEARCH)
   },
   reset() {
     merge(this, DEFAULT)
+  },
+  removeFilter(category: string, value: string) {
+    if (Array.isArray(this[category])) {
+      this[category] = (this[category] as string[]).filter(v => v !== value)
+    } else {
+      this[category] = 'all'
+    }
+  },
+  clearAllFilters() {
+    merge(this, DEFAULT_FILTERS)
   }
 }
 
 export const useDiscoverStore = createStore<TDiscoverStore>(discoverStore)
-

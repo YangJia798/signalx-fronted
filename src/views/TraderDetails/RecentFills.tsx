@@ -16,15 +16,15 @@ const TraderDetailsRecentFills = ({ address, filterCoin = '', displayedRecordsMe
   const { t, i18n } = useTranslation()
 
   const column = [
-    { id: 'time', sort: true, sortByKey: 'createTs', label: t('common.time'), className: 'col-5 col-sm-3 col-md-2 col-xl-1' },
-    { id: 'symbol', filter: filterCoin, label: t('common.symbol'), className: 'col-4 col-sm-2 col-md-2 col-lg-1' },
-    { id: 'side', label: t('common.direction'), className: 'col-3 col-sm-2 col-md-1' },
-    { id: 'size', sort: true, sortByKey: 'size', label: t('common.orderSize'), className: 'justify-content-end text-end col-6 col-sm-5 col-md-3 col-xl' },
-    { id: 'startPosition', sort: true, sortByKey: 'startPosition', label: t('common.startPosition'), className: 'justify-content-end text-end  col-6 col-sm-5 col-md-3 col-xl-2' },
-    { id: 'price', sort: true, sortByKey: 'price', label: t('common.price'), className: 'justify-content-end text-end col-6 col-sm-5 col-md-3 col-xl-2' },
-    { id: 'closedPnl', sort: true, sortByKey: 'closedPnl', label: t('common.closedPnl'), className: 'justify-content-end text-end col-2 col-lg-1 col-xl-1 ' },
-    { id: 'fee', sort: true, sortByKey: 'fee', label: t('common.fee'), className: 'justify-content-end text-end col-4 col-md-3 col-lg-1' },
-    { id: 'transaction', label: t('common.transaction'), className: 'justify-content-end text-end col-4 col-sm-3 col-md-2 col-xl' },
+    { id: 'time', sort: true, sortByKey: 'createTs', label: t('common.time'), className: 'col-5 col-md-2' },
+    { id: 'symbol', filter: 'symbol', label: t('common.symbol'), className: 'col-4 col-md-1' },
+    { id: 'side', label: t('common.action'), className: 'col-3 col-md-1' },
+    { id: 'size', sort: true, sortByKey: 'size', label: t('common.orderSize'), className: 'justify-content-end text-end col-6 col-md-2' },
+    { id: 'startPosition', sort: true, sortByKey: 'startPosition', label: t('common.startPosition'), className: 'justify-content-end text-end col-6 col-md-1' },
+    { id: 'price', sort: true, sortByKey: 'price', label: t('common.price'), className: 'justify-content-end text-end col-6 col-md-2' },
+    { id: 'closedPnl', sort: true, sortByKey: 'closedPnl', label: t('common.closedPnl'), className: 'justify-content-end text-end col-2 col-md-1' },
+    { id: 'fee', sort: true, sortByKey: 'fee', label: t('common.fee'), className: 'justify-content-end text-end col-4 col-md-1' },
+    { id: 'transaction', label: t('common.transaction'), className: 'justify-content-end text-end col-4 col-md-1' },
   ]
 
   const renderItem = (item, columnIndex) => {

@@ -1,4 +1,14 @@
 .tabSwitch {
+  &.color-white {
+    .tabSwitchContainer .tabSwitchSpace > div > span {
+      &.curr,
+      &:hover {
+        color: #fff !important;
+        border-color: #fff !important;
+      }
+    }
+  }
+
   .tabSwitchContainer {
     // top: 0;
     left: 0;
@@ -29,8 +39,8 @@
 
           &.curr,
           &:hover {
-            color: #fff;
-            border-color: #fff;
+            color: #13C2C2;
+            border-color: #13C2C2;
           }
         }
       }

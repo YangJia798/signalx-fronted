@@ -25,26 +25,8 @@ export const userPrivateWallet: TUserPrivateWallet = {
 
     this.userPrivateWalletBusy = true
 
-    const res = await baseApi.get('/account/wallet', {
-      params: {}
-    })
-    // TEST
-    // const res = {
-    //   data: {
-    //     code: '0',
-    //     data:  {
-    //       balance: 1500.75,
-    //       hasPriKey: true,
-    //       nickname: "User123",
-    //       passwdPrompt: "Enter your password hint!",
-    //       registerTime: "2023-05-01T12:00:00Z",
-    //       totalMarginUsed: 300.50,
-    //       uPnl: 120.25,
-    //       wallet: "0xA1B2C3D4E5F60718293A4B5C6D7E8F9G0H1I2J3K4",
-    //       withdrawable: '100.00',
-    //     }
-    //   }
-    // }
+    // GET /wallet/list — 获取用户托管钱包列表（返回数组）
+    const res = await baseApi.get('/wallet/list')
 
     result.error = baseCheck(res, accountStore)
     this.userPrivateWalletBusy = false
@@ -57,29 +39,44 @@ export const userPrivateWallet: TUserPrivateWallet = {
     privateWalletStore.list = []
     privateWalletStore.addresses = []
 
-    // XXX: 目前只有一个
+    let items: Array<Record<string, any>> = []
+    if (Array.isArray(data)) {
+      items = data
+    } else if (data && data.records && Array.isArray(data.records)) {
+      items = data.records
+    } else if (data && data.list && Array.isArray(data.list)) {
+      items = data.list
+    } else if (data && Object.keys(data).length > 0) {
+      items = [data]
+    }
+
     result.data = {
-      addresses:  (data?.wallet ? [data] : []).map(item => item.wallet),
-      list: (data?.wallet ? [data] : []).map((item, idx) => {
-        const bnUPnl = new BN(item.upnl)
+      addresses: items.map(item => item.wallet ?? item.address ?? ''),
+      list: items.map((item, idx) => {
+        const bnUPnl = new BN(item.upnl ?? item.uPnl ?? item.profit_loss ?? 0)
         const { decimalPlaces } = constants
         const uPnlStatus = formatUPnlStatus(bnUPnl)
 
+        let createTsStr = item.registerTime ?? item.createTs ?? item.created_time ?? '';
+        let createTs = createTsStr;
+        if (createTsStr && typeof createTsStr === 'string' && createTsStr.includes('-')) {
+            createTs = new Date(createTsStr.replace(/-/g, '/')).getTime();
+        }
+
         return {
           idx,
-          // XXX: 目前只有1
-          walletId: 1,
-          balance: new BN(item.balance).toFixed(decimalPlaces.__COMMON__),
-          hasPrivateKey: item.hasPriKey,
-          nickname: item.nickname,
-          pwPrompt: item.passwdPrompt,
-          createTs: item.registerTime,
-          totalMarginUsed: new BN(item.totalMarginUsed).toFixed(decimalPlaces.__COMMON__),
+          walletId: item.walletId ?? item.id ?? idx + 1,
+          balance: new BN(item.balance ?? item.total_value ?? 0).toFixed(decimalPlaces.__COMMON__),
+          hasPrivateKey: item.hasPriKey ?? item.hasPrivateKey ?? false,
+          nickname: item.nickname ?? item.remark ?? '',
+          pwPrompt: item.passwdPrompt ?? '',
+          createTs: createTs,
+          totalMarginUsed: new BN(item.totalMarginUsed ?? item.total_margin_used ?? 0).toFixed(decimalPlaces.__COMMON__),
           uPnl: bnUPnl.toFixed(constants.decimalPlaces.__uPnl__),
           uPnlStatus,
           uPnlStatusClassName: formatStatusClassName(uPnlStatus),
-          address: item.wallet,
-          withdrawable: new BN(item.withdrawable).toFixed(decimalPlaces.__COMMON__)
+          address: item.wallet ?? item.address ?? '',
+          withdrawable: new BN(item.withdrawable ?? item.withdrawable_amount ?? 0).toFixed(decimalPlaces.__COMMON__)
         }
       })
     }

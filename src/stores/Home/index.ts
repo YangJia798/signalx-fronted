@@ -8,7 +8,7 @@ export type THomeStore = {
 }
 
 const DEFAULT = {
-  startUrl: 'https://t.me/Hyperbotai_bot'
+  startUrl: 'https://t.me/Signalxbotai_bot'
 }
 
 const homeStore: THomeStore = {

@@ -32,7 +32,7 @@
       }
 
       .ant-modal-content {
-        border-radius: 24px;
+        border-radius: 8px;
         padding: 0;
 
         .ant-modal-body {
@@ -160,16 +160,16 @@
   }
 
   &.ant-btn-primary {
-    background: linear-gradient(90deg, #DEFAF6 -0.03%, #FFABFF 34.99%, #00B8D9 100.03%);
-    background-color: rgb(var(--bs-primary-rgb));
-    color: #0A0A0A;
-    fill: #0A0A0A;
+    background: #13c2c2;
+    background-color: #13c2c2;
+    color: #000;
+    fill: #000;
     border: 0;
 
     &:hover:not(:disabled) {
-      background-color: #29BDCC;
-      color: #0A0A0A !important;
-      fill: #0A0A0A !important;
+      background-color: #11adad;
+      color: #000 !important;
+      fill: #000 !important;
     }
 
     &:hover {
@@ -248,15 +248,15 @@
     }
 
     &.ant-btn-color-primary {
-      border: 1px solid #29BDCC;
-      color: #29BDCC;
-      fill: #29BDCC;
+      border: 1px solid #13c2c2;
+      color: #13c2c2;
+      fill: #13c2c2;
 
       &:not(:disabled):hover,
       &.hover {
-        background: linear-gradient(91.16deg, #29BDCC 6.62%, #62FDFE 99.29%) !important;
-        color: #0D1213;
-        fill: #0D1213;
+        background: rgba(19, 194, 194, 0.1) !important;
+        color: #13c2c2;
+        fill: #13c2c2;
       }
 
     }

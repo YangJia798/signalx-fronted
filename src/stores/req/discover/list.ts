@@ -1,6 +1,6 @@
 import BN from 'bignumber.js'
 
-import { merge, defaults, formatPer } from '@/utils'
+import { merge, defaults, formatPer, formatNumber } from '@/utils'
 import { baseCheck, baseApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TDiscoverStore } from '@/stores'
 
@@ -29,7 +29,7 @@ export const discoverList: TDiscoverList = {
       pageNum: discoverStore.current,
       pageSize: discoverStore.size,
       period: +discoverStore.selectedCycleValue,
-      sort: discoverStore.SORT_KEYS[discoverStore.sortByKey].value,
+      sort: +discoverStore.SORT_KEYS[discoverStore.sortByKey].value,
     }
 
     if (discoverStore.searchAddress) {
@@ -377,12 +377,12 @@ export const discoverList: TDiscoverList = {
           // 都为0时，则没开过仓
           lossRate: !item.winRate && !item.shortWr && !item.longWr
             ? '0'
-            : formatPer(1-item.winRate),
+            : formatPer(1 - item.winRate),
 
           accountTotalValue: new BN(item.accountTotalValue).toFixed(constants.decimalPlaces.__COMMON__),
           totalPositions: item.currentPosition, // 持仓数量
-          perpValue: new BN(item.perp).toFixed(constants.decimalPlaces.__COMMON__), // 永续合约价值
-          spotValue: new BN(item.spot).toFixed(constants.decimalPlaces.__COMMON__), // 现货价值
+          perpValue: new BN(item.perp || 0).toFixed(constants.decimalPlaces.__COMMON__), // 永续合约价值
+          spotValue: new BN(item.spot || 0).toFixed(constants.decimalPlaces.__COMMON__), // 现货价值
 
           marginUsed: new BN(item.marginUsage).toFixed(constants.decimalPlaces.__COMMON__), // 
           marginUsedRatio: formatPer(item.marginUsageRate, true),
@@ -394,6 +394,11 @@ export const discoverList: TDiscoverList = {
 
           lastActionTs: item.lastOperationAt,
           avgHoldingPeriod: item.avgHoldingPeriod,
+
+          // 1:1 Parity Metrics
+          sharpe: formatNumber(item.sharpe) || '0.00',
+          maxDrawdown: formatPer(item.maxDrawdown, true),
+          rank: item.rank || 0,
 
           pnlList: (item.pnlList || []).map((_item) => ({
             time: ~~(timeToLocal(_item.timestamp) / 1000),

@@ -87,9 +87,9 @@ const TrackMonitor = () => {
           ? <>$ {item.liquidationPrice}</>
           : '-'
       case 'margin':
-        return <>$ { formatNumber(item.marginUsed) }</>
+        return <>$ {formatNumber(item.marginUsed)}</>
       case 'markPrice':
-        return <>$ { item.markPrice }</>
+        return <>$ {item.markPrice}</>
       case 'time':
         return <TimeAgo ts={item.createTs} />
       // case 'operator':
@@ -118,9 +118,9 @@ const TrackMonitor = () => {
           ? <>$ {item.liquidationPrice}</>
           : '-'
       case 'margin':
-        return <>$ { formatNumber(item.marginUsed) }</>
+        return <>$ {formatNumber(item.marginUsed)}</>
       case 'markPrice':
-        return <>$ { item.markPrice }</>
+        return <>$ {item.markPrice}</>
       case 'fundingFee':
         return <PositionItemFundingFee item={item} />
       case 'createTs':
@@ -192,7 +192,7 @@ const TrackMonitor = () => {
   useEffect(() => {
     const asyncFunc = async () => {
       // NOTE: 新闻语言由这里控制，所以不用再单独缓存保存配置
-      switch(i18n.resolvedLanguage) {
+      switch (i18n.resolvedLanguage) {
         case 'zh-Hans':
         case 'zh-Hant':
           newsLatestStore.selectedLanguage = 'zh'
@@ -233,66 +233,21 @@ const TrackMonitor = () => {
                 columns={whalesEvent}
                 data={whaleEventsStore.list}
                 busy={reqStore.whaleEventsBusy}
-                onRowClick={(item) => navigate(`/trader/${item.address}`) }
+                onRowClick={(item) => navigate(`/trader/${item.address}`)}
                 renderItem={renderWhalesEventItem} />
             </div>
             <NewsTimeline className='col-12 col-xl' maxHeight={620}
               title={t('track.industryNews')}
               autoRefreshCD={300}
-              loading={reqStore.newsLatestBusy || reqStore.newsLatestInit} 
-              dataSources={<small className='position-absolute position-rb color-unimportant px-2 pt-1 bg-black-thin br-tl-2'>Data sources from AI Coin</small>} 
+              loading={reqStore.newsLatestBusy || reqStore.newsLatestInit}
+              dataSources={<small className='position-absolute position-rb color-unimportant px-2 pt-1 bg-black-thin br-tl-2'>Data sources from AI Coin</small>}
               list={newsLatestStore.list}
               contentEllipsis={false}
               onRefresh={handleRefreshNews} />
           </div>
         </div>
 
-        <div className="container-xl d-flex flex-column px-3 px-md-4 gap-3 gap-md-4 my-3 my-md-5 py-0">
-          <div className="d-flex flex-wrap gap-4 align-items-center col">
-            <h4 className="fw-bold">{t('track.moreWhalesPosition')}</h4>
-            <div className="d-flex flex-wrap align-items-center gap-2 ms-auto justify-content-end">
-              {[
-                {
-                  items: whalePositionsStore.selectCoin,
-                  selectedValue: whalePositionsStore.selectedCoin,
-                  storeKey: 'selectedCoin',
-                },
-                {
-                  items: whalePositionsStore.selectDirection,
-                  selectedValue: whalePositionsStore.selectedDirection,
-                  storeKey: 'selectedDirection',
-                },
-                {
-                  items: whalePositionsStore.selectUPnl,
-                  selectedValue: whalePositionsStore.selectedUPnl,
-                  storeKey: 'selectedUPnl',
-                },
-                {
-                  items: whalePositionsStore.selectFundingFee,
-                  selectedValue: whalePositionsStore.selectedFundingFee,
-                  storeKey: 'selectedFundingFee',
-                }
-              ].map((config, index) => (
-                <DropdownMenu key={index} buttonSize="small"
-                  items={config.items}
-                  selectedValue={config.selectedValue}
-                  onSelect={(val) => { 
-                    whalePositionsStore[config.storeKey] = val;
-                    handleWhalePositions(); 
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-          <ColumnList className='br-3'
-            columns={whalesPosition}
-            onlyDesc
-            data={whalePositionsStore.list}
-            busy={reqStore.whalePositionsBusy}
-            sortColumnId={whalePositionsStore.sortColumnId}
-            onChangeSort={handleWhalesPositionChangeSort}
-            renderItem={renderWhalesPositionItem} />
-        </div>
+
       </div>
 
       <ModalTradingStatistics />

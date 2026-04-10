@@ -8,6 +8,7 @@ export type TPrivateWalletStore = {
   MIN_DEPOSIT_USDC_AMOUNT: number
 
   openCreatePrivateWallet: boolean
+  openImportPrivateWallet: boolean
   openExportPrivateKey: boolean
   openDeposit: boolean
   openWithdraw: boolean
@@ -32,10 +33,19 @@ export type TPrivateWalletStore = {
   }>
 
   // create
+  createPlatform: string   // 'hyperliquid' | 'aster'
   createPW: string
   createPWPrompt: string
   createNickname: string
   resetCreate: () => void
+
+  // import
+  importWalletProvider: string  // 'aster' | 'hyperliquid'
+  importAddress: string
+  importApiWalletAddress: string
+  importApiSecretKey: string
+  importNickname: string
+  resetImport: () => void
 
   // ExportPrivateKey
   exportPrivateKeyPW: string
@@ -47,16 +57,24 @@ export type TPrivateWalletStore = {
   resetDeposit: () => void
 
   // remove
-  removePW: string
   resetRemove: () => void
 
   reset: () => void
 }
 
 const DEFAULT_CREATE = {
+  createPlatform: 'hyperliquid',
   createPW: '',
   createPWPrompt: '',
   createNickname: ''
+}
+
+const DEFAULT_IMPORT = {
+  importWalletProvider: 'aster',
+  importAddress: '',
+  importApiWalletAddress: '',
+  importApiSecretKey: '',
+  importNickname: ''
 }
 
 const DEFAULT_EXPORT_PRIVATE_KEY = {
@@ -68,9 +86,7 @@ const DEFAULT_DEPOSIT = {
   depositNumber: ''
 }
 
-const DEFAULT_REMOVE = {
-  removePW: ''
-}
+const DEFAULT_REMOVE = {}
 
 const DEFAULT = {
   operaWalletIdx: -1,
@@ -79,6 +95,7 @@ const DEFAULT = {
 
   list: [],
   ...DEFAULT_CREATE,
+  ...DEFAULT_IMPORT,
   ...DEFAULT_EXPORT_PRIVATE_KEY,
   ...DEFAULT_DEPOSIT,
   ...DEFAULT_REMOVE
@@ -89,6 +106,7 @@ const privateWalletStore: TPrivateWalletStore = {
   MIN_DEPOSIT_USDC_AMOUNT: 15,
 
   openCreatePrivateWallet: false,
+  openImportPrivateWallet: false,
   openExportPrivateKey: false,
   openDeposit: false,
   openWithdraw: false,
@@ -98,6 +116,10 @@ const privateWalletStore: TPrivateWalletStore = {
 
   resetCreate() {
     merge(this, DEFAULT_CREATE)
+  },
+
+  resetImport() {
+    merge(this, DEFAULT_IMPORT)
   },
 
   resetExportPrivateKey() {

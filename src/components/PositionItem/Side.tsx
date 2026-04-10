@@ -37,7 +37,7 @@ const PositionItemSide: React.FC<PositionItemSideProps> = ({ item, size = 'middl
   }, [item.side])
 
   return (
-    <span className={`br-1 text-capitalize ${SIZES_CLASSNAME[size]} ${sideClassName}`}>
+    <span className={`br-1 text-capitalize flex-shrink-0 text-nowrap ${SIZES_CLASSNAME[size]} ${sideClassName}`}>
       {t(`common.${i18nText}`)}
     </span>
   )

@@ -176,7 +176,7 @@ const AreaTrades: React.FC<AreaTradesProps> = ({
     <>
       <div className='d-flex py-1'>
         <span className='d-flex gap-1 align-items-center col'>
-          <span className='color-secondary'>{t('common.maxOrder')}</span>
+          <span className='color-secondary text-nowrap'>{t('common.maxOrder')}</span>
           <PositionItemSide size='small' item={{ side: areaTrades.maxSizeSide }} />
           <span className='fw-500'>{new BN(areaTrades.maxSize).toFixed(sizeDecimals)}</span>
           <span className='color-secondary'>{coin}</span>

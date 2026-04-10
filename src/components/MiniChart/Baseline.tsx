@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import dayjs from 'dayjs';
 import BN from 'bignumber.js';
-import { createChart, ColorType, AreaSeries, BaselineSeries, IChartApi } from 'lightweight-charts';
-import { useTranslation, withTranslation, Trans } from 'react-i18next'
+import { createChart, ColorType, BaselineSeries, IChartApi } from 'lightweight-charts';
+import { useTranslation } from 'react-i18next'
 
 import { formatNumber, getLocalTimezoneOffsetInSeconds } from '@/utils'
 import { constants } from '@/stores'
@@ -11,7 +11,7 @@ import PositionItemCommonPnl from '@/components/PositionItem/CommonPnl'
 import './Baseline.scss'
 
 interface TDataPoint {
-  time: string | number;
+  time: number;
   value: number;
 }
 
@@ -40,9 +40,9 @@ const MiniChartBaseline: React.FC<MiniChartBaselineProps> = ({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<any>(null);
-  const [point, setPoint] = useState(null)
+  const [point, setPoint] = useState<any>(null)
 
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const topColorRGB = '20, 195, 98'; // 绿色
   const bottomColorRGB = '208, 21, 21'; // 红色
 
@@ -121,19 +121,19 @@ const MiniChartBaseline: React.FC<MiniChartBaselineProps> = ({
       seriesRef.current = areaSeries;
 
       // 设置数据
-      areaSeries.setData(data);
-
-      // 自适应内容
-      chart.timeScale().fitContent();
+      if (data && data.length > 0) {
+        areaSeries.setData(data as any);
+        // 自适应内容
+        chart.timeScale().fitContent();
+      }
 
       // 处理悬停提示
       if (tooltipVisible && tooltipRef.current) {
-        const toolTipWidth = tooltipRef.current.clientHeight;
         const toolTipHeight = tooltipRef.current.clientHeight;
         const toolTipMargin = 15;
 
         chartContainerRef.current.appendChild(tooltipRef.current);
-        
+
         // 添加鼠标离开事件监听器
         const handleMouseLeave = () => {
           if (tooltipRef.current) {
@@ -141,9 +141,9 @@ const MiniChartBaseline: React.FC<MiniChartBaselineProps> = ({
             setPoint(null); // 清除当前数据点
           }
         };
-        
+
         chartContainerRef.current.addEventListener('mouseleave', handleMouseLeave);
-      
+
         // 监听十字线移动事件
         chart.subscribeCrosshairMove(param => {
           if (
@@ -154,14 +154,14 @@ const MiniChartBaseline: React.FC<MiniChartBaselineProps> = ({
             param.point.y < 0 ||
             param.point.y > height
           ) {
-            tooltipRef.current.style.display = 'none';
+            if (tooltipRef.current) tooltipRef.current.style.display = 'none';
             return;
           }
 
           // 使用 seriesData 替代 seriesPrices
-          const dataPoint = param.seriesData.get(areaSeries);
+          const dataPoint = param.seriesData.get(areaSeries) as any;
 
-          tooltipRef.current.style.display = 'flex';
+          if (tooltipRef.current) tooltipRef.current.style.display = 'flex';
 
           if (dataPoint && tooltipRef?.current) {
             setPoint(dataPoint)
@@ -170,10 +170,9 @@ const MiniChartBaseline: React.FC<MiniChartBaselineProps> = ({
 
             const coordinate = areaSeries.priceToCoordinate(dataPoint.value);
             let left = 0
-            let right = 0
             // XXX: 150
             if (width - 150 > param.point.x) {
-              left = param.point.x ;
+              left = param.point.x;
             } else {
               left = param.point.x - 150;
               // console.log(param.point.x , toolTipWidth)
@@ -231,11 +230,11 @@ const MiniChartBaseline: React.FC<MiniChartBaselineProps> = ({
       <div ref={tooltipRef} className="position-absolute mini-chart-base-line-tooltip ">
         {
           point && <div className='d-flex flex-column gap-1 p-2 br-2 '>
-              <PositionItemCommonPnl value={point.value} className='h6 fw-500'/>
-              <small className='color-secondary'>
-                {dayjs(new Date(point.time * 1000 - getLocalTimezoneOffsetInSeconds()).getTime()).format(t('formatTime.fullDate'))}
-              </small>
-            </div>
+            <PositionItemCommonPnl value={point.value} className='h6 fw-500' />
+            <small className='color-secondary'>
+              {dayjs(new Date(point.time * 1000 - getLocalTimezoneOffsetInSeconds()).getTime()).format(t('formatTime.fullDate'))}
+            </small>
+          </div>
         }
       </div>
     </div>

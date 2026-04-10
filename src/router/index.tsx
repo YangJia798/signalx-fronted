@@ -44,7 +44,7 @@ const router = createBrowserRouter([
         element: <Rewards />
       },
       {
-        path: 'leaderboard',
+        path: 'whales',
         index: true,
         element: <Leaderboard />
       },
@@ -71,7 +71,7 @@ const router = createBrowserRouter([
     errorElement: <ErrorView />,
     children: [
       {
-        path: 'trade/:coin',
+        path: 'trade/:coin?',
         index: true,
         element: <Trade />
       }

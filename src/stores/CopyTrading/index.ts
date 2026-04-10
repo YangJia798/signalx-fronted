@@ -196,10 +196,8 @@ const copyTradingStore: TCopyTradingStore = {
     { id: 'positions', i18n: 'common.perpPositions' },
     { id: 'openOrders', i18n: 'common.openOrders' },
     { id: 'recentFills', i18n: 'common.recentFills' },
+    { id: 'completedTrades', i18n: 'common.completedTrades' },
     { id: 'historicalOrders', i18n: 'common.historicalOrders' },
-    // { id: 'completedTrades', i18n: 'common.completedTrades' },
-    { id: 'twap', i18n: 'common.twap' },
-    { id: 'depositsAndWithdrawals', i18n: 'common.depositsAndWithdrawals' },
   ],
 
   ...DEFAULT,

@@ -43,7 +43,7 @@ const ModalRemoveWallet = () => {
       onClose={handleClose}
       onSubmit={handleSubmit}
       submitText={t('common.remove')}
-      submitDisabled={privateWalletStore.removePW.length < privateWalletStore.MIN_PW_LENGTH }
+      submitDisabled={false}
       submitLoading={reqStore.userDeletePrivateWalletBusy}
     >
       <div className='d-flex flex-column gap-2 align-items-center text-center bg-error-1 color-error p-3 br-2 mb-4 text-uppercase'>
@@ -53,8 +53,7 @@ const ModalRemoveWallet = () => {
       </div>
       {
         [
-          { label: t('common.address'), content: <>{ privateWalletStore.list[privateWalletStore.operaWalletIdx]?.address ?? '-' }</> },
-          { label: t('common.password'), tip: t('copyTrading.viewPrivateKeyPrompt'), content: <Input.Password value={privateWalletStore.removePW} className='br-2' placeholder={`${t('common.hint') }: ${privateWalletStore.list[privateWalletStore.operaWalletIdx]?.pwPrompt ?? ''}`} onChange={(e) => privateWalletStore.removePW = e.target.value} /> },
+          { label: t('common.address'), content: <>{ privateWalletStore.list[privateWalletStore.operaWalletIdx]?.address ?? '-' }</> }
         ].map((item, idx) => 
         <div key={idx} className='d-flex flex-column gap-2 justify-content-between bg-gray-alpha-4 p-3 br-1' style={{ marginTop: '-2px' }}>
           <span className='d-flex gap-2 color-secondary'>{ item.label }</span>

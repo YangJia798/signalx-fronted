@@ -59,6 +59,7 @@ export const hyperUserOpenOrdersAdditional: THyperUserOpenOrdersAdditional = {
           limitPrice: item.limitPx,
           orderType: (item.orderType || '').toLowerCase(),
           reduceOnly: item.reduceOnly,
+          value: Number(item.limitPx || 0) * Number(item.sz || 0),
 
           // "triggerCondition": "Price below 104275",
           // "children": [],

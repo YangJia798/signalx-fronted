@@ -22,11 +22,9 @@ export const userDeletePrivateWallet: TUserDeletePrivateWallet = {
 
     this.userDeletePrivateWalletBusy = true
 
-    const res = await baseApi.delete('/account', {
-      data: {
-        passwd: privateWalletStore.removePW,
-      }
-    })
+    const walletId = privateWalletStore.list[privateWalletStore.operaWalletIdx]?.walletId;
+
+    const res = await baseApi.delete(`/wallet/${walletId}`)
 
     result.error = baseCheck(res, accountStore)
     this.userDeletePrivateWalletBusy = false

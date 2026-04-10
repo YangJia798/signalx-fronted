@@ -35,7 +35,7 @@ export const TradeMetaAndMarket: FC<TradeMetaAndMarketProps> = ({
 
   const handleSendMessage = (unsubscribe: boolean = false) => {
     const _coin = tradeStore.coin
-    const methodContent = unsubscribe? 'unsubscribe' : 'subscribe'
+    const methodContent = unsubscribe ? 'unsubscribe' : 'subscribe'
 
     if (readyState !== ReadyState.OPEN || !_coin) return
 
@@ -86,13 +86,13 @@ export const TradeMetaAndMarket: FC<TradeMetaAndMarketProps> = ({
     try {
       const res = JSON.parse(lastMessage.data)
 
-      switch(res.channel) {
+      switch (res.channel) {
         case 'activeAssetCtx':
-          hyperStore.perpMarket[res.data.coin]= hyperRawByWsActiveAssetCtx(res.data.ctx)
+          hyperStore.perpMarket[res.data.coin] = hyperRawByWsActiveAssetCtx(res.data.ctx)
           break
         default:
       }
-    } catch(e) {
+    } catch (e) {
       console.error(e)
     }
   }, [lastMessage])
@@ -103,40 +103,45 @@ export const TradeMetaAndMarket: FC<TradeMetaAndMarketProps> = ({
         <div className='d-flex col-12'>
           <div className='d-flex px-3 py-3 br-3 bg-gray-alpha-4 gap-4 mx-1 mb-2 col'>
             <div className='d-flex flex-wrap col gap-5'>
-              <div className='d-flex align-items-center gap-1 linker col-12 col-md-auto' onClick={() => tradeStore.openSelectCoins = true }>
+              <div className='d-flex align-items-center gap-1 linker col-12 col-md-auto' onClick={() => tradeStore.openSelectCoins = true}>
                 <CoinIcon size='smd' id={coin} className='me-2' />
                 <span className='h5 fw-bold'>{coin}-USD</span>
                 <IOutlineFlash className='w-20 color-secondary' />
               </div>
               {
                 [
-                  { label: t('common.markPrice'),
+                  {
+                    label: t('common.markPrice'),
                     content: hyperStore.perpMarket[coin]?.markPrice ?? '-',
                   },
-                  { label: t('common.pct24h'),
+                  {
+                    label: t('common.pct24h'),
                     content: <span className='d-flex gap-1'>
                       <PositionItemCommonPnl prefix='' value={hyperStore.perpMarket[coin]?.priceChange24h} />
                       <span className='color-secondary'>/</span>
                       <PositionItemCommonPnl prefix='' value={hyperStore.perpMarket[coin]?.priceChange24hPct} suffix=' %' />
                     </span>
                   },
-                  { label: t('common.24hVolume'),
+                  {
+                    label: t('common.24hVolume'),
                     content: <>$ {hyperStore.perpMarket[coin]?.dayNtlVolume ? formatNumber(new BN(hyperStore.perpMarket[coin]?.dayNtlVolume).toFixed(constants.decimalPlaces.__COMMON__)) : '-'}</>,
                     // sub: <>{formatNumber(new BN(hyperStore.perpMarket[coin]?.dayBaseVlm).toFixed(hyperStore.perpMeta[coin]?.sizeDecimals))} {coin}</>
                   },
-                  { label: t('common.openInterest'),
+                  {
+                    label: t('common.openInterest'),
                     content: <>$ {hyperStore.perpMarket[coin]?.markPrice ? formatNumber(new BN(hyperStore.perpMarket[coin]?.markPrice).times(hyperStore.perpMarket[coin]?.openInterest).toFixed(decimalPlaces.__COMMON__)) : '-'}</>,
                     // sub: <>{formatNumber(hyperStore.perpMarket[coin]?.openInterest)} {coin}</>
                   },
-                  { label: t('common.fundingFee'),
+                  {
+                    label: t('common.fundingFee'),
                     content: <>{hyperStore.perpMarket[coin]?.fundingPct ?? '-'} %</>
                   },
                 ].map((item, idx) => (
                   <div key={idx} className={`d-flex flex-column col-auto ${item.className ?? ''}`}>
-                    <small className="color-unimportant pb-1">{ item.label }</small>
+                    <small className="color-unimportant pb-1">{item.label}</small>
                     <span className="color-secondary">
                       <span className="d-flex flex-column">
-                        <span className="color-white">{ item.content }</span>
+                        <span className="color-white">{item.content}</span>
                         {item.sub && <small>{item.sub}</small>}
                       </span>
                     </span>
@@ -152,7 +157,7 @@ export const TradeMetaAndMarket: FC<TradeMetaAndMarketProps> = ({
         if (item.coin) {
           navigator(`/trade/${item.coin}`)
         }
-      }}/>
+      }} />
     </>
   )
 }

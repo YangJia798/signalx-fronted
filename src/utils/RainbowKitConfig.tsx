@@ -35,17 +35,14 @@ export const useAuthentication = () => {
         evmChainId: chainId,
       })
 
-      // return createSiweMessage({
-      //   domain: window.location.host,
-      //   address,
-      //   // statement: `Sign in the ${constants.app.NAME} app.`,
-      //   statement: accountStore.evmSignMessage,
-      //   uri: window.location.origin,
-      //   version: '1',
-      //   chainId,
-      //   nonce,
-      // })
-      return accountStore.evmSignMessage
+      const signMessage = `Sign in the ${constants.app.NAME} app.\n\nURI: ${window.location.origin}\n\nNonce: ${nonce}`
+
+      // sync sign message to store
+      merge(accountStore, {
+        evmSignMessage: signMessage,
+      })
+
+      return signMessage
     },
 
     verify: async ({ message, signature }) => {

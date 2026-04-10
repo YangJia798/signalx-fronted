@@ -1,14 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useTranslation, withTranslation, Trans } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 
-// import WebSocket from '@/views/Common/HyberWebSocket';
-import { constants, useHyperStore, useTradeStore, useTraderDetailsPositionsStore, useTraderDetailsOpenOrdersAdditionalStore } from '@/stores'
-import HyperWS from '@/components/Hyper/WS1'
-import WebSocketConnection from '@/components/Hyper/WS'
-import TradeOrderBook from './OrderBook'
+import { useHyperStore, useTradeStore, useTraderDetailsPositionsStore, useTraderDetailsOpenOrdersAdditionalStore } from '@/stores'
 import TabSwitch from '@/components/Tab/Switch'
-import { useHyperWSContext, ReadyState } from '@/components/Hyper/WSContext';
+import { useHyperWSContext } from '@/components/Hyper/WSContext';
 
 import TraderDetailsNonFunding from '@/views/TraderDetails/NonFunding'
 import TraderDetailsTWAP from '@/views/TraderDetails/TWAP'
@@ -21,6 +17,8 @@ import TradeTrades from './Trades'
 import TradeMetaAndMarket from './MetaAndMarket'
 import TradeKLine from './KLine'
 import TradeTradingPanel from './TradingPanel'
+import TradeOrderBook from './OrderBook'
+import ModalCreatePrivateWallet from '@/components/Modal/CreatePrivateWallet'
 
 const Trade = () => {
   const hyperStore = useHyperStore()
@@ -32,49 +30,45 @@ const Trade = () => {
   const { t, i18n } = useTranslation()
   const { sendMessage, lastMessage, readyState } = useHyperWSContext()
 
-  // init
   useEffect(() => {
-    // NOTE: coin 不能 toUpperCase()，因为有些是含大小写
     tradeStore.coin = coin ?? tradeStore.DEFAULT_COIN
-
-    // TEST: 应该从生成的私有钱包列表中获取，或选择的地址
     tradeStore.address = '0x48cd535b80439fefd6d00f74e5cf9b152adf2671'
-    // tradeStore.address = '0x5a54ad9860b08aaee07174887f9ee5107b0a2e72'
-
-    return () => {
-      // NOTE: 各个内含组件自行 reset，因此这里不做处理
-    }
   }, [coin])
 
   return (
     <>
-      <div className="d-flex flex-column mt-5 pt-5 px-1 gap-2 mb-2 col">
-        <div className='d-flex'>
-          <div className='d-flex flex-column col'>
-            <div className='d-flex gap-2'>
-              <div className='col-9'>
-                <TradeMetaAndMarket coin={tradeStore.coin} />
-                <TradeKLine />
-              </div>
-              <div className='d-flex flex-column br-3 overflow-hidden col'>
-                <TabSwitch className='' noMenu tiling data={tradeStore.sideTabs} currId={tradeStore.sideTabId} onClick={(item) => tradeStore.sideTabId = item.id} />
-                {
-                  tradeStore.sideTabId === 'orderBook' &&
-                    <TradeOrderBook unReset coin={tradeStore.coin} />
-                }
-                {
-                  tradeStore.sideTabId === 'trades' &&
-                    <TradeTrades coin={tradeStore.coin} />
-                }
-              </div>
-            </div>
+      <div className="d-flex flex-column mt-5 pt-5 px-1 gap-2 mb-2 col official-bg-gradient">
+        {/* Top Row: Chart + OrderBook + Trading Panel */}
+        <div className='d-flex gap-2'>
+          {/* Left: Meta bar + K-Line Chart */}
+          <div className='d-flex flex-column br-3 overflow-hidden glass-container' style={{ flex: '1 1 0', minWidth: 0 }}>
+            <TradeMetaAndMarket coin={tradeStore.coin} className="mb-0" />
+            <TradeKLine />
           </div>
-          <div className='d-flex p-3 br-3 bg-gray-alpha-4 gap-4 mx-1 col-2'>
+
+          {/* Middle: Order Book / Trades */}
+          <div className='d-flex flex-column br-3 overflow-hidden glass-container' style={{ width: '280px', minWidth: '280px' }}>
+            <TabSwitch className='' noMenu tiling data={tradeStore.sideTabs} currId={tradeStore.sideTabId} onClick={(item) => tradeStore.sideTabId = item.id} />
+            {
+              tradeStore.sideTabId === 'orderBook' &&
+                <TradeOrderBook unReset coin={tradeStore.coin} />
+            }
+            {
+              tradeStore.sideTabId === 'trades' &&
+                <TradeTrades coin={tradeStore.coin} />
+            }
+          </div>
+
+          {/* Right: Trading Panel */}
+          <div className='d-flex flex-column p-3 br-3 glass-container' style={{ width: '300px', minWidth: '280px' }}>
             <TradeTradingPanel />
           </div>
         </div>
-        <div className='d-flex col'>
-          <div className='d-flex flex-column br-3 overflow-hidden mx-1 col'>
+
+        {/* Bottom Row: Positions/Orders + Account Assets */}
+        <div className='d-flex gap-2'>
+          {/* Left: Tab records */}
+          <div className='d-flex flex-column br-3 overflow-hidden glass-container' style={{ flex: '1 1 0', minWidth: 0 }}>
             <TabSwitch
               labelSuffixes={[` (${traderDetailsPositionsStore.list.length})`, ` (${traderDetailsOpenOrdersAdditionalStore.list.length})`]}
               data={tradeStore.recordTabs}
@@ -108,11 +102,56 @@ const Trade = () => {
                 <TraderDetailsNonFunding address={tradeStore.address} className='col' />
             }
           </div>
-          <div className='d-flex p-3 br-3 bg-gray-alpha-4 gap-4 mx-1 col-2'>
-            Account
+
+          {/* Right: Account Assets */}
+          <div className='d-flex flex-column p-3 br-3 glass-container gap-3' style={{ width: '300px', minWidth: '280px' }}>
+            <div className="fw-500 font-size-14 color-white">账户资产</div>
+
+            <div className="d-flex flex-column gap-2 font-size-12">
+              <div className="d-flex justify-content-between" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                <span className="d-flex align-items-center gap-1">
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3B82F6' }}></span>
+                  永续合约
+                </span>
+                <span className="color-white">N/A</span>
+              </div>
+              <div className="d-flex justify-content-between" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                <span className="d-flex align-items-center gap-1">
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3B82F6' }}></span>
+                  现货 &gt;
+                </span>
+                <span className="color-white">N/A</span>
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }} />
+
+            <div className="d-flex flex-column gap-2 font-size-12">
+              <div className="fw-500 font-size-12" style={{ color: 'rgba(255,255,255,0.55)' }}>永续合约</div>
+              {[
+                { label: '总持仓价值', value: 'N/A' },
+                { label: '杠杆比', value: 'N/A' },
+                { label: '保证金使用率', value: 'N/A' },
+              ].map((row, idx) => (
+                <div key={idx} className="d-flex justify-content-between" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                  <span>{row.label}</span>
+                  <span className="color-white">{row.value}</span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ height: '3px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px' }}>
+              <div style={{ width: '0%', height: '100%', background: '#00d1b2', borderRadius: '2px' }} />
+            </div>
+
+            <div className="d-flex justify-content-between font-size-12" style={{ color: 'rgba(255,255,255,0.45)' }}>
+              <span>未实现盈亏</span>
+              <span className="color-white">N/A</span>
+            </div>
           </div>
         </div>
       </div>
+      <ModalCreatePrivateWallet />
     </>
   )
 }

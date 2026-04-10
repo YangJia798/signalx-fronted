@@ -10,6 +10,7 @@ export * from './non-funding'
 export * from './open-orders-additional'
 export * from './portfolio-kline'
 export * from './historical-orders'
+export * from './completed-trades'
 
 interface TAssetItem {
   tokenIdx: number
@@ -107,7 +108,7 @@ const traderDetailsStore: TTraderDetailsStore = {
     { id: 'openOrders', i18n: 'common.openOrders', label: 'Open Orders' },
     { id: 'recentFills', i18n: 'common.recentFills', label: 'Recent Fills' },
     { id: 'historicalOrders', i18n: 'common.historicalOrders' },
-    // { id: 'completedTrades', i18n: 'common.completedTrades', label: 'Completed Trades' },
+    { id: 'completedTrades', i18n: 'common.completedTrades', label: 'Completed Trades' },
     { id: 'twap', i18n: 'common.twap', label: 'TWAP' },
     { id: 'depositsAndWithdrawals', i18n: 'common.depositsAndWithdrawals', label: 'Deposits & Withdrawals' },
   ],

@@ -26,6 +26,7 @@ interface TDiscoverKolItem {
   pnl: string
   tradesCount: number
   createTs: number
+  tags?: string[]
 
   busy?: boolean
   voted: boolean
@@ -120,7 +121,7 @@ const discoverKolStore: TDiscoverKolStore = {
 
   ...DEFAULT,
 
-  get selectedIdentityItem () {
+  get selectedIdentityItem() {
     return this.identities.find(item => item.value === this.selectedIdentityValue)
   },
 
@@ -153,7 +154,7 @@ const discoverKolStore: TDiscoverKolStore = {
   resetSearch() {
     merge(this, DEFAULT_SEARCH)
   },
-  resetAssistTaggingKol () {
+  resetAssistTaggingKol() {
     merge(this, DEFAULT_ASSIST_TAGGING_KOL)
   },
   reset() {

@@ -1,7 +1,7 @@
 
-import { merge, defaults } from '@/utils'
+import { merge } from '@/utils'
 import { baseCheck, baseApi } from '@/stores/req/helper'
-import { constants, TAccountStore, TPrivateWalletStore } from '@/stores'
+import { TAccountStore, TPrivateWalletStore } from '@/stores'
 
 type UserCreatePrivateWalletResult = {
   data: Record<string, any>,
@@ -22,37 +22,27 @@ export const userCreatePrivateWallet: TUserCreatePrivateWallet = {
 
     this.userCreatePrivateWalletBusy = true
 
-    const res = await baseApi.post('/account/create-wallet', {
-      passwd: privateWalletStore.createPW,
-      passwdPrompt: privateWalletStore.createPWPrompt,
-      nickname: privateWalletStore.createNickname
-    })
+    // POST /wallet/create/turnkey
+    // Body: { platform: 'hyperliquid' | 'aster', remark?: string }
+    const body: Record<string, string> = {
+      platform: privateWalletStore.createPlatform,
+    }
+    if (privateWalletStore.createNickname) {
+      body.remark = privateWalletStore.createNickname
+    }
+
+    const res = await baseApi.post('/wallet/create/turnkey', body)
 
     result.error = baseCheck(res, accountStore)
     this.userCreatePrivateWalletBusy = false
 
     if (result.error) return result
 
-    // update
-    const { data } = res.data
+    // 创建成功，返回的 data 即为新钱包信息
+    result.data = res.data?.data ?? {}
 
-    // NOTE: 目前只有一个
-    result.data = {
-      list: [{
-        balance: data.balance,
-        hasPrivateKey: data.hasPriKey,
-        nickname: data.nickname,
-        pwPrompt: data.passwdPrompt,
-        createTs: data.registerTime,
-        totalMarginUsed: data.totalMarginUsed,
-        uPnl: data.uPnl,
-        address: data.wallet,
-        withdrawable: data.withdrawable,
-      }]
-    }
-
-    // update
-    merge(privateWalletStore, result.data)
+    // 重置创建表单
+    privateWalletStore.resetCreate()
 
     return result
   },

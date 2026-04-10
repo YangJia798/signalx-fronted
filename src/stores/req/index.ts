@@ -4,6 +4,7 @@ import { userTgLogin, TUserTgLogin } from './user/tg-login'
 import { userInfo, TUserInfo } from './user/info'
 import { userTgCode, TUserTgCode } from './user/tg-code'
 import { userExportPrivateKey, TUserExportPrivateKey } from './user/export-private-key'
+import { userImportPrivateWallet, TUserImportPrivateWallet } from './user/import-private-wallet'
 import { userPrivateWallet, TUserPrivateWallet } from './user/private-wallet'
 import { userWalletDeposit, TUserWalletDeposit } from './user/wallet-deposit'
 import { userCreatePrivateWallet, TUserCreatePrivateWallet } from './user/create-private-wallet'
@@ -59,7 +60,7 @@ import { hyperUserHistoricalOrders, THyperUserHistoricalOrders } from './hyper/u
 export * from './utils'
 
 export type TReqStore =
-  TUserTgLogin & TUserInfo & TUserTgCode & TUserExportPrivateKey & TUserPrivateWallet & TUserWalletDeposit & TUserCreatePrivateWallet & TUserDeletePrivateWallet & TUserEvmLogin & TUserEvmSignMessage &
+  TUserTgLogin & TUserInfo & TUserTgCode & TUserExportPrivateKey & TUserImportPrivateWallet & TUserPrivateWallet & TUserWalletDeposit & TUserCreatePrivateWallet & TUserDeletePrivateWallet & TUserEvmLogin & TUserEvmSignMessage &
   TRewardUserLv & TRewardUserInfo & TRewardDetailedList &
   TCopyTryTradingClosePosition & TCopyTradingCreateCopyTrading & TCopyTradingMyCopyTrading & TCopyTradingMyPosition & TCopyTradingTargetPosition & TCopyTradingRemoveMyCopyTrading & TCopyTradingFindByAddress &
   TLeaderboardProfitList & TLeaderboardCoinList & TLeaderboardSearchProfit & TLeaderboardPointOverallList & TLeaderboardPointReferralList &
@@ -71,7 +72,7 @@ export type TReqStore =
 
 const reqStore = {
   // Use
-  ...userTgLogin, ...userInfo, ...userTgCode, ...userExportPrivateKey, ...userPrivateWallet, ...userWalletDeposit,
+  ...userTgLogin, ...userInfo, ...userTgCode, ...userExportPrivateKey, ...userImportPrivateWallet, ...userPrivateWallet, ...userWalletDeposit,
   ...userCreatePrivateWallet, ...userDeletePrivateWallet,
   ...userEvmLogin, ...userEvmSignMessage,
   // Reward

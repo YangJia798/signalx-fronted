@@ -1,10 +1,10 @@
-# Hyperbot
+# Signalxbot
 
 ## Info
 
 - Andt: <https://ant-design.antgroup.com/docs/react/introduce-cn/>
 - Andt theme:
-- Design: <https://www.figma.com/design/ESo3mJYUopTMbgfg0jcNou/hyperbot?t=IB9rXqozPIBQRaPE-0>
+- Design: <https://www.figma.com/design/ESo3mJYUopTMbgfg0jcNou/signalxbot?t=IB9rXqozPIBQRaPE-0>
 - API: 
 - 产品文档 
 - 参考 icon:
@@ -24,13 +24,13 @@ pnpm dev
 pnpm test:zip
 
 47.236.11.8
-cd /usr/share/nginx/html/hyperbot && unzip -o dist.zip
-<https://testbird.online/hyperbot>
+cd /usr/share/nginx/html/signalxbot && unzip -o dist.zip
+<https://testbird.online/signalxbot>
 
 # prod
 pnpm prod:zip
 
 47.236.230.146
 cd /home/ecs-user/web && unzip -o dist.zip
-<https://hyperbot.network>
+<https://signalxbot.network>
 ```

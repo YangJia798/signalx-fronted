@@ -1,29 +1,103 @@
 .main-cover {
-  background: url('@/assets/image/view/Home/main/bg.png') no-repeat center top;
-  background-size: contain;
+  background: 
+    radial-gradient(circle at 20% 40%, rgba(164, 80, 255, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(26, 198, 218, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at center top, #0c0d15 0%, #000 100%);
+  background-size: cover;
   position: relative;
+  min-height: 85vh;
+  overflow: hidden;
 
   #particlesBg {
-    position: absolute;
+    position: absolute !important;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 35%;
+    bottom: 0;
+    width: 100% !important;
+    height: 100% !important;
     opacity: 0.7;
-    /* 增加透明度，使粒子更明显 */
+    z-index: 1;
   }
 
-  .coverBg {
-    background: url('@/assets/image/view/Home/main/cover.png') no-repeat right top;
-    position: relative;
-    overflow: hidden;
-
+  h1 {
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
   }
 
-  ul {
-    li {
-      background: linear-gradient(90deg, rgba(222, 250, 246, 0.1) -0.03%, rgba(255, 171, 255, 0.1) 34.99%, rgba(0, 184, 217, 0.1) 100.03%);
-      border: 1px solid #FFFFFF1A;
+  .hero-search-bar {
+    .ant-input-affix-wrapper {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px 24px;
+      backdrop-filter: blur(10px);
+
+      input {
+        color: white;
+        background: transparent;
+        font-size: 18px;
+
+        &::placeholder {
+          color: rgba(255, 255, 255, 0.3);
+        }
+      }
+
+      &:focus,
+      &:focus-within {
+        border-color: #00f2ff;
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        background: rgba(0, 242, 255, 0.05);
+      }
+    }
+  }
+
+  .hero-btn-primary {
+    background: #00f2ff !important;
+    color: #000 !important;
+    border: none;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #33f5ff !important;
+      box-shadow: 0 0 20px rgba(0, 242, 255, 0.6);
+      transform: translateY(-2px);
+    }
+  }
+
+  .hero-btn-outline {
+    background: rgba(0, 242, 255, 0.05) !important;
+    border: 1px solid #00f2ff !important;
+    color: #00f2ff !important;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(0, 242, 255, 0.2) !important;
+      color: #fff !important;
+      box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
+      transform: translateY(-2px);
+    }
+  }
+
+  .store-links {
+    .hero-store-btn {
+      color: #00f2ff !important;
+      border: 1px solid rgba(0, 242, 255, 0.5) !important;
+      border-radius: 100px;
+      text-decoration: none !important;
+      transition: all 0.3s ease;
+      background: rgba(0, 242, 255, 0.05);
+      font-size: 14px;
+
+      &:hover {
+        background: rgba(0, 242, 255, 0.15);
+        border-color: #00f2ff !important;
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        transform: translateY(-2px);
+      }
+
+      svg {
+        fill: #00f2ff;
+      }
     }
   }
 }
@@ -144,6 +218,55 @@
   }
 }
 
+/* Marquee Styles */
+.marquee-container {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  display: flex;
+  white-space: nowrap;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+
+  .marquee-track {
+    display: flex;
+    gap: 16px;
+    animation: marquee-scroll 40s linear infinite;
+
+    &:hover {
+      animation-play-state: paused;
+    }
+
+    >div {
+      min-width: 400px;
+    }
+  }
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.address-card-custom {
+  background: #0f1013;
+  border: 1px solid #1f2125;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: #16181d;
+    border-color: rgba(0, 242, 255, 0.3);
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+    transform: translateY(-5px);
+  }
+}
+
 .backed {
   ul {
     li {
@@ -156,5 +279,94 @@
       /* Note: backdrop-filter has minimal browser support */
 
     }
+  }
+}
+
+/* Profit Loop & API Styles */
+.bg-primary-dilute {
+  background: rgba(0, 242, 255, 0.03);
+  border: 1px solid rgba(0, 242, 255, 0.05);
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(0, 242, 255, 0.08);
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    box-shadow: 0 0 30px rgba(0, 242, 255, 0.05);
+  }
+}
+
+.tag {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* AI Feature Grid Override */
+.brain ul li {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+
+  &:hover {
+    background: rgba(0, 242, 255, 0.05) !important;
+    border: 1px solid rgba(0, 242, 255, 0.3) !important;
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+    transform: translateY(-5px);
+  }
+}
+
+/* Hero Precise Pixel Matching */
+.hero-search-bar {
+  .ant-input {
+    background: #0f1013 !important;
+    border: 1px solid rgba(0, 242, 255, 0.2) !important;
+    border-radius: 8px !important;
+    color: #fff !important;
+    padding: 12px 20px !important;
+    font-size: 1.1rem !important;
+
+    &:focus,
+    &:hover {
+      border-color: rgba(0, 242, 255, 0.6) !important;
+      box-shadow: 0 0 10px rgba(0, 242, 255, 0.1) !important;
+    }
+  }
+
+  .bg-gray-3 {
+    background: transparent !important;
+  }
+}
+
+.hero-btn-primary {
+  color: #000 !important;
+  background: #00f2ff !important;
+  border: none !important;
+
+  &:hover {
+    color: #000 !important;
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.4) !important;
+    background: #1affff !important;
+  }
+}
+
+.tag {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* AI Feature Grid Override */
+.brain ul li {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+
+  &:hover {
+    background: rgba(0, 242, 255, 0.05) !important;
+    border: 1px solid rgba(0, 242, 255, 0.3) !important;
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+    transform: translateY(-5px);
   }
 }

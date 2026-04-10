@@ -34,6 +34,7 @@ import { useHyperWSContext, ReadyState } from '@/components/Hyper/WSContext';
 import TraderDetailsPositions from './Positions'
 import TraderDetailsRecentFills from './RecentFills'
 import TraderDetailsTWAP from './TWAP'
+import TraderDetailsCompletedTrades from './CompletedTrades'
 import TraderDetailsNonFunding from './NonFunding'
 import { TraderDetailsOpenOrdersAdditional } from './OpenOrdersAdditional'
 import TraderDetailsKline from './Kline'
@@ -366,7 +367,7 @@ const TraderDetails = () => {
             }
             {
               traderDetailsStore.tabId === 'completedTrades' &&
-                <>completedTrades</>
+                <TraderDetailsCompletedTrades address={traderDetailsStore.address} />
             }
             {
               traderDetailsStore.tabId === 'twap' &&

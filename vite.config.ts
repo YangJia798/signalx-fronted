@@ -17,10 +17,16 @@ export default defineConfig(({ mode }) => {
 
   return {
     server: {
-      https: true,
+      host: '0.0.0.0',
+      proxy: {
+        '/api': {
+          target: 'http://43.106.1.190:8001',
+          changeOrigin: true
+        }
+      }
     },
     css: {
-    preprocessorOptions: {
+      preprocessorOptions: {
         scss: {
           api: 'modern-compiler' // or "modern"
         }
@@ -31,7 +37,7 @@ export default defineConfig(({ mode }) => {
       nodePolyfills(),
       react(),
       svgr(),
-      mkcert(),
+      mkcert({ source: 'coding' }),
       topLevelAwait({
         promiseExportName: "__tla",
         promiseImportName: i => `__tla_${i}`
