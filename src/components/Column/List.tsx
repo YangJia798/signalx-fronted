@@ -114,7 +114,7 @@ const ColumnList: React.FC<ColumnListProps> = ({
   // 处理数据
   useEffect(() => {
     handleSwitchFilterCoin(switchFilterCoin)
-  }, [data])
+  }, [data, switchFilterCoin])
 
   return (
     <dl className={`d-flex flex-column bg-gray-alpha-4 overflow-hidden column-list position-relative ${className}`} style={{ height: isNumber(height) && `${height}px` || isString(height) && height || undefined, maxHeight: maxHeight ? `${maxHeight}px` : undefined, ...style }}>

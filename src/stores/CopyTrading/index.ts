@@ -62,10 +62,22 @@ export type TCopyTradingStore = {
   readonly operaPositionItem: TPositionItem | null
 
   // 跟单开仓
+  openPositionWalletAddress: string
   openPositionTargeNote: string
   openPositionLeverage: number
+  openPositionFollowTargetLeverage: boolean
   openPositionLeverageMin: number
   openPositionLeverageMax: number
+  openPositionMarginMode: number
+  openPositionMarginModeRadios: Array<{
+    id: string
+    i18n?: string
+    label: string
+    value: number
+  }>
+  openPositionCopyRatio: string
+  openPositionHighMarginProtect: string
+  openPositionAdvancedOptionsVisible: boolean
   openPositionBuyModel: number
   openPositionBuyModelRadios: Array<{
     id: string
@@ -146,8 +158,14 @@ const DEFAULT_COPY_TRADING_TARGE = {
 }
 
 const DEFAULT_OPEN_POSITION = {
+  openPositionWalletAddress: '',
   openPositionTargeNote: '',
   openPositionLeverage: 1,
+  openPositionFollowTargetLeverage: false,
+  openPositionMarginMode: 0,
+  openPositionCopyRatio: '100',
+  openPositionHighMarginProtect: '70',
+  openPositionAdvancedOptionsVisible: false,
   openPositionBuyModel: 2,
   openPositionBuyModelValue: '',
   openPositionTradeStrategyValue: '0',
@@ -207,10 +225,15 @@ const copyTradingStore: TCopyTradingStore = {
 
   openPositionLeverageMin: 1,
   openPositionLeverageMax: 40,
+  openPositionMarginModeRadios: [
+    { id: '', i18n: 'common.followTargetMargin', label: 'Follow target', value: 0 },
+    { id: '', i18n: 'common.crossMargin', label: 'Cross', value: 1 },
+    { id: '', i18n: 'common.isolatedMargin', label: 'Isolated', value: 2 },
+  ],
   openPositionBuyModelRadios: [
-    { id: '', i18n: 'common.fixed', label: 'Fixed', value: 1 },
-    { id: '', i18n: 'common.proportional', label: 'Proportional', value: 2 },
-    { id: '', i18n: 'common.maximum', label: 'Maximum', value: 3 },
+    { id: '', i18n: 'common.assetProportional', label: 'Asset Proportional', value: 4 },
+    { id: '', i18n: 'common.positionProportional', label: 'Position Proportional', value: 2 },
+    { id: '', i18n: 'common.fixedValue', label: 'Fixed Value', value: 1 },
   ],
   openPositionSellModelRadios: [
     { id: '', i18n: 'common.notToSell', label: 'Not to Sell', value: 4 },

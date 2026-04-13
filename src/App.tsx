@@ -7,6 +7,13 @@ import { StyleProvider } from '@ant-design/cssinjs'
 import { BrowserRouter as Router, Route, Routes, BrowserRouter } from 'react-router-dom'
 import { ConfigProvider, message, notification } from 'antd'
 import { createTheme, useTheme, ThemeProvider } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
+import enUS from 'antd/locale/en_US'
+import zhCN from 'antd/locale/zh_CN'
+import zhTW from 'antd/locale/zh_TW'
+import 'dayjs/locale/zh-cn'
+import 'dayjs/locale/zh-tw'
+import dayjs from 'dayjs'
 
 import { NotificationProvider } from '@/components/Notification/index'
 import router from '@/router'
@@ -26,8 +33,26 @@ message.config({
   top: 64
 })
 
+const antdLocales: Record<string, any> = {
+  'en': enUS,
+  'zh-Hans': zhCN,
+  'zh-Hant': zhTW
+}
+
 const App = () => {
   const accountStore = useAccountStore()
+  const { i18n } = useTranslation()
+  const lang = i18n.resolvedLanguage || 'en'
+  const antdLocale = antdLocales[lang] || enUS
+
+  if (lang === 'zh-Hans') {
+    dayjs.locale('zh-cn')
+  } else if (lang === 'zh-Hant') {
+    dayjs.locale('zh-tw')
+  } else {
+    dayjs.locale('en')
+  }
+
   const { authenticationAdapter } = useAuthentication()
   const theme = merge(darkTheme(), {
     colors: {
@@ -42,7 +67,7 @@ const App = () => {
         <RainbowKitAuthenticationProvider adapter={authenticationAdapter} status={accountStore.evmAuthStatus}>
            <RainbowKitProvider theme={theme} appInfo={appInfo} avatar={customAvatar}>
             <ThemeProvider theme={muiTheme}>
-              <ConfigProvider theme={luminous.theme}>
+              <ConfigProvider theme={luminous.theme} locale={antdLocale}>
                 <StyleProvider hashPriority="high">
                   <HyperWSProvider>
                     <NotificationProvider>

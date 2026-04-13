@@ -45,6 +45,39 @@ export const hyperUserFills: THyperUserFills = {
     // update
     const data = res.data
 
+    // Natively calculate duration by scanning fills chronologically (oldest to newest)
+    const positionCycleStart: Record<string, number> = {};
+    const reversedData = [...data].reverse();
+
+    reversedData.forEach((item: any) => {
+      const coin = item.coin;
+      const startPos = parseFloat(item.startPosition || '0');
+      const sz = parseFloat(item.sz || '0');
+      const closedPnl = parseFloat(item.closedPnl || '0');
+
+      if (startPos === 0) {
+        positionCycleStart[coin] = item.time;
+      }
+      if (closedPnl === 0 && !positionCycleStart[coin]) {
+        // Fallback if the history doesn't reach back to startPosition 0
+        positionCycleStart[coin] = item.time;
+      }
+
+      if (closedPnl !== 0 && positionCycleStart[coin]) {
+        item.duration = item.time - positionCycleStart[coin];
+      }
+
+      // Determine if position flipped or zeroed out
+      const sideMult = item.side === 'B' ? 1 : -1;
+      const endPos = startPos + (sz * sideMult);
+
+      if ((startPos > 0 && endPos < 0) || (startPos < 0 && endPos > 0)) {
+        positionCycleStart[coin] = item.time;
+      } else if (Math.abs(endPos) < 1e-8) {
+        delete positionCycleStart[coin];
+      }
+    });
+
     result.data = {
       list: data.map((item: any, idx: number) => {
         return {
@@ -61,6 +94,7 @@ export const hyperUserFills: THyperUserFills = {
           // dir
           feeToken: item.feeToken,
           createTs: item.time,
+          duration: item.duration, // Pass duration
         }
       })
     }

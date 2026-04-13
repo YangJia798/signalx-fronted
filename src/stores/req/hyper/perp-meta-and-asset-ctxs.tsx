@@ -60,10 +60,17 @@ export const hyperPerpMetaAndAssetCtxs: THyperPerpMetaAndAssetCtxs = {
       perpMarket
     }
 
+    // Preserve any Aster pairs already injected locally
+    Object.keys(hyperStore.perpMarket).forEach(key => {
+      if (!perpMarket[key] && (key.endsWith('USDT') || key.endsWith('USD1') || key === 'ASTERUSDT')) {
+        perpMarket[key] = hyperStore.perpMarket[key]
+      }
+    })
+
     // update
     // NOTE: 为了提升性能不使用merge，这2个目前都由这个接口更新
     hyperStore.perpMeta = result.data.perpMeta
-    hyperStore.perpMarket = result.data.perpMarket
+    hyperStore.perpMarket = perpMarket
 
     return result
   },

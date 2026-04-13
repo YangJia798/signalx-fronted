@@ -1,8 +1,9 @@
 import { useEffect, FC, HTMLProps, useImperativeHandle, forwardRef } from 'react'
 import { useTranslation, withTranslation, Trans } from 'react-i18next'
+import { message } from 'antd'
 
 import { formatNumber, sortArrayByKey, merge } from '@/utils'
-import { constants, useTraderDetailsOpenOrdersAdditionalStore, useReqStore, formatSideByRaw } from '@/stores'
+import { constants, useTraderDetailsOpenOrdersAdditionalStore, useReqStore, formatSideByRaw, useTradeStore, usePrivateWalletStore } from '@/stores'
 import ColumnList from '@/components/Column/List'
 import PositionItemUPnl from '@/components/PositionItem/UPnl'
 import PositionItemDirectionLeverage from '@/components/PositionItem/DirectionLeverage'
@@ -31,7 +32,9 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
 }) => {
   const traderDetailsOpenOrdersAdditionalStore = useTraderDetailsOpenOrdersAdditionalStore()
   const reqStore = useReqStore()
+  const tradeStore = useTradeStore()
 
+  const privateWalletStore = usePrivateWalletStore()
   const { sendMessage, lastMessage, readyState } = useHyperWSContext()
   const { t, i18n } = useTranslation()
 
@@ -48,6 +51,41 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
     { id: 'operator', label: t('common.cancelAll'), className: 'justify-content-end text-end col-5 col-md-1' },
   ]
 
+  const handleCancelOrder = async (item: any) => {
+    try {
+      const activeWallet = privateWalletStore.list[
+        privateWalletStore.operaWalletIdx === -1 ? 0 : privateWalletStore.operaWalletIdx
+      ] || privateWalletStore.list[0]
+
+      if (!activeWallet) {
+        message.warning(t('common.pleaseConnectWallet', '请先连接钱包'))
+        return
+      }
+
+      const payload = {
+        wallet_id: activeWallet.walletId,
+        coin: item.coin,
+        oid: Number(item.orderId),  // int64
+      }
+
+      // TPSL 单走 tpsl/cancel 接口，普通挂单走 order/cancel 接口
+      if (item.isTPSL) {
+        await reqStore.hyperOrderCancel(payload)
+      } else {
+        await reqStore.hyperOrderCancelNormal(payload)
+      }
+
+      message.success(t('common.success', '取消成功'))
+      // 1s 后刷新列表，等待链上确认
+      setTimeout(() => {
+        handleOpenOrdersByApi()
+      }, 1000)
+    } catch(e: any) {
+      message.error(e.message || t('common.error', '操作失败'))
+      console.error(e)
+    }
+  }
+
   const renderItem = (item, columnIndex) => {
     switch (column[columnIndex].id) {
       case 'time':
@@ -58,10 +96,12 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
         return item.isTrigger && t('orderType.trigger')
           || t(`orderType.${item.orderType}`)
       case 'side':
-        return <PositionItemSide size='small' item={item} />
+        const isBuy = ['buy', 'long'].includes(item.side?.toLowerCase()) || item.side === 'B'
+        const sideColor = isBuy ? 'bg-success-1' : 'bg-error-1';
+        return <span className={`br-1 px-1 py-0 font-size-12 flex-shrink-0 text-nowrap color-white ${sideColor}`}>{isBuy ? t('common.buy', '买入') : t('common.sell', '卖出')}</span>
       case 'value':
         let orderValue = Number(item.limitPrice || 0) * Number(item.size || 0)
-        return <>$ {formatNumber(orderValue)}</>
+        return <>$ {formatNumber(orderValue.toFixed(2))}</>
       case 'size':
         return <PositionItemSize item={item} />
       case 'price':
@@ -71,10 +111,12 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
       case 'status':
         // XXX: 缺 close 和其他
         return item.isTPSL && t('common.tpSl')
-          || item.reduceOnly && t('common.reduceOnly')
+          || item.reduceOnly && t('common.reduceOnly', '仅减仓')
           || t('common.openPosition')
       case 'operator':
-        return <span className="hover-primary cursor-pointer fw-500">_</span>
+        return <span className="cursor-pointer fw-500" style={{ color: '#00d1b2' }} onClick={() => handleCancelOrder(item)}>
+          {t('common.cancel', '取消')}
+        </span>
       default:
         return null
     }
@@ -82,13 +124,14 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
 
   const handleChangeSort = (columnId: string, sortByKey: string = '', ascending: boolean = false) => {
     if (!sortByKey) {
-      sortByKey = column.find(item => item.id === columnId).sortByKey
+      sortByKey = column.find(item => item.id === columnId)?.sortByKey || ''
     }
+    if (!sortByKey) return  // no valid sort key, skip
 
-    // update
+    // 用展开符创建新数组，保证引用变化，让 ColumnList 的 useEffect([data]) 能检测到更新
     merge(traderDetailsOpenOrdersAdditionalStore, {
       sortColumnId: columnId,
-      list: sortArrayByKey(traderDetailsOpenOrdersAdditionalStore.list, sortByKey, ascending)
+      list: sortArrayByKey([...traderDetailsOpenOrdersAdditionalStore.list], sortByKey, ascending)
     })
   }
 
@@ -120,34 +163,46 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
 
     const openOrders: Array<any> = []
     const wsRemovedOrders: Record<string, any> = {}
+    // 记录 WS 消息中已存在于 list 的订单 ID（避免重复添加）
+    const existingOrderIds = new Set(list.map(item => String(item.orderId)))
 
     raw.forEach((item: any) => {
       const { order, status } = item
       const orderId = order.oid
 
-      // 其他情况则会删除
       switch(status) {
         case 'open':
-          openOrders.push({
-            orderId,
-            side: formatSideByRaw(order.side),
-            coin: order.coin,
-            size: order.sz,
-            createTs: order.timestamp,
-            limitPrice: order.limitPx,
-            orderType: 'limit',
-            value: Number(order.limitPx || 0) * Number(order.sz || 0)
-          })
+          // 只添加 list 中还不存在的订单（避免与 API 数据重复）
+          if (!existingOrderIds.has(String(orderId))) {
+            openOrders.push({
+              orderId,
+              side: formatSideByRaw(order.side),
+              coin: order.coin,
+              size: order.sz,
+              createTs: order.timestamp,
+              limitPrice: order.limitPx,
+              orderType: 'limit',
+              reduceOnly: order.reduceOnly || false,
+              isTrigger: order.isTrigger || false,
+              isTPSL: order.isPositionTpsl || false,
+              value: Number(order.limitPx || 0) * Number(order.sz || 0)
+            })
+          }
           break
-        // case 'triggered':
-        //   console.log('--')
-        //   break
+        case 'filled':
+        case 'canceled':
+        case 'rejected':
+        case 'marginCanceled':
+          // 明确的终态才从列表删除，避免 'triggered' 等中间态误删
+          wsRemovedOrders[String(orderId)] = true
+          break
         default:
-          wsRemovedOrders[orderId] = true
+          // triggered 等中间态：不做处理，保留原 list 中的订单
+          break
       }
     })
 
-    return list.filter(item => !wsRemovedOrders[item.orderId]).concat(openOrders)
+    return list.filter(item => !wsRemovedOrders[String(item.orderId)]).concat(openOrders)
   }
 
   const handleOpenOrdersByApi = async () => {
@@ -188,7 +243,7 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
   //   onCleanUp
   // }))
 
-  // init
+  // init: 加载 API 数据（不依赖 WS 连接状态）
   useEffect(() => {
     const asyncFunc = async () => {
       if (!address) {
@@ -196,14 +251,34 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
         return
       }
 
-      if (readyState !== ReadyState.OPEN) return
+      // 更新地址
+      if (address !== traderDetailsOpenOrdersAdditionalStore.address) {
+        traderDetailsOpenOrdersAdditionalStore.address = address
+      }
 
-      await onInitUpdate()
+      // 直接从 API 加载挂单数据，不等待 WS 连接
+      await handleOpenOrdersByApi()
+      handleChangeSort(traderDetailsOpenOrdersAdditionalStore.sortColumnId)
     }
 
     asyncFunc()
 
-    return onCleanUp
+    return () => {
+      if (!unReset) {
+        traderDetailsOpenOrdersAdditionalStore.reset()
+      }
+    }
+  }, [address, tradeStore.refreshTick])
+
+  // WS 订阅（只有 WS 连接时才订阅，用于实时增量更新）
+  useEffect(() => {
+    if (!address || readyState !== ReadyState.OPEN) return
+
+    handleSendMessage()
+
+    return () => {
+      handleSendMessage(true)
+    }
   }, [readyState, address, autoRefreshing])
 
   // 处理原始数据
@@ -230,8 +305,8 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
     <ColumnList
       columns={column}
       className={className}
-      data={traderDetailsOpenOrdersAdditionalStore.list}
-      busy={reqStore.hyperUserOpenOrdersAdditionalInit}
+      data={[...traderDetailsOpenOrdersAdditionalStore.list]}
+      busy={reqStore.hyperUserOpenOrdersAdditionalBusy}
       sortColumnId={traderDetailsOpenOrdersAdditionalStore.sortColumnId}
       renderItem={renderItem}
       onChangeSort={handleChangeSort}

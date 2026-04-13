@@ -23,55 +23,52 @@ export type THyperUserOpenOrdersAdditional = {
 
 export const hyperUserOpenOrdersAdditional: THyperUserOpenOrdersAdditional = {
   async hyperUserOpenOrdersAdditional(address) {
-    const result: THyperUserOpenOrdersAdditionalResult = { data: {}, error: true }
+    const result: THyperUserOpenOrdersAdditionalResult = { data: { list: [] }, error: true }
 
     if (this.hyperUserOpenOrdersAdditionalBusy || !address) return result
 
     this.hyperUserOpenOrdersAdditionalBusy = true
 
-    const res = await hyperApi.post('/info', {
-      'type': 'frontendOpenOrders',
-      'user': address,
-    })
-
-    result.error = false
-    this.hyperUserOpenOrdersAdditionalBusy = false
-    this.hyperUserOpenOrdersAdditionalInit = false
-
-    if (result.error) return result
-
-    // update
-    const data = res.data
-
-    result.data = {
-      list: data.map((item: any, idx: number) => {
-
-        return {
-          idx,
-          orderId: item.oid,
-          side: formatSideByRaw(item.side),
-          coin: item.coin,
-          size: item.sz,
-          isTrigger: item.isTrigger,
-          triggerPrice: item.triggerPx,
-          isTPSL: item.isPositionTpsl,
-          createTs: item.timestamp,
-          limitPrice: item.limitPx,
-          orderType: (item.orderType || '').toLowerCase(),
-          reduceOnly: item.reduceOnly,
-          value: Number(item.limitPx || 0) * Number(item.sz || 0),
-
-          // "triggerCondition": "Price below 104275",
-          // "children": [],
-          // "origSz": "0.0",
-          // "tif": null,
-          // "cloid": null
-        }
+    try {
+      const res = await hyperApi.post('/info', {
+        'type': 'frontendOpenOrders',
+        'user': address,
       })
+
+      this.hyperUserOpenOrdersAdditionalInit = false
+      result.error = false
+
+      // update
+      const data = res.data
+
+      result.data = {
+        list: data.map((item: any, idx: number) => {
+          return {
+            idx,
+            orderId: item.oid,
+            side: formatSideByRaw(item.side),
+            coin: item.coin,
+            size: item.sz,
+            isTrigger: item.isTrigger,
+            triggerPrice: item.triggerPx,
+            isTPSL: item.isPositionTpsl,
+            createTs: item.timestamp,
+            limitPrice: item.limitPx,
+            orderType: (item.orderType || '').toLowerCase(),
+            reduceOnly: item.reduceOnly,
+            value: Number(item.limitPx || 0) * Number(item.sz || 0),
+          }
+        })
+      }
+    } catch (e) {
+      console.error('[hyperUserOpenOrdersAdditional] error:', e)
+    } finally {
+      // 无论成功还是失败，都要重置 busy 标志，防止永久锁住
+      this.hyperUserOpenOrdersAdditionalBusy = false
     }
 
     return result
   },
   hyperUserOpenOrdersAdditionalBusy: false,
   hyperUserOpenOrdersAdditionalInit: true,
-}
+}

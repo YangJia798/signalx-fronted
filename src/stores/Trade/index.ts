@@ -30,6 +30,8 @@ export type TTradeStore = {
   recordTabId: string
   recordTabs: Array<TTabItem>
   reset: () => void
+  refreshTick: number
+  refreshTradeData: () => void
 }
 
 const DEFAULT = {
@@ -52,10 +54,12 @@ const DEFAULT = {
     { id: 'openOrders', i18n: 'common.openOrders' },
     { id: 'recentFills', i18n: 'common.recentFills' },
     { id: 'historicalOrders', i18n: 'common.historicalOrders' },
-    // { id: 'completedTrades', i18n: 'common.completedTrades', label: 'Completed Trades' },
+    { id: 'completedTrades', i18n: 'common.completedTrades' },
     { id: 'twap', i18n: 'common.twap' },
     { id: 'depositsAndWithdrawals', i18n: 'common.depositsAndWithdrawals' },
   ],
+
+  refreshTick: 0,
 }
 
 const tradeStore: TTradeStore = {
@@ -63,6 +67,10 @@ const tradeStore: TTradeStore = {
 
   reset() {
     merge(this, DEFAULT)
+  },
+
+  refreshTradeData() {
+    this.refreshTick++
   }
 }
 

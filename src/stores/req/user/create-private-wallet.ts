@@ -22,7 +22,6 @@ export const userCreatePrivateWallet: TUserCreatePrivateWallet = {
 
     this.userCreatePrivateWalletBusy = true
 
-    // POST /wallet/create/turnkey
     // Body: { platform: 'hyperliquid' | 'aster', remark?: string }
     const body: Record<string, string> = {
       platform: privateWalletStore.createPlatform,

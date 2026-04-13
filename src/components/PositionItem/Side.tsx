@@ -21,20 +21,23 @@ const PositionItemSide: React.FC<PositionItemSideProps> = ({ item, size = 'middl
   }
 
   useEffect(() => {
-    switch(item.side) {
+    const side = item.side || item.direction;
+    switch(side) {
       case 'buy':
-        setI18nText('buy')
+      case 'long':
+        setI18nText('long')
         setSideClassName('bg-success-1')
         break
       case 'sell':
-        setI18nText('sell')
+      case 'short':
+        setI18nText('short')
         setSideClassName('bg-error-1')
         break
       default:
         setI18nText('unknown')
         setSideClassName('')
     }
-  }, [item.side])
+  }, [item.side, item.direction])
 
   return (
     <span className={`br-1 text-capitalize flex-shrink-0 text-nowrap ${SIZES_CLASSNAME[size]} ${sideClassName}`}>

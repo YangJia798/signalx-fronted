@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation, withTranslation, Trans } from 'react-i18next'
 
 import { formatNumber, sortArrayByKey, merge } from '@/utils'
-import { constants, useTraderDetailsCompletedTradesStore, useReqStore } from '@/stores'
+import { constants, useTraderDetailsCompletedTradesStore, useReqStore, useTradeStore } from '@/stores'
 import ColumnList from '@/components/Column/List'
 import TimeAgo from '@/components/TimeAgo'
 import PositionItemTx from '@/components/PositionItem/Tx'
@@ -12,6 +12,7 @@ import PositionItemCommonPnl from '@/components/PositionItem/CommonPnL'
 const TraderDetailsCompletedTrades = ({ address, filterCoin = '', displayedRecordsMessage = 2000, className = '' }) => {
   const traderDetailsCompletedTradesStore = useTraderDetailsCompletedTradesStore()
   const reqStore = useReqStore()
+  const tradeStore = useTradeStore()
 
   const { t, i18n } = useTranslation()
 
@@ -35,7 +36,19 @@ const TraderDetailsCompletedTrades = ({ address, filterCoin = '', displayedRecor
       case 'side':
         return <PositionItemSide size='small' item={item} />
       case 'duration':
-        return <>-</> // Mock duration as hyperliquid userFills lacks start time
+        if (item.duration) {
+          const ms = item.duration;
+          const seconds = Math.floor(ms / 1000);
+          const minutes = Math.floor(seconds / 60);
+          const hours = Math.floor(minutes / 60);
+          const days = Math.floor(hours / 24);
+          
+          if (days > 0) return <>{days} {t('common.day', '天')} {hours % 24} {t('common.hour', '小时')}</>;
+          if (hours > 0) return <>{hours} {t('common.hour', '小时')} {minutes % 60} {t('common.minute', '分钟')}</>;
+          if (minutes > 0) return <>{minutes} {t('common.minute', '分钟')}</>;
+          return <>&lt; 1 {t('common.minute', '分钟')}</>;
+        }
+        return <>-</>
       case 'closedPnl':
         return <PositionItemCommonPnl value={item.closedPnl} />
       case 'size':
@@ -86,7 +99,7 @@ const TraderDetailsCompletedTrades = ({ address, filterCoin = '', displayedRecor
     return () => {
       traderDetailsCompletedTradesStore.reset()
     }
-  }, [address])
+  }, [address, tradeStore.refreshTick])
 
   return (
     <ColumnList

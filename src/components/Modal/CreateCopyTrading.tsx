@@ -1,16 +1,15 @@
-import { useEffect, useRef} from 'react';
+import { useEffect, useRef } from 'react';
 import { isAddress } from 'viem'
-import { message, Input, Button, Radio, Slider } from 'antd';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { message, Input, InputNumber, Button, Radio, Slider, Checkbox, Select } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useTranslation, withTranslation, Trans } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 
 import { formatNumber, inputIsNumber, sleep, merge } from '@/utils';
-import TokenIcon from '@/components/TokenIcon';
-import { IOutlineCopy, IOutlineSearchNormal1, IOutlineShieldSearch, IOutlineInfoCircle } from '@/components/icon'
+import { IOutlineInfoCircle } from '@/components/icon'
 import { constants, useAccountStore, usePrivateWalletStore, useReqStore, useCopyTradingStore } from '@/stores'
 import BaseModal from './Base';
 import WalletChainIcon from '@/components/Wallet/ChainIcon';
+import WalletProviderIcon from '@/components/Wallet/ProviderIcon';
 import ColumnList from '@/components/Column/List'
 import PositionItemDirectionLeverage from '@/components/PositionItem/DirectionLeverage'
 import PositionItemPositionValue from '@/components/PositionItem/PositionValue'
@@ -20,35 +19,39 @@ import ColumnTooltip from '@/components/Column/Tooltip'
 import InputSearch from '@/components/Input/Search';
 import LoginBtn from '@/components/Login/Btn'
 import { useNotification } from '@/components/Notification'
+import BN from 'bignumber.js'
 
 const ModalCreateCopyTrading = () => {
   const accountStore = useAccountStore()
   const reqStore = useReqStore()
   const copyTradingStore = useCopyTradingStore()
+  const privateWalletStore = usePrivateWalletStore()
   const location = useLocation();
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const notification = useNotification()
   const navigate = useNavigate()
 
-  const inputTargetAddressRef = useRef(null);
+  const inputTargetAddressRef = useRef<any>(null);
 
   const targetPosition = [
-    { id: 'symbol', label: t('common.symbol'), className: 'col-2' },
-    { id: 'leverage', label: t('common.directionLeverage'), className: 'col-3' },
-    { id: 'positionValue', label: t('common.positionValue'), className: 'justify-content-end text-end col-4' },
-    { id: 'uPnl', label: t('common.uPnl'), className: 'justify-content-end text-end col' },
+    { id: 'symbol', label: t('common.symbol'), className: 'col-3 text-secondary' },
+    { id: 'positionValue', label: t('common.positionValue'), className: 'justify-content-center text-center col text-secondary' },
+    { id: 'uPnl', label: t('common.uPnl'), className: 'justify-content-end text-end col-4 text-secondary' },
   ]
 
-  const renderPositionItem = (item, columnIndex) => {
+  const renderPositionItem = (item: any, columnIndex: number) => {
     switch (targetPosition[columnIndex].id) {
       case 'symbol':
-        return item.coin
-      case 'leverage':
-        return <PositionItemDirectionLeverage item={item} />
+        return <div className="d-flex align-items-center gap-2">
+           <span className="fw-bold color-white">{item.coin}</span>
+           <span className="color-secondary font-size-12">{item.leverage}x</span>
+        </div>
       case 'positionValue':
-        return <PositionItemPositionValue item={item} />
+        return <div className="text-center fw-bold color-white">{formatNumber(item.positionValue)}</div>
       case 'uPnl':
-        return <PositionItemUPnl item={item} />
+        return <div className={`${item.uPnlStatus === 1 ? 'color-success' : item.uPnlStatus === 2 ? 'color-danger' : 'color-white'} text-end fw-bold`}>
+           {item.uPnlStatus === 1 && '+'}{formatNumber(item.uPnl)}
+        </div>
       default:
         return null
     }
@@ -72,12 +75,10 @@ const ModalCreateCopyTrading = () => {
       </span>,
       onClick: () => navigate('/copy-trading')
     })
-    // update
     await reqStore.copyTradingMyCopyTrading(accountStore, copyTradingStore)
   };
 
   const handleSearchTargetAddress = async () => {
-    // reset
     copyTradingStore.resetCopyTradingTargetInfo()
 
     if (!isAddress(copyTradingStore.copyTradingSearchTargetAddress)) {
@@ -86,15 +87,12 @@ const ModalCreateCopyTrading = () => {
     }
 
     const { error } = await reqStore.copyTradingTargetPosition(accountStore, copyTradingStore)
-
     if (error) return
   }
 
   const handleSyncOpenPositionSellModelValue = (decode?: boolean = false) => {
-    // 必须 sell 止盈止损模式
     if (copyTradingStore.openPositionSellModel !== 3) return
 
-    // 反过来解码
     if (decode) {
       copyTradingStore.openPositionSellModelValue.split('|').map((item, idx) => {
         switch(idx) {
@@ -113,23 +111,17 @@ const ModalCreateCopyTrading = () => {
   }
 
   const handleQuickerOpenPosition = async () => {
-    // update
     copyTradingStore.copyTradingSearchTargetAddress = copyTradingStore.quickerOpenPositionTargetAddress
-
     handleSearchTargetAddress()
-    // reset
     copyTradingStore.resetQuickerOpenPosition()
 
-    // 查询是否有跟单这个地址
     await reqStore.copyTradingFindByAddress(accountStore, copyTradingStore)
 
     const hasQuickerOpenPositionItem = !!copyTradingStore.quickerOpenPositionItem
-
-    copyTradingStore.isOpenPositionTargetEdit = hasQuickerOpenPositionItem // 编辑模式
+    copyTradingStore.isOpenPositionTargetEdit = hasQuickerOpenPositionItem
 
     if (hasQuickerOpenPositionItem) {
       const { address, note, leverage, buyModel, buyModelValue, sellModel, sellModelValue } = copyTradingStore.quickerOpenPositionItem
-      // sync
       merge(copyTradingStore, {
         copyTradingSearchTargetAddress: address,
         openPositionTargeNote: note,
@@ -142,10 +134,8 @@ const ModalCreateCopyTrading = () => {
     }
   }
 
-  // init
   useEffect(() => {
     const asyncFunc = async () => {
-      // 快捷跟单模式
       if (copyTradingStore.quickerOpenPositionTargetAddress) {
         handleQuickerOpenPosition()
         return
@@ -154,7 +144,6 @@ const ModalCreateCopyTrading = () => {
       if (copyTradingStore.operaCopyTradingTargetItemIdx >= 0 && copyTradingStore.operaCopyTradingTargetItem && copyTradingStore.isOpenPositionTargetEdit) {
         const { address, note, leverage, buyModel, buyModelValue, sellModel, sellModelValue } = copyTradingStore.operaCopyTradingTargetItem
 
-        // sync
         merge(copyTradingStore, {
           copyTradingSearchTargetAddress: address,
           openPositionTargeNote: note,
@@ -165,14 +154,11 @@ const ModalCreateCopyTrading = () => {
           openPositionSellModelValue: sellModelValue,
         })
 
-        // 显示仓位
         handleSearchTargetAddress()
         handleSyncOpenPositionSellModelValue(true)
       }
 
-      // NOTE: 编辑模式，不自动焦点到Address Search
       if (copyTradingStore.isOpenPositionTargetEdit) return
-      // NOTE: 解决弹框刚显示后，input 无法获取焦点的现象
       await sleep(250)
       if (copyTradingStore.openCopyTradingTarget && inputTargetAddressRef.current) {
         inputTargetAddressRef.current.focus()
@@ -181,52 +167,51 @@ const ModalCreateCopyTrading = () => {
 
     if (!copyTradingStore.openCopyTradingTarget || !accountStore.logged) return
 
-    // reset
     copyTradingStore.resetCopyTradingTarget()
     copyTradingStore.resetOpenPosition()
 
-    asyncFunc()
+    if (privateWalletStore.list.length > 0) {
+      copyTradingStore.openPositionWalletAddress = privateWalletStore.list[0].address;
+    }
 
+    asyncFunc()
   }, [copyTradingStore.openCopyTradingTarget])
 
   useEffect(() => {
     const asyncFunc = async () => {
       try {
-        // 获取查询参数
         const queryParams = new URLSearchParams(location.search);
         const cctAddress = queryParams.get(constants.paramKey.copyTradingTargetAddress);
 
         if (cctAddress && isAddress(cctAddress)) {
-
-          // 进入快速跟单模式
           copyTradingStore.openCopyTradingTarget = true
           await sleep(300)
           copyTradingStore.quickerOpenPositionTargetAddress = cctAddress
           handleQuickerOpenPosition()
         }
-
       } catch (error) {
         console.log(error);
       }
     }
-
     asyncFunc()
   }, [location, accountStore.logged])
 
   return (
     <BaseModal
       title={t(copyTradingStore.isOpenPositionTargetEdit ? 'common.editCopyTrading' : 'common.createCopyTrading')}
-      width={980}
+      width={1000}
       open={copyTradingStore.openCopyTradingTarget}
       onClose={handleClose}
     >
-      <div className='d-flex flex-wrap gap-3'>
-        <div className='d-flex flex-column col-12 col-md gap-1'>
+      <div className='d-flex flex-wrap gap-4 px-2'>
+        {/* Left Column */}
+        <div className='d-flex flex-column flex-grow-1 gap-3 col-12 col-lg-5'>
           <Busy spinning={reqStore.copyTradingTargetPositionBusy}>
             <InputSearch
               ref={inputTargetAddressRef}
               value={copyTradingStore.copyTradingSearchTargetAddress}
-              className='br-2'
+              className='br-1 px-3'
+              style={{ height: '44px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)' }}
               placeholder={t('copyTrading.searchCopyTradingAddress')}
               onPressEnter={handleSearchTargetAddress}
               readOnly={copyTradingStore.isOpenPositionTargetEdit}
@@ -236,143 +221,125 @@ const ModalCreateCopyTrading = () => {
             />
           </Busy>
 
-          <div className='d-flex flex-wrap gap-1'>
-            {
-              [
-                { label: t('common.totalPositionValue'), className: 'col', content: <>{ copyTradingStore.copyTradingTargetTotalPositionValue ? `$ ${ formatNumber(copyTradingStore.copyTradingTargetTotalPositionValue) }` : '-' }</> },
-                { label: t('common.totalUPnL'), className: 'col', content: <span className={`${copyTradingStore.copyTradingTargetTotalUPnlStatusClassName}`}>{ copyTradingStore.copyTradingTargetTotalUPnl ? `$ ${ formatNumber(copyTradingStore.copyTradingTargetTotalUPnl) }` : '-' }</span> },
-              ].map((item, idx) =>
-              <div key={idx} className={`d-flex flex-column gap-2 justify-content-between bg-gray-alpha-4 p-3 br-1 ${ item.className }`} style={{ marginTop: '-2px', marginLeft: idx ? '-2px' : '0' }}>
-                <span className='d-flex gap-2 color-secondary'>{ item.label }</span>
-                <span className='d-flex align-items-center gap-2 h6 fw-500'>{ item.content }</span>
-              </div>)
-            }
+          <div className='d-flex gap-0 px-0 pb-3 mt-2 border-bottom border-secondary-subtle border-opacity-25'>
+            <div className='d-flex flex-column gap-2 justify-content-center p-0 col'>
+              <span className='color-secondary font-size-13'>{ t('common.totalPositionValue', '总持仓价值') }</span>
+              <span className='fw-bold font-size-16 color-white'>{ copyTradingStore.copyTradingTargetTotalPositionValue ? `$ ${formatNumber(copyTradingStore.copyTradingTargetTotalPositionValue)}` : '-' }</span>
+            </div>
+            <div className='d-flex flex-column gap-2 justify-content-center p-0 col'>
+              <span className='color-secondary font-size-13'>{ t('common.uPnl', '未实现盈亏') }</span>
+              <span className={`fw-bold font-size-16 ${copyTradingStore.copyTradingTargetTotalUPnlStatusClassName || 'color-white'}`}>{ copyTradingStore.copyTradingTargetTotalUPnl ? `${copyTradingStore.copyTradingTargetTotalUPnlStatus === 1 ? '+' : ''}$ ${formatNumber(copyTradingStore.copyTradingTargetTotalUPnl)}` : '-' }</span>
+            </div>
           </div>
-          <ColumnList height={400} columns={targetPosition} data={copyTradingStore.copyTradingTargetPositionList} busy={false} renderItem={renderPositionItem} className='br-2' />
+
+          <div className='flex-grow-1 d-flex flex-column position-relative' style={{ minHeight: '360px', overflow: 'hidden' }}>
+            <ColumnList height={320} columns={targetPosition} data={copyTradingStore.copyTradingTargetPositionList} busy={false} renderItem={renderPositionItem} className='h-100 bg-transparent' />
+
+          </div>
         </div>
 
-        <div className='d-flex flex-column col-12 col-md'>
-          {
-            [
-              { label: t('common.addressNote'), content: <Input value={copyTradingStore.openPositionTargeNote} className='br-2' placeholder={`(${t('common.optional')})`} onChange={(e) => copyTradingStore.openPositionTargeNote = e.target.value.trim() }/> },
-              { label: t('common.tradeStrategy'), content:
-                  <div className='d-flex flex-column gap-2 col'>
-                    <Radio.Group block value={copyTradingStore.openPositionTradeStrategyValue} onChange={(e) => copyTradingStore.openPositionTradeStrategyValue = e.target.value }>
-                      { copyTradingStore.openPositionTradeStrategyRadios.map((item, idx) => <Radio.Button key={idx} value={item.value}>{ item.i18n ? t(item.i18n) : item.label}</Radio.Button>)}
-                    </Radio.Group>
-                  </div>
-              },
-              { label: t('common.leverage'), content:
-                <span className='d-flex col'>
-                  <Slider className='col-9 m-0 mx-3' marks={{1: `${copyTradingStore.openPositionLeverageMin}x`, 5: '5x', 10: '10x', 25: '25x', 40: `${copyTradingStore.openPositionLeverageMax}x`}} step={1} value={copyTradingStore.openPositionLeverage} min={copyTradingStore.openPositionLeverageMin} max={copyTradingStore.openPositionLeverageMax} onChange={(val) => copyTradingStore.openPositionLeverage = val} />
-                  <span className='ps-4'>
-                    <Input className='col br-2' value={copyTradingStore.openPositionLeverage} onChange={(e) => {
-                      const value = e.target.value
-
-                      if (!inputIsNumber(value)) return
-                      const num = +value
-                      copyTradingStore.openPositionLeverage = Math.min(Math.max(copyTradingStore.openPositionLeverageMin, num), copyTradingStore.openPositionLeverageMax)
-                    } }/>
-                  </span>
-                </span>
-              },
-              { label: t('common.followBuyMode'), content:
-                  <div className='d-flex flex-column gap-2 col'>
-                    <Radio.Group block value={copyTradingStore.openPositionBuyModel} onChange={(e) => copyTradingStore.openPositionBuyModel = e.target.value }>
-                      { copyTradingStore.openPositionBuyModelRadios.map((item, idx) => <Radio.Button key={idx} value={item.value}>{ item.i18n ? t(item.i18n) : item.label}</Radio.Button>)}
-                    </Radio.Group>
-                    <div className='d-flex flex-column gap-1 mt-1'>
-                      { copyTradingStore.openPositionBuyModel === 1 &&
-                        <>
-                          <Input prefix='$' value={copyTradingStore.openPositionBuyModelValue} className='br-2' placeholder={`${t('copyTrading.setFixedCopyBuyingAmount')} (USD)`} onChange={(e) => {
-                            const value = e.target.value
-
-                            if (!inputIsNumber(value)) return
-                            copyTradingStore.openPositionBuyModelValue = value
-                          }} />
-                        </>
-                      }
-                      { copyTradingStore.openPositionBuyModel === 3 &&
-                          <Input prefix='$' value={copyTradingStore.openPositionBuyModelValue} className='br-2' placeholder={`${t('copyTrading.setMaximumCopyBuyingAmount')} (USD)`} onChange={(e) => {
-                            const value = e.target.value
-                            if (!inputIsNumber(value)) return
-                            copyTradingStore.openPositionBuyModelValue = value
-                          }} />
-                      }
+        {/* Right Column */}
+        <div className='d-flex flex-column flex-grow-1 gap-4 col-12 col-lg-6 ps-lg-3'>
+          
+          <div className='d-flex flex-column gap-2'>
+             <div className='color-secondary font-size-13'>{t('common.selectOwnAddress', '选择自己的地址')}</div>
+             <Select
+                value={copyTradingStore.openPositionWalletAddress}
+                onChange={(val) => copyTradingStore.openPositionWalletAddress = val}
+                className='w-100 font-size-15 SelectWalletDropdown'
+                dropdownStyle={{ backgroundColor: '#1e1e1e', border: '1px solid rgba(255,255,255,0.1)' }}
+                style={{ height: '48px', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '8px' }}
+                bordered={false}
+                options={privateWalletStore.list.map((item) => ({
+                  value: item.address,
+                  label: (
+                    <div className="d-flex align-items-center justify-content-between w-100 pt-1">
+                      <div className="d-flex align-items-center gap-2">
+                         <WalletProviderIcon platform={item.platform || 'hyperliquid'} />
+                         <span className="fw-bold color-white">{item.address.slice(0, 6)}...{item.address.slice(-6)}{item.nickname && <span className="color-secondary font-size-12 fw-normal ms-1">{item.nickname}</span>}</span>
+                      </div>
+                      <span className="fw-bold color-white">$ {formatNumber(item.balance)}</span>
                     </div>
-                  </div>
-              },
-              { label: t('common.followSellMode'), content:
-                <div className='d-flex flex-column gap-2 col'>
-                  <Radio.Group block value={copyTradingStore.openPositionSellModel} onChange={(e) => copyTradingStore.openPositionSellModel = e.target.value}>
-                    { copyTradingStore.openPositionSellModelRadios.map((item, idx) => <Radio.Button key={idx} value={item.value}>{ item.i18n ? t(item.i18n) : item.label}</Radio.Button>)}
-                  </Radio.Group>
-                  <div className='d-flex gap-1 mt-1'>
-                    { copyTradingStore.openPositionSellModel === 3 &&
-                      <>
-                        <div className='d-flex flex-column gap-2 col'>
-                          <span className='d-flex align-items-center gap-2'><small className='color-secondary'>{t('common.takeProfit')}</small> { copyTradingStore.openPositionSellModelTakeProfitRatioValue }%</span>
-                          <Slider className='col-9 m-0 ms-3 mb-3' marks={{0: '0%', 50: '50%', 100: '100%'}} step={5} value={copyTradingStore.openPositionSellModelTakeProfitRatioValue} min={0} max={100} onChange={(val) => {
-                            copyTradingStore.openPositionSellModelTakeProfitRatioValue = val
-                            handleSyncOpenPositionSellModelValue()
-                          }} />
-                        </div>
-                        <div className='d-flex flex-column gap-2 col'>
-                          <span className='d-flex align-items-center gap-2'><small className='color-secondary'>{t('common.stopLoss')}</small>{ copyTradingStore.openPositionSellModelStopLossRatioValue }%</span>
-                          <Slider className='col-9 m-0 ms-3 mb-3' marks={{0: '0%', 50: '50%', 100: '100%'}} step={5} value={copyTradingStore.openPositionSellModelStopLossRatioValue} min={0} max={100} onChange={(val) => {
-                            copyTradingStore.openPositionSellModelStopLossRatioValue = val
-                            handleSyncOpenPositionSellModelValue()
-                          }} />
-                        </div>
-                        {/* <Input value={copyTradingStore.openPositionSellModelTakeProfitRatioValue} className='br-2' placeholder='' onChange={(e) => {
-                            const value = e.target.value.trim()
-                            if (!inputIsNumber(value)) return
-                            // update
-                            // copyTradingStore.openPositionSellModelTakeProfitRatioValue = value
-                            handleSyncOpenPositionSellModelValue()
-                            // copyTradingStore.openPositionSellModelValue
-                          }} /> */}
-                        {/* <Input value={copyTradingStore.openPositionSellModelStopLossRatioValue} className='br-2' placeholder='' onChange={(e) => {
-                            const value = e.target.value.trim()
-                            if (!inputIsNumber(value)) return
-                            // update
-                            // copyTradingStore.openPositionSellModelStopLossRatioValue = value
-                            // handleSyncOpenPositionSellModelValue()
-                            // copyTradingStore.openPositionSellModelValue
-                          }} /> */}
-                      </>
-                    }
-                  </div>
+                  )
+                }))}
+             />
+          </div>
+
+          <div className='d-flex flex-column gap-2'>
+             <div className='d-flex justify-content-between align-items-center'>
+               <div className='color-secondary font-size-13'>{t('common.leverage', '杠杆')}</div>
+               <Checkbox checked={copyTradingStore.openPositionFollowTargetLeverage} onChange={e => copyTradingStore.openPositionFollowTargetLeverage = e.target.checked} className='color-secondary font-size-13 m-0'>{t('common.followTargetLeverage', '跟随目标杠杆')}</Checkbox>
+             </div>
+             <div className='d-flex align-items-center gap-3 mt-1'>
+                <Slider className='flex-grow-1 m-0 me-3' marks={{1: '1x', 5: '5x', 10: '10x', 25: '25x', 40: '40x'}} step={1} value={copyTradingStore.openPositionLeverage} min={copyTradingStore.openPositionLeverageMin} max={copyTradingStore.openPositionLeverageMax} onChange={(val) => copyTradingStore.openPositionLeverage = val} />
+                <div className='border border-secondary-subtle br-2 px-2 d-flex align-items-center justify-content-center' style={{ width: '70px', height: '40px', background: 'transparent' }}>
+                  <Input value={copyTradingStore.openPositionLeverage} className="bg-transparent border-0 color-white text-center p-0 shadow-none fw-bold" onChange={(e) => {
+                       const value = e.target.value
+                       if (!inputIsNumber(value)) return
+                       const num = +value
+                       copyTradingStore.openPositionLeverage = Math.min(Math.max(copyTradingStore.openPositionLeverageMin, num), copyTradingStore.openPositionLeverageMax)
+                    }} />
+                  <span className='color-secondary font-size-14 fw-bold ms-1'>x</span>
                 </div>
-               },
-            ].map((item, idx) =>
-            <div key={idx} className='d-flex flex-column gap-2 justify-content-between bg-gray-alpha-4 p-3 br-1' style={{ marginTop: '-2px' }}>
-              <span className='d-flex gap-2 color-secondary'>{ item.label }</span>
-              <span className='d-flex align-items-center gap-2 h6 fw-500'>{ item.content }</span>
-            </div>)
-          }
-          <div className='d-flex justify-content-end pt-4 mt-auto'>
-            <ColumnTooltip title={
-              copyTradingStore.openPositionSellModel === 3 && !copyTradingStore.openPositionSellModelTakeProfitRatioValue && !copyTradingStore.openPositionSellModelStopLossRatioValue && t('copyTrading.takeProfitStopLossWarning')
-                || ''
-            }>
-              <Button size='small'
-                disabled={
-                  !copyTradingStore.copyTradingTargetAddress
-                    || copyTradingStore.openPositionSellModel === 3 && !copyTradingStore.openPositionSellModelTakeProfitRatioValue && !copyTradingStore.openPositionSellModelStopLossRatioValue
-                } type='primary' loading={reqStore.copyTradingCreateCopyTradingBusy} className='d-flex align-items-center justify-content-center  fw-bold br-4 px-3 col gap-2' onClick={handleSubmit}>
-                {
-                  (copyTradingStore.openPositionSellModel === 3 && !copyTradingStore.openPositionSellModelTakeProfitRatioValue && !copyTradingStore.openPositionSellModelStopLossRatioValue)
-                    && <IOutlineInfoCircle className='zoom-90' />
-                }
-                { t(copyTradingStore.isOpenPositionTargetEdit ? 'common.edit' : 'common.create' )}
-              </Button>
-            </ColumnTooltip>
+             </div>
+          </div>
+
+          <div className='d-flex flex-column gap-2'>
+            <div className='color-secondary font-size-13'>{t('common.marginMode', '保证金模式')}</div>
+            <div className='d-flex gap-0 br-1 border border-secondary-subtle overflow-hidden'>
+               {copyTradingStore.openPositionMarginModeRadios.map(item => (
+                 <div key={item.value} onClick={() => copyTradingStore.openPositionMarginMode = item.value}
+                    className={`flex-grow-1 text-center py-2 cursor-pointer transition-2 font-size-14 fw-500 ${copyTradingStore.openPositionMarginMode === item.value ? 'color-primary' : 'color-secondary hover-text-white'}`}
+                    style={{ borderRight: item.value !== 2 ? '1px solid rgba(255,255,255,0.1)' : 'none', background: copyTradingStore.openPositionMarginMode === item.value ? 'rgba(0, 209, 178, 0.05)' : 'transparent' }}>
+                    {t(item.i18n || item.label)}
+                 </div>
+               ))}
+            </div>
+          </div>
+
+          <div className='d-flex flex-column gap-2'>
+            <div className='color-secondary font-size-13'>{t('common.copyMode', '跟单模式')}</div>
+            <div className='d-flex gap-0 br-1 border border-secondary-subtle overflow-hidden'>
+               {copyTradingStore.openPositionBuyModelRadios.map((item, i) => (
+                 <div key={item.value} onClick={() => copyTradingStore.openPositionBuyModel = item.value}
+                    className={`flex-grow-1 text-center py-2 cursor-pointer transition-2 font-size-14 fw-500 d-flex align-items-center justify-content-center gap-1 ${copyTradingStore.openPositionBuyModel === item.value ? 'color-primary' : 'color-secondary hover-text-white'}`}
+                    style={{ borderRight: i !== 2 ? '1px solid rgba(255,255,255,0.1)' : 'none', background: copyTradingStore.openPositionBuyModel === item.value ? 'rgba(0, 209, 178, 0.05)' : 'transparent' }}>
+                    {t(item.i18n || item.label)}
+                    <IOutlineInfoCircle className='zoom-85' />
+                 </div>
+               ))}
+            </div>
+          </div>
+
+          <div className='d-flex gap-3 align-items-center w-100'>
+             <div className='d-flex flex-column gap-2 flex-grow-1 col'>
+                <div className='color-secondary font-size-13 d-flex align-items-center gap-1'>{t('common.copyRatio', '跟单比例')} <IOutlineInfoCircle className='zoom-85' /></div>
+                <div className='border border-secondary-subtle br-1 px-3 py-2 d-flex align-items-center justify-content-between' style={{ background: 'transparent'}}>
+                   <Input value={copyTradingStore.openPositionCopyRatio} onChange={e => copyTradingStore.openPositionCopyRatio = e.target.value} className="bg-transparent border-0 color-white p-0 shadow-none w-100 fw-bold" />
+                   <span className='color-white fw-bold'>%</span>
+                </div>
+             </div>
+             <div className='d-flex flex-column gap-2 flex-grow-1 col'>
+                <div className='color-secondary font-size-13'>{t('common.highMarginProtect', '高保证金使用率保护')}</div>
+                <div className='border border-secondary-subtle br-1 px-3 py-2 d-flex align-items-center justify-content-between' style={{ background: 'transparent'}}>
+                   <Input value={copyTradingStore.openPositionHighMarginProtect} onChange={e => copyTradingStore.openPositionHighMarginProtect = e.target.value} className="bg-transparent border-0 color-white p-0 shadow-none w-100 fw-bold" />
+                   <span className='color-white fw-bold'>%</span>
+                </div>
+             </div>
+          </div>
+
+
+          <div className='d-flex gap-3 mt-auto pt-4'>
+             <ColumnTooltip title={
+                copyTradingStore.openPositionSellModel === 3 && !copyTradingStore.openPositionSellModelTakeProfitRatioValue && !copyTradingStore.openPositionSellModelStopLossRatioValue && t('copyTrading.takeProfitStopLossWarning')
+                  || ''
+              }>
+               <Button type='primary' loading={reqStore.copyTradingCreateCopyTradingBusy} disabled={!copyTradingStore.copyTradingTargetAddress || (copyTradingStore.openPositionSellModel === 3 && !copyTradingStore.openPositionSellModelTakeProfitRatioValue && !copyTradingStore.openPositionSellModelStopLossRatioValue)} className="flex-grow-1 d-flex justify-content-center align-items-center font-size-14 fw-bold br-pill border-0 w-100" style={{ height: '48px' }} onClick={handleSubmit}>{t('common.create', '创建')}</Button>
+             </ColumnTooltip>
           </div>
         </div>
       </div>
 
-      {/* 支持未登录引导 */}
       {
         !accountStore.logged &&
           <div className='d-flex flex-column align-items-center position-full justify-content-center bg-black-thin gap-3 position-absolute z-index-99'>
@@ -382,7 +349,6 @@ const ModalCreateCopyTrading = () => {
             </span>
           </div>
       }
-
     </BaseModal>
   );
 };

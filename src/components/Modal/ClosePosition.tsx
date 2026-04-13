@@ -1,121 +1,205 @@
-import { useEffect, useRef } from 'react';
-import { message, Input, InputNumber } from 'antd';
-import { useTranslation, withTranslation, Trans } from 'react-i18next'
+import { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next'
+import { Input, message } from 'antd';
 
-import { formatNumber, sleep, inputIsNumber } from '@/utils';
-import TokenIcon from '@/components/TokenIcon';
-import { IOutlineCopy } from '@/components/icon'
-import { useAccountStore, usePrivateWalletStore, useReqStore, useCopyTradingStore } from '@/stores'
 import BaseModal from './Base';
-import WalletChainIcon from '@/components/Wallet/ChainIcon';
-import TabBase from '@/components/Tab/Base'
+import { useTraderDetailsPositionsStore, useHyperStore, usePrivateWalletStore, useReqStore, useTradeStore, useAccountStore } from '@/stores'
+import PositionItemSide from '@/components/PositionItem/Side'
 
 const ModalClosePosition = () => {
+  const traderDetailsPositionsStore = useTraderDetailsPositionsStore();
+  const hyperStore = useHyperStore();
   const privateWalletStore = usePrivateWalletStore();
-  const accountStore = useAccountStore()
-  const reqStore = useReqStore()
-  const copyTradingStore = useCopyTradingStore()
-  const { t, i18n } = useTranslation()
+  const reqStore = useReqStore();
+  const tradeStore = useTradeStore();
+  const accountStore = useAccountStore();
+  const { t } = useTranslation()
 
-  const inputLimitPriceRef = useRef(null);
+  const [quantity, setQuantity] = useState('');
+  const [closePrice, setClosePrice] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const handleClose = () => {
-    copyTradingStore.openClosePosition = false;
+    traderDetailsPositionsStore.openClosePositionModal = false;
+    setTimeout(() => {
+      setQuantity('');
+      setClosePrice('');
+    }, 300);
   };
+
+  const item = traderDetailsPositionsStore.currentClosePositionItem;
+  const isMarket = traderDetailsPositionsStore.closePositionType === 'market';
+  const liveMarkPrice = item ? (hyperStore.perpMarket[item.coin]?.markPrice || item.markPrice) : null;
+
+  useEffect(() => {
+    // 移除默认填充逻辑
+  }, [item, traderDetailsPositionsStore.openClosePositionModal])
 
   const handleSubmit = async () => {
-    const { error } = await reqStore.copyTryTradingClosePosition(accountStore, copyTradingStore)
+    if (!item) return;
+    if (!quantity || Number(quantity) <= 0) {
+      message.warning(t('common.pleaseInputQuantity') || '请输入数量');
+      return;
+    }
+    if (!isMarket && (!closePrice || Number(closePrice) <= 0)) {
+      message.warning(t('common.pleaseInputPrice') || '请输入价格');
+      return;
+    }
 
-    if (error) return
+    const activeWallet = privateWalletStore.list[privateWalletStore.operaWalletIdx === -1 ? 0 : privateWalletStore.operaWalletIdx] || privateWalletStore.list[0];
+    if (!activeWallet) {
+      message.warning(t('common.noWallet') || '请先创建交易钱包');
+      return;
+    }
 
-    handleClose()
-    // NOTE: 成功后更新仓位数据
-    await reqStore.copyTradingMyPosition(accountStore, copyTradingStore)
+    try {
+      setSubmitting(true);
+
+      const params: any = {
+        wallet_id: activeWallet.walletId,
+        coin: item.coin,
+        sz: Number(quantity),
+        order_type: isMarket ? 'market' : 'limit',
+        leverage: Number(item.leverage),
+        margin_mode: item.type || 'cross',
+        reduce_only: true,
+      };
+
+      if (!isMarket) {
+        params.limit_px = Number(closePrice);
+      }
+
+      // Long position → close by selling; Short position → close by buying
+      if (item.direction === 'long') {
+        await reqStore.hyperOrderLimitSell(params);
+      } else {
+        await reqStore.hyperOrderLimitBuy(params);
+      }
+
+      message.success(t('common.closePositionSuccess') || '平仓订单提交成功');
+      
+      // Refresh positions and orders
+      tradeStore.refreshTradeData()
+      // Refresh wallet balance
+      reqStore.userPrivateWallet(accountStore, privateWalletStore)
+      
+      handleClose();
+    } catch (e: any) {
+      message.error(e.message || t('common.closePositionFailed') || '平仓订单提交失败');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleTabChange = (id) => {
-    copyTradingStore.closePositionTabId = id
-  }
-
-  const handleInputPrice = (e) => {
-    const value = e.target.value
-    if (!inputIsNumber(value)) return
-    copyTradingStore.closePositionPrice = value;
-  }
-
-  // init
-  useEffect(() => {
-    if (!copyTradingStore.openClosePosition) return
-
-    copyTradingStore.resetClosePosition()
-  }, [copyTradingStore.openClosePosition])
-
-  // NOTE: 如果弹窗一直开着，仓位数据更新而仓位不存在的情况
-  useEffect(() => {
-    if (!copyTradingStore.operaPositionItem && copyTradingStore.openClosePosition) {
-      handleClose()
+  const isLong = useMemo(() => {
+    if (!item) return true;
+    const side = item.side || item.direction;
+    if (side) {
+        return ['buy', 'long'].includes(side.toLowerCase());
     }
-  }, [copyTradingStore.operaPositionItem])
+    return parseFloat(item.szi || item.position?.szi || '0') > 0;
+  }, [item]);
 
-  useEffect(() => {
-    const asyncFunc = async () => {
-      // NOTE: 解决弹框刚显示后，input 无法获取焦点的现象
-      await sleep(250)
-      if (copyTradingStore.openClosePosition && copyTradingStore.closePositionTabId === 'limit' && inputLimitPriceRef.current) {
-        inputLimitPriceRef.current.focus()
-      }
+  const entryPrice = item ? parseFloat(item.openPrice) : 0;
+
+  const expectedProfit = useMemo(() => {
+    const qty = parseFloat(quantity);
+    if (!qty || isNaN(qty)) return null;
+    
+    let price;
+    if (isMarket) {
+      if (!liveMarkPrice) return null;
+      const strPrice = liveMarkPrice.toString().replace(/,/g, '');
+      price = parseFloat(strPrice);
+    } else {
+      if (!closePrice || isNaN(parseFloat(closePrice))) return null;
+      price = parseFloat(closePrice);
     }
+    if (!price || isNaN(price)) return null;
 
-    asyncFunc()
-  }, [copyTradingStore.closePositionTabId, copyTradingStore.openClosePosition])
+    return isLong ? (price - entryPrice) * qty : (entryPrice - price) * qty;
+  }, [quantity, closePrice, isMarket, liveMarkPrice, entryPrice, isLong]);
+
+  const directionText = item?.direction === 'long' ? t('common.long', '多') : t('common.short', '空');
+  const isDisabled = submitting || (!isMarket && !closePrice);
 
   return (
     <BaseModal
-      title={`
-        ${ copyTradingStore.operaPositionItem?.coin }
-        ${ copyTradingStore.operaPositionItem?.leverage }x
-        - ${ copyTradingStore.operaPositionItem?.direction === 'long' ? t('common.closeLong') : t('common.closeShort') }`}
-      titleClassName='mb-2 text-capitalize'
-      open={copyTradingStore.openClosePosition}
+      title={item ? (
+        <div className="d-flex align-items-center gap-2">
+          <span className="fw-bold">{item.coin}</span> 
+          <PositionItemSide item={item} /> 
+          <span className="fw-bold">{item.leverage}x</span>
+        </div>
+      ) : ''}
+      open={traderDetailsPositionsStore.openClosePositionModal}
       onClose={handleClose}
-      onSubmit={handleSubmit}
-      submitText={t('common.closeAll')}
-      submitDisabled={copyTradingStore.closePositionTabId === 'limit' && !copyTradingStore.closePositionPrice}
-      submitLoading={reqStore.copyTryTradingClosePositionBusy}
+      width={480}
     >
-      <TabBase data={copyTradingStore.closePositionTabs} curr={copyTradingStore.closePositionTabId} onClick={handleTabChange} />
-      <div className='d-flex flex-wrap gap-1'>
-        {
-          [
-            { label: t('common.openingPrice'), className: 'col', content: <>$ { copyTradingStore.operaPositionItem?.openPrice ?? '-' }</> },
-            { label: t('common.markPrice'), className: 'col', content: <>$ { copyTradingStore.operaPositionItem?.openPrice ?? '-' }</> },
-          ].map((item, idx) =>
-          <div key={idx} className={`d-flex flex-column gap-2 justify-content-between bg-gray-alpha-4 p-3 br-1 ${ item.className }`} style={{ marginTop: '-2px', marginLeft: idx ? '-2px' : '0' }}>
-            <span className='d-flex gap-2 color-secondary'>{ item.label }</span>
-            <span className='d-flex align-items-center gap-2 h6 fw-500'>{ item.content }</span>
-          </div>)
-        }
-      </div>
-      {
-        [
-          { label: <>{ t('common.price') } (USD)</>, content:
-              <>
-                { copyTradingStore.closePositionTabId === 'limit' && <Input ref={inputLimitPriceRef} value={copyTradingStore.closePositionPrice} className='br-2' placeholder='' onChange={handleInputPrice} /> }
-                { copyTradingStore.closePositionTabId === 'market' && <Input disabled value={t('common.marketPrice')} className='br-2' placeholder='' /> }
-              </>
-          },
-        ].map((item, idx) =>
-        <div key={idx} className='d-flex flex-column gap-2 justify-content-between bg-gray-alpha-4 p-3 br-1' style={{ marginTop: '-2px' }}>
-          <span className='d-flex gap-2 color-secondary'>{ item.label }</span>
-          <span className='d-flex align-items-center gap-2 h6 fw-500'>{ item.content }</span>
-        </div>)
-      }
-      <span className='d-flex flex-column gap-1 small color-secondary ps-2 pt-2'>
-        <span>
-          { t('copyTrading.closePositionLimitPriceWarning',
-            { type: t( copyTradingStore.closePositionTabId === 'limit' ? 'common.limitPrice' : 'common.marketPrice' )})}
-        </span>
-      </span>
+      {item && (
+        <div className='d-flex flex-column gap-3'>
+          <div className="d-flex justify-content-between mb-2">
+             <div className="d-flex flex-column gap-1">
+               <span className="color-unimportant font-size-12">{t('common.openingPrice', '开盘价')}</span>
+               <span className="fw-bold color-white font-size-14">$ {item.openPrice}</span>
+             </div>
+             <div className="d-flex flex-column gap-1 text-end">
+               <span className="color-unimportant font-size-12">{t('common.markPrice', '标记价')}</span>
+               <span className="fw-bold color-white font-size-14">$ {liveMarkPrice || '---'}</span>
+             </div>
+          </div>
+
+          <div className="d-flex flex-column gap-1">
+             <div className="d-flex align-items-center br-2 px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                {isMarket ? (
+                  <span className="color-unimportant text-nowrap py-1">{t('common.marketPrice', '市价')}</span>
+                ) : (
+                   <>
+                     <span className="color-unimportant text-nowrap" style={{ width: '60px' }}>{t('common.price', '价格')}</span>
+                     <Input className="col bg-transparent border-0 text-white shadow-none px-2" style={{ boxShadow: 'none' }} value={closePrice} onChange={e => setClosePrice(e.target.value)} />
+                     <div className="d-flex align-items-center gap-1 cursor-pointer" onClick={() => setClosePrice(liveMarkPrice || '')}>
+                        <span className="color-unimportant font-size-12">{t('common.price', '价格')}</span>
+                        <span className="font-size-12 fw-500" style={{ color: '#00d1b2' }}>{t('common.midPrice', '盘中价')}</span>
+                     </div>
+                   </>
+                )}
+             </div>
+          </div>
+
+          <div className="d-flex flex-column gap-1">
+             <div className="d-flex align-items-center br-2 px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <span className="color-unimportant text-nowrap" style={{ width: '60px' }}>{t('common.quantity', '数量')}</span>
+                <Input className="col bg-transparent border-0 text-white shadow-none px-2 font-size-14" style={{ boxShadow: 'none' }} value={quantity} onChange={e => setQuantity(e.target.value)} />
+                <div className="cursor-pointer" onClick={() => setQuantity(item.size)}>
+                  <span className="fw-bold color-white font-size-12" style={{ opacity: 0.85 }}>{item.size} {item.coin}</span>
+                </div>
+             </div>
+          </div>
+
+          <span className="color-unimportant font-size-12 mt-1">
+            {t('common.closeAtPrice', '以')} <span className="color-white fw-bold">$ {isMarket ? (liveMarkPrice || '---') : (closePrice || '0')}</span> {t('common.priceToClose', '价格进行平仓')}
+            {t('common.comma', '，')}
+            {t('common.expectedProfitIs', '预期利润为')} <span className="fw-bold" style={{ color: expectedProfit === null ? 'white' : (expectedProfit >= 0 ? '#00d1b2' : '#ff4d4f') }}>
+              $ {expectedProfit === null ? '-' : expectedProfit.toFixed(2)}
+            </span>
+          </span>
+
+          <div 
+             className={`w-100 d-flex align-items-center justify-content-center fw-bold rounded-pill cursor-pointer transition-2 mt-3 ${isDisabled ? 'disabled' : ''}`}
+             style={{
+                background: isDisabled ? 'rgba(255,255,255,0.08)' : 'linear-gradient(90deg, #fce0fc 0%, #c4f1ff 40%, #00e5ff 100%)',
+                color: isDisabled ? 'rgba(255,255,255,0.4)' : '#1a1d2d',
+                height: '48px',
+                fontSize: '16px',
+                pointerEvents: isDisabled ? 'none' : 'auto',
+                opacity: submitting ? 0.7 : 1
+             }}
+             onClick={handleSubmit}
+          >
+             {submitting ? (t('common.submitting') || '提交中...') : `${t('common.close', '平')}${directionText}`}
+          </div>
+        </div>
+      )}
     </BaseModal>
   );
 };

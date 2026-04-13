@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation, withTranslation, Trans } from 'react-i18next'
 
 import { formatNumber, sortArrayByKey, merge } from '@/utils'
-import { constants, useTraderDetailsPositionsStore, useReqStore } from '@/stores'
+import { constants, useTraderDetailsPositionsStore, useReqStore, useTradeStore } from '@/stores'
 import ColumnList from '@/components/Column/List'
 import PositionItemUPnl from '@/components/PositionItem/UPnl'
 import PositionItemDirectionLeverage from '@/components/PositionItem/DirectionLeverage'
@@ -10,23 +10,27 @@ import PositionItemPositionValue from '@/components/PositionItem/PositionValue'
 import PositionItemFunding from '@/components/PositionItem/Funding'
 import PositionItemMarkPrice from '@/components/PositionItem/MarkPrice'
 import HyperAutoUpdatePerpMetaAndMarket from '@/components/Hyper/AutoUpdatePerpMetaAndMarket'
+import ModalTPSL from '@/components/Modal/TPSL'
+import ModalClosePosition from '@/components/Modal/ClosePosition'
 
 const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, className = '' }) => {
   const traderDetailsPositionsStore = useTraderDetailsPositionsStore()
   const reqStore = useReqStore()
+  const tradeStore = useTradeStore()
 
   const { t, i18n } = useTranslation()
 
   const tabPosition = [
-    { id: 'symbol', label: t('common.symbol'), className: 'col-3 col-sm-2 col-md-2 col-lg-1' },
-    { id: 'leverage', label: t('common.directionLeverage'), className: 'col-3 col-sm-2 col-md-2 col-lg-1' },
-    { id: 'positionValue', sort: true, sortByKey: 'positionValue', label: t('common.positionValue'), className: 'justify-content-end text-end col-5 col-sm-3 col-md-2 col-xl-2' },
-    { id: 'uPnl', sort: true, sortByKey: 'uPnl', label: t('common.uPnl'), className: 'justify-content-end text-end col-5 col-sm-3 col-md-3 col-lg-2' },
-    { id: 'margin', sort: true, sortByKey: 'marginUsed', label: t('common.margin'), className: 'justify-content-end text-end col-4 col-sm-3 col-lg-2 col-xl-2' },
-    { id: 'openingPrice', sort: true, sortByKey: 'openPrice', label: t('common.openingPrice'), className: 'justify-content-end text-end col-4 col-sm-3 col-md-2 col-xl-1' },
-    { id: 'markPrice', sort: true, sortByKey: 'markPrice', label: t('common.markPrice'), className: 'justify-content-end text-end col-4 col-sm-3 col-md-2 col-xl-1' },
-    { id: 'liquidationPrice', sort: true, sortByKey: 'liquidationPrice', label: t('common.liquidationPrice'), className: 'justify-content-end text-end col-4 col-sm-3 col-md-2 col-xl-1' },
-    { id: 'funding', sort: true, sortByKey: 'funding', label: t('common.funding'), className: 'justify-content-end text-end col-4 col-sm-3 col-md-2 col-xl-1' },
+    { id: 'symbol', label: t('common.symbol'), className: 'col-2' },
+    { id: 'positionValue', sort: true, sortByKey: 'positionValue', label: t('common.positionValue'), className: 'justify-content-end text-end col-2' },
+    { id: 'uPnl', sort: true, sortByKey: 'uPnl', label: t('common.uPnl'), className: 'justify-content-end text-end col' },
+    { id: 'openingPrice', sort: true, sortByKey: 'openPrice', label: t('common.openingPrice'), className: 'justify-content-end text-end col' },
+    { id: 'markPrice', sort: true, sortByKey: 'markPrice', label: t('common.markPrice'), className: 'justify-content-end text-end col' },
+    { id: 'liquidationPrice', sort: true, sortByKey: 'liquidationPrice', label: t('common.liquidationPrice'), className: 'justify-content-end text-end col' },
+    { id: 'margin', sort: true, sortByKey: 'marginUsed', label: t('common.margin'), className: 'justify-content-end text-end col' },
+    { id: 'funding', sort: true, sortByKey: 'funding', label: t('common.fundingFee', '资金费用'), className: 'justify-content-end text-end col' },
+    { id: 'tpSl', label: t('common.tpSl', '止盈/止损'), className: 'justify-content-end text-end col' },
+    { id: 'closePosition', label: t('common.closePosition', '平仓'), className: 'justify-content-end text-end col' },
   ]
 
   const renderPositionItem = (item, columnIndex) => {
@@ -34,25 +38,86 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
       case 'walletId':
         return item.walletId
       case 'symbol':
-        return item.coin
-      case 'leverage':
-        return <PositionItemDirectionLeverage item={item} />
+        return (
+          <div className="d-flex align-items-center gap-2">
+            <PositionItemDirectionLeverage item={{ ...item, leverage: undefined }} />
+            <div className="d-flex flex-column gap-1">
+              <span className="fw-bold color-white font-size-14 text-capitalize">{item.coin}</span>
+              <span className="font-size-12 color-gray-2 d-flex align-items-center gap-1">
+                <span>{t('common.crossMargin', '全仓')}</span> 
+                <span className="fw-500">{item.leverage}x</span>
+              </span>
+            </div>
+          </div>
+        )
       case 'positionValue':
         return <PositionItemPositionValue item={item} />
       case 'uPnl':
         return <PositionItemUPnl item={item} />
       case 'openingPrice':
         return <>$ {item.openPrice}</>
+      case 'markPrice':
+        return <PositionItemMarkPrice item={item} />
       case 'liquidationPrice':
         return item.liquidationPrice
           ? <>$ {item.liquidationPrice}</>
           : '-'
       case 'margin':
         return <>$ { formatNumber(item.marginUsed) }</>
-      case 'markPrice':
-        return <PositionItemMarkPrice item={item} />
       case 'funding':
         return <PositionItemFunding item={item} />
+      case 'tpSl':
+        return (
+          <span className="color-gray-2 d-flex align-items-center justify-content-end gap-1">
+            -/-
+            <svg 
+              className="cursor-pointer" 
+              style={{ color: '#00d1b2' }} 
+              width="14" 
+              height="14" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+              onClick={() => {
+                traderDetailsPositionsStore.currentTPSLItem = item;
+                traderDetailsPositionsStore.openTPSLModal = true;
+              }}
+            >
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+          </span>
+        )
+      case 'closePosition':
+        return (
+          <div className="d-flex flex-wrap align-items-center justify-content-end gap-1">
+            <span 
+              className="br-1 px-1 font-size-12" 
+              style={{ background: 'rgba(255,255,255,0.1)', cursor: 'pointer', color: '#00d1b2' }}
+              onClick={() => {
+                traderDetailsPositionsStore.currentClosePositionItem = item;
+                traderDetailsPositionsStore.closePositionType = 'limit';
+                traderDetailsPositionsStore.openClosePositionModal = true;
+              }}
+            >
+              {t('common.limitPrice', '限价')}
+            </span>
+            <span 
+              className="br-1 px-1 font-size-12" 
+              style={{ background: 'rgba(255,255,255,0.1)', cursor: 'pointer', color: '#00d1b2' }}
+              onClick={() => {
+                traderDetailsPositionsStore.currentClosePositionItem = item;
+                traderDetailsPositionsStore.closePositionType = 'market';
+                traderDetailsPositionsStore.openClosePositionModal = true;
+              }}
+            >
+              {t('common.marketPrice', '市价')}
+            </span>
+          </div>
+        )
       default:
         return null
     }
@@ -85,6 +150,7 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
 
         // update
         traderDetailsPositionsStore.list = data.positions
+        traderDetailsPositionsStore.summary = data.summary
       }
       handleChangeSort(traderDetailsPositionsStore.sortColumnId)
     }
@@ -96,7 +162,7 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
         traderDetailsPositionsStore.reset()
       }
     }
-  }, [address])
+  }, [address, tradeStore.refreshTick])
 
   return (
     <>
@@ -109,6 +175,8 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
         renderItem={renderPositionItem}
         onChangeSort={handleChangeSort} />
       <HyperAutoUpdatePerpMetaAndMarket />
+      <ModalTPSL />
+      <ModalClosePosition />
     </>
   )
 }

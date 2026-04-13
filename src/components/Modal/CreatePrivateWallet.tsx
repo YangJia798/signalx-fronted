@@ -68,9 +68,8 @@ const ModalCreatePrivateWallet = () => {
             onClick={() => privateWalletStore.createPlatform = 'hyperliquid'}
           >
             <div className="d-flex align-items-center justify-content-center gap-2">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5.5 15C3.57 15 2 13.43 2 11.5S3.57 8 5.5 8 9 9.57 9 11.5 7.43 15 5.5 15zm13 0c-1.93 0-3.5-1.57-3.5-3.5S16.57 8 18.5 8 22 9.57 22 11.5 20.43 15 18.5 15z" fill="#00e5ff"/>
-                <circle cx="12" cy="11.5" r="2.5" fill="#00e5ff" opacity="0.8"/>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 8A4 4 0 0 0 4 16C7.5 16 9.5 13.5 12 13.5C14.5 13.5 16.5 16 20 16A4 4 0 0 0 20 8C16.5 8 14.5 10.5 12 10.5C9.5 10.5 7.5 8 4 8Z" fill="#38d1b3"/>
               </svg>
               Hyperliquid
             </div>
@@ -81,8 +80,8 @@ const ModalCreatePrivateWallet = () => {
             onClick={() => privateWalletStore.createPlatform = 'aster'}
           >
             <div className="d-flex align-items-center justify-content-center gap-2">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="#f7b500" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" clipRule="evenodd" d="M12 0C5.37258 0 0 5.37258 0 12C0 18.6274 5.37258 24 12 24C18.6274 24 24 18.6274 24 12C24 5.37258 18.6274 0 12 0ZM12 3C12 7.97 16.03 12 21 12C16.03 12 12 16.03 12 21C12 16.03 7.97 12 3 12C7.97 12 12 7.97 12 3Z" fill="#ffc89a"/>
               </svg>
               Aster
             </div>

@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next'
 
-import { useHyperStore, useTradeStore, useTraderDetailsPositionsStore, useTraderDetailsOpenOrdersAdditionalStore } from '@/stores'
+import { useHyperStore, useTradeStore, useTraderDetailsPositionsStore, useTraderDetailsOpenOrdersAdditionalStore, useAccountStore, usePrivateWalletStore, useReqStore } from '@/stores'
+import { formatNumber } from '@/utils'
 import TabSwitch from '@/components/Tab/Switch'
 import { useHyperWSContext } from '@/components/Hyper/WSContext';
 
@@ -12,13 +13,14 @@ import TraderDetailsRecentFills from '@/views/TraderDetails/RecentFills'
 import { TraderDetailsOpenOrdersAdditional } from '@/views/TraderDetails/OpenOrdersAdditional'
 import TraderDetailsPositions from '@/views/TraderDetails/Positions'
 import TraderDetailsHistoricalOrders from '@/views/TraderDetails/HistoricalOrders'
+import TraderDetailsCompletedTrades from '@/views/TraderDetails/CompletedTrades'
 
 import TradeTrades from './Trades'
 import TradeMetaAndMarket from './MetaAndMarket'
 import TradeKLine from './KLine'
 import TradeTradingPanel from './TradingPanel'
 import TradeOrderBook from './OrderBook'
-import ModalCreatePrivateWallet from '@/components/Modal/CreatePrivateWallet'
+
 
 const Trade = () => {
   const hyperStore = useHyperStore()
@@ -28,12 +30,31 @@ const Trade = () => {
 
   const { coin } = useParams()
   const { t, i18n } = useTranslation()
+  const accountStore = useAccountStore()
+  const privateWalletStore = usePrivateWalletStore()
+  const reqStore = useReqStore()
   const { sendMessage, lastMessage, readyState } = useHyperWSContext()
 
   useEffect(() => {
     tradeStore.coin = coin ?? tradeStore.DEFAULT_COIN
-    tradeStore.address = '0x48cd535b80439fefd6d00f74e5cf9b152adf2671'
-  }, [coin])
+
+    if (accountStore.logged) {
+      reqStore.userPrivateWallet(accountStore, privateWalletStore).then(() => {
+        if (privateWalletStore.list.length > 0 && privateWalletStore.operaWalletIdx === -1) {
+          privateWalletStore.operaWalletIdx = 0
+        }
+      })
+    }
+  }, [coin, accountStore.logged])
+
+  useEffect(() => {
+    if (privateWalletStore.list.length > 0) {
+      const activeWallet = privateWalletStore.list[privateWalletStore.operaWalletIdx === -1 ? 0 : privateWalletStore.operaWalletIdx] || privateWalletStore.list[0];
+      tradeStore.address = activeWallet?.address || '';
+    } else {
+      tradeStore.address = '';
+    }
+  }, [privateWalletStore.list, privateWalletStore.operaWalletIdx])
 
   return (
     <>
@@ -91,7 +112,7 @@ const Trade = () => {
             }
             {
               tradeStore.recordTabId === 'completedTrades' &&
-                <>completedTrades</>
+                <TraderDetailsCompletedTrades address={tradeStore.address} filterCoin={tradeStore.coin} className='col' />
             }
             {
               tradeStore.recordTabId === 'twap' &&
@@ -113,14 +134,14 @@ const Trade = () => {
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3B82F6' }}></span>
                   永续合约
                 </span>
-                <span className="color-white">N/A</span>
+                <span className="color-white">$ {formatNumber(traderDetailsPositionsStore.summary?.perpEquity) || '0.00'}</span>
               </div>
               <div className="d-flex justify-content-between" style={{ color: 'rgba(255,255,255,0.55)' }}>
                 <span className="d-flex align-items-center gap-1">
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3B82F6' }}></span>
                   现货 &gt;
                 </span>
-                <span className="color-white">N/A</span>
+                <span className="color-white">$ 0.00</span>
               </div>
             </div>
 
@@ -129,9 +150,9 @@ const Trade = () => {
             <div className="d-flex flex-column gap-2 font-size-12">
               <div className="fw-500 font-size-12" style={{ color: 'rgba(255,255,255,0.55)' }}>永续合约</div>
               {[
-                { label: '总持仓价值', value: 'N/A' },
-                { label: '杠杆比', value: 'N/A' },
-                { label: '保证金使用率', value: 'N/A' },
+                { label: '总持仓价值', value: `$ ${formatNumber(traderDetailsPositionsStore.summary?.totalPositionValue) || '0.00'}` },
+                { label: '杠杆比', value: `${traderDetailsPositionsStore.summary?.leverageRatio || '0.00'}x` },
+                { label: '保证金使用率', value: `${traderDetailsPositionsStore.summary?.totalMarginUsagePct || '0.00'}%` },
               ].map((row, idx) => (
                 <div key={idx} className="d-flex justify-content-between" style={{ color: 'rgba(255,255,255,0.45)' }}>
                   <span>{row.label}</span>
@@ -141,17 +162,23 @@ const Trade = () => {
             </div>
 
             <div style={{ height: '3px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px' }}>
-              <div style={{ width: '0%', height: '100%', background: '#00d1b2', borderRadius: '2px' }} />
+              <div style={{ 
+                width: `${Math.min(Number(traderDetailsPositionsStore.summary?.totalMarginUsagePct || 0), 100)}%`, 
+                height: '100%', 
+                background: '#00d1b2', 
+                borderRadius: '2px' 
+              }} />
             </div>
 
             <div className="d-flex justify-content-between font-size-12" style={{ color: 'rgba(255,255,255,0.45)' }}>
               <span>未实现盈亏</span>
-              <span className="color-white">N/A</span>
+              <span className={Number(traderDetailsPositionsStore.summary?.totalUPnl) >= 0 ? 'color-buy' : 'color-sell'}>
+                $ {formatNumber(traderDetailsPositionsStore.summary?.totalUPnl) || '0.00'}
+              </span>
             </div>
           </div>
         </div>
       </div>
-      <ModalCreatePrivateWallet />
     </>
   )
 }

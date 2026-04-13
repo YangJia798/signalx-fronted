@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useLocation, Link } from "react-router-dom"
+import { useLocation, useNavigate, Link } from "react-router-dom"
 import { useTranslation } from 'react-i18next'
 import { Dropdown, MenuProps } from 'antd'
 
@@ -11,6 +11,8 @@ import UserAvatar from '@/components/UserAvatar'
 import ChangeI18n from '@/components/ChangeI18n'
 import ModalLogin from '@/components/Modal/Login'
 import { AccountProfile } from '@/components/Modal/AccountProfile'
+import GlobalWalletModals from '@/components/Modal/GlobalWalletModals'
+import WalletProviderIcon from '@/components/Wallet/ProviderIcon'
 const SearchOutlined = ({ className = '', style }: { className?: string, style?: any }) => (
   <svg className={className} style={style} viewBox="64 64 896 896" focusable="false" data-icon="search" width="1em" height="1em" fill="currentColor" aria-hidden="true">
     <path d="M909.6 854.5L649.9 594.8C690.2 542.7 712 479 712 412c0-80.2-31.3-155.4-87.9-212.1-56.6-56.7-132-87.9-212.1-87.9s-155.5 31.3-212.1 87.9C143.2 256.5 112 331.8 112 412c0 80.1 31.3 155.5 87.9 212.1C256.5 680.8 331.8 712 412 712c67 0 130.6-21.8 182.7-62l259.7 259.6a8.2 8.2 0 0011.6 0l43.6-43.5a8.2 8.2 0 000-11.6zM570.4 570.4C528 612.7 471.8 636 412 636s-116-23.3-158.4-65.6C211.3 528 188 471.8 188 412s23.3-116.1 65.6-158.4C296 211.3 352.2 188 412 188s116.1 23.2 158.4 65.6S636 352.2 636 412s-23.3 116.1-65.6 158.4z"></path>
@@ -46,9 +48,31 @@ const LayoutHeader = () => {
     };
   }, []);
 
+  const navigate = useNavigate()
+  const searchParams = new URLSearchParams(location.search)
+  const currentPlatform = searchParams.get('platform') || 'hyperliquid'
+
   const tradeMenuItems: MenuProps['items'] = [
-    { key: '1', label: <a href="#">Hyperliquid</a> },
-    { key: '2', label: <a href="#">Aster</a> },
+    { 
+      key: '1', 
+      onClick: () => navigate('/trade/BTC?platform=hyperliquid'),
+      label: (
+        <div className="d-flex align-items-center gap-2 py-1 px-1">
+          <WalletProviderIcon platform="hyperliquid" />
+          <span className="fw-500 font-size-14">Hyperliquid {t('common.trade')}</span>
+        </div>
+      ) 
+    },
+    { 
+      key: '2', 
+      onClick: () => navigate('/trade/BTCUSD1?platform=aster'),
+      label: (
+        <div className="d-flex align-items-center gap-2 py-1 px-1">
+          <WalletProviderIcon platform="aster" />
+          <span className="fw-500 font-size-14">Aster {t('common.trade')}</span>
+        </div>
+      ) 
+    },
   ]
 
   const realtimeMenuItems: MenuProps['items'] = [
@@ -56,27 +80,26 @@ const LayoutHeader = () => {
   ]
 
   const moreMenuItems: MenuProps['items'] = [
-    { key: '1', label: <a href={constants.app.DOC} target="_blank">Docs</a> },
+    { key: '1', label: <a href={constants.app.DOC} target="_blank">{t('header.docs')}</a> },
   ]
 
   const navItems = [
-    { name: '发现', to: '/discover' },
-    { name: '交易', to: '/trade/BTC' },
-    { name: '监控', to: '/track-monitor' },
-    { name: '跟单交易', to: '/copy-trading' },
-    { name: '巨鲸', to: '/whales' },
-    { name: '实时', dropdown: realtimeMenuItems },
-    { name: '会员', to: '/rewards' },
-    { name: '数据 API', to: '#api' },
-    { name: '更多', dropdown: moreMenuItems },
+    { name: t('header.discover'), to: '/discover' },
+    { name: location.pathname.includes('/trade') && currentPlatform === 'aster' ? `Aster ${t('common.trade')}` : (location.pathname.includes('/trade') && currentPlatform === 'hyperliquid' ? `Hyperliquid ${t('common.trade')}` : t('header.trade')), dropdown: tradeMenuItems },
+    { name: t('header.trackNMonitor'), to: '/track-monitor' },
+    { name: t('header.copyTrading'), to: '/copy-trading' },
+    { name: t('header.whales'), to: '/whales' },
+    { name: t('header.realtime'), dropdown: realtimeMenuItems },
+    { name: t('header.rewards'), to: '/rewards' },
+    { name: t('header.dataApi'), to: '#api' },
+    { name: t('common.more'), dropdown: moreMenuItems },
   ]
 
-  // Only English/Fallback for now since user uses i18n, but official text from screenshot is Chinese
-  const isZh = i18n.resolvedLanguage?.startsWith('zh') ?? true
+  const isTradePage = location.pathname.includes('/trade');
 
   return (
     <>
-      <div ref={contentRef} className="position-fixed container-fluid position-top z-index-99 p-0 header-wrapper" style={{ backgroundColor: `rgba(0,0,0,${navBgAlpha > 0 ? 0.8 : 0})`, backdropFilter: navBgAlpha > 0 ? 'blur(10px)' : 'none' }}>
+      <div ref={contentRef} className="position-fixed container-fluid position-top z-index-99 p-0 header-wrapper" style={{ backgroundColor: isTradePage ? 'rgba(0,0,0,0.8)' : `rgba(0,0,0,${navBgAlpha > 0 ? 0.8 : 0})`, backdropFilter: isTradePage ? 'blur(10px)' : (navBgAlpha > 0 ? 'blur(10px)' : 'none') }}>
 
         {/* Main Navbar */}
         <div className='d-flex flex-wrap align-items-center justify-content-between header-main'>
@@ -89,12 +112,12 @@ const LayoutHeader = () => {
                 item.dropdown ? (
                   <Dropdown key={idx} menu={{ items: item.dropdown }} placement="bottom">
                     <span className="d-flex align-items-center gap-1 cursor-pointer nav-item text-white">
-                      {isZh ? item.name : item.name} <DownOutlined style={{ fontSize: '10px' }} />
+                      {item.name} <DownOutlined style={{ fontSize: '10px' }} />
                     </span>
                   </Dropdown>
                 ) : (
                   <Link key={idx} to={item.to || '#'} className={`d-flex nav-item text-white ${location.pathname === item.to ? 'active' : ''}`}>
-                    {isZh ? item.name : item.name}
+                    {item.name}
                   </Link>
                 )
               ))}
@@ -122,7 +145,7 @@ const LayoutHeader = () => {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" />
                 </svg>
-                <span>登录</span>
+                <span>{t('common.logIn')}</span>
               </div>
             )}
 
@@ -135,6 +158,7 @@ const LayoutHeader = () => {
 
       <ModalLogin />
       <AccountProfile open={openProfile} onClose={() => setOpenProfile(false)} />
+      <GlobalWalletModals />
     </>
   )
 }

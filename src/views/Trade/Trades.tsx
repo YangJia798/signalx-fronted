@@ -50,7 +50,8 @@ const TradeTrades = ({ coin, unReset = false }) => {
   const handleSendMessage = (unsubscribe: boolean = false) => {
     if (!coin) return
 
-    sendMessage(`{ "method": "${unsubscribe? 'unsubscribe' : 'subscribe'}", "subscription": { "type": "trades", "coin": "${coin}" } }`)
+    const hlCoin = coin.replace(/USDT?1?$/, '')
+    sendMessage(`{ "method": "${unsubscribe? 'unsubscribe' : 'subscribe'}", "subscription": { "type": "trades", "coin": "${hlCoin}" } }`)
   }
 
   // init
@@ -109,7 +110,7 @@ const TradeTrades = ({ coin, unReset = false }) => {
   return (
     <AreaTrades className='' height={598}
       coin={tradeTradesStore.coin}
-      sizeDecimals={hyperStore.perpMeta[coin]?.sizeDecimals ?? hyperStore.DEFAULT_PERP_META.sizeDecimals}
+      sizeDecimals={hyperStore.perpMeta[coin.replace(/USDT?1?$/, '')]?.sizeDecimals ?? hyperStore.DEFAULT_PERP_META.sizeDecimals}
       lastRecord={tradeTradesStore.lastRecord} />
   )
 }

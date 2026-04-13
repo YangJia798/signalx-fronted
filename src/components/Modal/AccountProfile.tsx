@@ -1,5 +1,5 @@
 import React from 'react';
-import { Drawer } from 'antd';
+import { Drawer, message } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useAccountStore, usePrivateWalletStore } from '@/stores';
 import UserAvatar from '@/components/UserAvatar';
@@ -54,10 +54,13 @@ const INACTIVE_ROW_STYLE: React.CSSProperties = {
   borderRadius: '12px',
 };
 
+import { useNavigate } from 'react-router-dom';
+
 export const AccountProfile = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
   const accountStore = useAccountStore();
   const privateWalletStore = usePrivateWalletStore();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const walletList = privateWalletStore.list || [];
   const walletCount = walletList.length;
@@ -147,6 +150,10 @@ export const AccountProfile = ({ open, onClose }: { open: boolean; onClose: () =
           <button
             className="col"
             style={{ background: 'transparent', border: '1px solid #00e5ff', borderRadius: '24px', color: '#00e5ff', padding: '8px 0', fontWeight: 500, cursor: 'pointer' }}
+            onClick={() => {
+              navigate('/copy-trading');
+              onClose();
+            }}
           >
             存款 <RightArrowIcon />
           </button>

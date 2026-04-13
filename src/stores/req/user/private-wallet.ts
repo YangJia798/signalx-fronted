@@ -63,9 +63,12 @@ export const userPrivateWallet: TUserPrivateWallet = {
             createTs = new Date(createTsStr.replace(/-/g, '/')).getTime();
         }
 
+        const rawPlatform = String(item.platform || item.provider || item.wallet_provider || item.walletProvider || item.type || item.walletType || item.source || item.channel || item.network || 'hyperliquid').toLowerCase();
+        
         return {
           idx,
           walletId: item.walletId ?? item.id ?? idx + 1,
+          platform: rawPlatform.includes('aster') ? 'aster' : 'hyperliquid',
           balance: new BN(item.balance ?? item.total_value ?? 0).toFixed(decimalPlaces.__COMMON__),
           hasPrivateKey: item.hasPriKey ?? item.hasPrivateKey ?? false,
           nickname: item.nickname ?? item.remark ?? '',
@@ -76,7 +79,8 @@ export const userPrivateWallet: TUserPrivateWallet = {
           uPnlStatus,
           uPnlStatusClassName: formatStatusClassName(uPnlStatus),
           address: item.wallet ?? item.address ?? '',
-          withdrawable: new BN(item.withdrawable ?? item.withdrawable_amount ?? 0).toFixed(decimalPlaces.__COMMON__)
+          withdrawable: new BN(item.withdrawable ?? item.withdrawable_amount ?? 0).toFixed(decimalPlaces.__COMMON__),
+          importWallet: item.importWallet ?? item.import_wallet ?? 0
         }
       })
     }

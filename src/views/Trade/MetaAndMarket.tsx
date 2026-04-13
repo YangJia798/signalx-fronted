@@ -1,7 +1,8 @@
 import { useEffect, HTMLProps, FC } from 'react'
 import BN from 'bignumber.js'
 import { useTranslation, withTranslation, Trans } from 'react-i18next'
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { asterApi } from '@/stores/req/helper'
 
 import { formatNumber, infiniteLoop } from '@/utils'
 import { constants, useReqStore, useHyperStore, useTradeStore, hyperRawByWsActiveAssetCtx } from '@/stores'
@@ -29,6 +30,10 @@ export const TradeMetaAndMarket: FC<TradeMetaAndMarketProps> = ({
   const reqStore = useReqStore()
 
   const navigator = useNavigate()
+  const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
+  const platform = searchParams.get('platform') || 'hyperliquid'
+
   const { t, i18n } = useTranslation()
   const { decimalPlaces } = constants
   const { sendMessage, lastMessage, readyState } = useHyperWSContext()
@@ -59,25 +64,79 @@ export const TradeMetaAndMarket: FC<TradeMetaAndMarketProps> = ({
 
   // init
   useEffect(() => {
+    let isCancelled = false;
+    let cancelFunc: any = null;
+
     const asyncFunc = async () => {
       // NOTE: 不能 tradeStore.reset()
       if (!coin) return
 
       if (!autoRefreshing) return
 
-      await onInitUpdate()
+      if (platform === 'aster') {
+          // Address updating
+          if (coin !== tradeStore.coin) {
+              tradeStore.coin = coin
+          }
+
+          // Start aster REST loop for active coin
+          infiniteLoop(async () => {
+            if (tradeStore.coin !== coin) return true; // auto-stop on change
+
+            try {
+                const [tickerRes, premiumRes, openInterestRes] = await Promise.all([
+                   asterApi.get(`/fapi/v1/ticker/24hr?symbol=${coin}`).catch(() => null),
+                   asterApi.get(`/fapi/v1/premiumIndex?symbol=${coin}`).catch(() => null),
+                   asterApi.get(`/fapi/v1/openInterest?symbol=${coin}`).catch(() => null)
+                ])
+
+                const ticker = Array.isArray(tickerRes?.data) ? tickerRes.data[0] : tickerRes?.data;
+                const premium = Array.isArray(premiumRes?.data) ? premiumRes.data[0] : premiumRes?.data;
+                const openInterestData = openInterestRes?.data;
+
+                if (ticker && ticker.symbol) {
+                    const funding = premium ? new BN(premium.lastFundingRate).times(100).toFixed(4) : '0.0000';
+                    const oi = openInterestData ? new BN(openInterestData.openInterest).toString() : '0';
+
+                    hyperStore.perpMarket[coin] = {
+                        ...(hyperStore.perpMarket[coin] || {}),
+                        markPrice: ticker.lastPrice,
+                        priceChange24h: ticker.priceChange,
+                        priceChange24hPct: ticker.priceChangePercent,
+                        dayNtlVolume: ticker.quoteVolume,
+                        fundingPct: funding,
+                        openInterest: oi 
+                    }
+                    hyperStore.perpMarket = { ...hyperStore.perpMarket }
+                }
+            } catch (e) {}
+          }, 3000).then((res: any) => {
+            if (isCancelled) {
+              res.cancel();
+            } else {
+              cancelFunc = res.cancel;
+            }
+          });
+      } else {
+          await onInitUpdate()
+      }
     }
 
     asyncFunc()
 
     return () => {
-      handleSendMessage(true)
-
+      isCancelled = true;
+      if (platform === 'hyperliquid') {
+         handleSendMessage(true)
+      }
+      if (cancelFunc) {
+         cancelFunc()
+      }
       if (!unReset) {
         // NOTE: 不能 tradeStore.reset()
       }
     }
-  }, [readyState, coin, autoRefreshing])
+  }, [readyState, coin, autoRefreshing, platform])
 
   // 处理原始数据
   useEffect(() => {
@@ -104,8 +163,8 @@ export const TradeMetaAndMarket: FC<TradeMetaAndMarketProps> = ({
           <div className='d-flex px-3 py-3 br-3 bg-gray-alpha-4 gap-4 mx-1 mb-2 col'>
             <div className='d-flex flex-wrap col gap-5'>
               <div className='d-flex align-items-center gap-1 linker col-12 col-md-auto' onClick={() => tradeStore.openSelectCoins = true}>
-                <CoinIcon size='smd' id={coin} className='me-2' />
-                <span className='h5 fw-bold'>{coin}-USD</span>
+                <CoinIcon size='smd' id={platform === 'aster' ? coin.replace(/USDT?1?$/, '') : coin} className='me-2' />
+                <span className='h5 fw-bold'>{platform === 'aster' ? coin : `${coin}-USD`}</span>
                 <IOutlineFlash className='w-20 color-secondary' />
               </div>
               {
@@ -155,7 +214,10 @@ export const TradeMetaAndMarket: FC<TradeMetaAndMarketProps> = ({
 
       <AreaDrawerCoins onClose={(item) => {
         if (item.coin) {
-          navigator(`/trade/${item.coin}`)
+          navigator({
+            pathname: `/trade/${item.coin}`,
+            search: location.search
+          })
         }
       }} />
     </>

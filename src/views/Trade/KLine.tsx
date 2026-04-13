@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickData, LineData, HistogramData, CandlestickSeries, HistogramSeries, LineSeries } from 'lightweight-charts'
+import { useLocation } from 'react-router-dom'
+import { hyperApi, asterApi } from '@/stores/req/helper'
 import { useTradeStore } from '@/stores'
-import { hyperApi } from '@/stores/req/helper'
 import { useHyperWSContext, ReadyState } from '@/components/Hyper/WSContext'
 
 export const INTERVAL_MAP = [
@@ -29,6 +30,9 @@ export const calculateMA = (data: CandlestickData[], period: number): LineData[]
 }
 
 const TradeKLine = () => {
+  const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
+  const platform = searchParams.get('platform') || 'hyperliquid'
   const tradeStore = useTradeStore()
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
@@ -55,7 +59,7 @@ const TradeKLine = () => {
 
   // Subscribe/Unsubscribe WS
   const handleWS = (type: 'subscribe' | 'unsubscribe', currentCoin: string, currentInterval: string) => {
-    if (readyState !== ReadyState.OPEN || !currentCoin) return
+    if (platform === 'aster' || readyState !== ReadyState.OPEN || !currentCoin) return
     sendMessage(`{ "method": "${type}", "subscription": { "type": "candle", "coin": "${currentCoin}", "interval": "${currentInterval}" } }`)
   }
 
@@ -158,39 +162,91 @@ const TradeKLine = () => {
         const limit = interval.includes('W') || interval.includes('M') ? 200 : 1000
         const startTime = endTime - (limit * resolution)
 
-        const res = await hyperApi.post('/info', {
-          type: 'candleSnapshot',
-          req: { coin, interval, startTime, endTime }
-        })
+        if (platform === 'aster') {
+          let astInterval = interval
+          if (astInterval === '1W') astInterval = '1w'
+          const parseSymbol = coin.endsWith('USD1') || coin.endsWith('USDT') ? coin : `${coin}USD1`
+          const asterSymbol = parseSymbol
 
-        if (cancelled || !chartRef.current) return
-
-        if (res.data && Array.isArray(res.data)) {
-          const cData: CandlestickData[] = []
-          const vData: HistogramData[] = []
-
-          res.data.forEach((c: any) => {
-            const time = Math.floor(c.t / 1000) as any
-            cData.push({ time, open: Number(c.o), high: Number(c.h), low: Number(c.l), close: Number(c.c) })
-            vData.push({ time, value: Number(c.v), color: Number(c.c) >= Number(c.o) ? 'rgba(22, 199, 132, 0.4)' : 'rgba(234, 57, 67, 0.4)' })
+          const res = await asterApi.get(`/fapi/v3/klines`, {
+            params: {
+              symbol: asterSymbol,
+              interval: astInterval,
+              startTime,
+              endTime,
+              limit
+            }
           })
 
-          // Clear old data only when new data is ready
-          candleDataRef.current = cData
+          if (cancelled || !chartRef.current) return
 
-          seriesRef.current.candle?.setData(cData)
-          seriesRef.current.volume?.setData(vData)
+          if (res.data && Array.isArray(res.data)) {
+            const cData: CandlestickData[] = []
+            const vData: HistogramData[] = []
 
-          seriesRef.current.ma5?.setData(calculateMA(cData, 5))
-          seriesRef.current.ma10?.setData(calculateMA(cData, 10))
-          seriesRef.current.ma20?.setData(calculateMA(cData, 20))
-
-          const timeScale = chartRef.current?.timeScale()
-          if (timeScale && cData.length > 0) {
-            timeScale.setVisibleLogicalRange({
-              from: cData.length - 150,
-              to: cData.length,
+            res.data.forEach((item: any) => {
+              const time = Math.floor(item[0] / 1000) as any
+              const open = Number(item[1])
+              const high = Number(item[2])
+              const low = Number(item[3])
+              const close = Number(item[4])
+              const volume = Number(item[5])
+              
+              cData.push({ time, open, high, low, close })
+              vData.push({ time, value: volume, color: close >= open ? 'rgba(22, 199, 132, 0.4)' : 'rgba(234, 57, 67, 0.4)' })
             })
+
+            candleDataRef.current = cData
+            seriesRef.current.candle?.setData(cData)
+            seriesRef.current.volume?.setData(vData)
+
+            seriesRef.current.ma5?.setData(calculateMA(cData, 5))
+            seriesRef.current.ma10?.setData(calculateMA(cData, 10))
+            seriesRef.current.ma20?.setData(calculateMA(cData, 20))
+
+            const timeScale = chartRef.current?.timeScale()
+            if (timeScale && cData.length > 0) {
+              timeScale.setVisibleLogicalRange({
+                from: cData.length - 150,
+                to: cData.length,
+              })
+            }
+          }
+        } else {
+          const res = await hyperApi.post('/info', {
+            type: 'candleSnapshot',
+            req: { coin, interval, startTime, endTime }
+          })
+
+          if (cancelled || !chartRef.current) return
+
+          if (res.data && Array.isArray(res.data)) {
+            const cData: CandlestickData[] = []
+            const vData: HistogramData[] = []
+
+            res.data.forEach((c: any) => {
+              const time = Math.floor(c.t / 1000) as any
+              cData.push({ time, open: Number(c.o), high: Number(c.h), low: Number(c.l), close: Number(c.c) })
+              vData.push({ time, value: Number(c.v), color: Number(c.c) >= Number(c.o) ? 'rgba(22, 199, 132, 0.4)' : 'rgba(234, 57, 67, 0.4)' })
+            })
+
+            // Clear old data only when new data is ready
+            candleDataRef.current = cData
+
+            seriesRef.current.candle?.setData(cData)
+            seriesRef.current.volume?.setData(vData)
+
+            seriesRef.current.ma5?.setData(calculateMA(cData, 5))
+            seriesRef.current.ma10?.setData(calculateMA(cData, 10))
+            seriesRef.current.ma20?.setData(calculateMA(cData, 20))
+
+            const timeScale = chartRef.current?.timeScale()
+            if (timeScale && cData.length > 0) {
+              timeScale.setVisibleLogicalRange({
+                from: cData.length - 150,
+                to: cData.length,
+              })
+            }
           }
         }
       } catch (err) {
@@ -208,11 +264,11 @@ const TradeKLine = () => {
       // Do NOT call setData([]) here - it wipes the chart before new data arrives
       // on interval switch, causing the blank chart bug. Data is managed inside loadData.
     }
-  }, [coin, interval])
+  }, [coin, interval, platform])
 
   // Handle Real-time WS updates
   useEffect(() => {
-    if (!lastMessage) return
+    if (platform === 'aster' || !lastMessage) return
 
     try {
       const res = JSON.parse(lastMessage.data)
@@ -251,7 +307,73 @@ const TradeKLine = () => {
       }
     } catch (err) {
     }
-  }, [lastMessage])
+  }, [lastMessage, platform])
+
+  // Native Aster WebSocket connection
+  useEffect(() => {
+    if (platform !== 'aster' || !coin) return
+     
+    let astInterval = interval
+    if (astInterval === '1W') astInterval = '1w'
+    const parseSymbol = coin.endsWith('USD1') || coin.endsWith('USDT') ? coin : `${coin}USD1`
+    const asterSymbol = parseSymbol.toLowerCase()
+    const streamName = `${asterSymbol}@kline_${astInterval}`
+
+    const ws = new WebSocket('wss://fstream.asterdex.com/ws')
+
+    ws.onopen = () => {
+        ws.send(JSON.stringify({
+          method: "SUBSCRIBE",
+          params: [streamName],
+          id: 1
+        }))
+    }
+
+    ws.onmessage = (event) => {
+        try {
+          const res = JSON.parse(event.data)
+          if (res.e === 'kline' && res.k) {
+            const k = res.k
+            const time = Math.floor(k.t / 1000) as any
+            const bar: CandlestickData = { time, open: Number(k.o), high: Number(k.h), low: Number(k.l), close: Number(k.c) }
+            const vol: HistogramData = { time, value: Number(k.v), color: bar.close >= bar.open ? 'rgba(22, 199, 132, 0.4)' : 'rgba(234, 57, 67, 0.4)' }
+
+            seriesRef.current.candle?.update(bar)
+            seriesRef.current.volume?.update(vol)
+
+            if (candleDataRef.current.length > 0) {
+              const lastNumTime = Number(candleDataRef.current[candleDataRef.current.length - 1].time)
+              const newNumTime = Number(bar.time)
+
+              if (newNumTime > lastNumTime) {
+                candleDataRef.current.push(bar)
+              } else if (newNumTime === lastNumTime) {
+                candleDataRef.current[candleDataRef.current.length - 1] = bar
+              }
+
+              const ma5 = calculateMA(candleDataRef.current.slice(-6), 5)
+              const ma10 = calculateMA(candleDataRef.current.slice(-11), 10)
+              const ma20 = calculateMA(candleDataRef.current.slice(-21), 20)
+
+              if (ma5.length) seriesRef.current.ma5?.update(ma5[ma5.length - 1])
+              if (ma10.length) seriesRef.current.ma10?.update(ma10[ma10.length - 1])
+              if (ma20.length) seriesRef.current.ma20?.update(ma20[ma20.length - 1])
+            }
+          }
+        } catch (e) {}
+    }
+
+    return () => {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                method: "UNSUBSCRIBE",
+                params: [streamName],
+                id: 1
+            }))
+        }
+        ws.close()
+    }
+  }, [platform, coin, interval])
 
   return (
     <div className="d-flex flex-column w-100 h-100 position-relative bg-gray-alpha-4 br-3 p-2">

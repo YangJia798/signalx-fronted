@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Modal, Slider } from 'antd'
 import { IClose } from '@/components/icon'
 
@@ -14,13 +14,28 @@ interface LeverageModalProps {
 const LeverageModal = ({ open, onClose, currentLeverage, maxLeverage = 40, coin = 'BTC', onConfirm }: LeverageModalProps) => {
   const [leverage, setLeverage] = useState(currentLeverage)
 
-  const marks = {
+  useEffect(() => {
+    if (open) {
+      setLeverage(currentLeverage)
+    }
+  }, [currentLeverage, open])
+
+  const marks: Record<number, string> = {
     1: '1x',
     5: '5x',
     10: '10x',
-    25: '25x',
-    40: maxLeverage + 'x',
+    25: maxLeverage === 25 ? '25x' : undefined as any,
   }
+
+  // Add the actual maximum leverage dynamically
+  if (maxLeverage > 10) {
+    marks[maxLeverage] = `${maxLeverage}x`
+  }
+
+  // Remove undefined marks
+  Object.keys(marks).forEach((key) => {
+    if (!marks[Number(key)]) delete marks[Number(key)]
+  })
 
   return (
     <Modal
@@ -117,12 +132,13 @@ const LeverageModal = ({ open, onClose, currentLeverage, maxLeverage = 40, coin 
             height: 4px !important;
         }
         .custom-leverage-slider .ant-slider-handle {
-            width: 24px !important;
-            height: 24px !important;
-            border: 4px solid #00e5ff !important;
-            background: #1a1a1a !important;
-            margin-top: -10px !important;
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.4) !important;
+            width: 14px !important;
+            height: 14px !important;
+            border-radius: 50% !important;
+            border: 2px solid #00e5ff !important;
+            background: #ffffff !important;
+            margin-top: -1px !important;
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.5) !important;
         }
         .custom-leverage-slider .ant-slider-handle::after {
             display: none !important;

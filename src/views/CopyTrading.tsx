@@ -11,6 +11,8 @@ import { constants, useAccountStore, useTraderDetailsOpenOrdersAdditionalStore, 
 import ColumnTooltip from '@/components/Column/Tooltip'
 import ColumnList from '@/components/Column/List'
 import TabBase from '@/components/Tab/Base'
+import UserAvatar from '@/components/UserAvatar'
+import WalletProviderIcon from '@/components/Wallet/ProviderIcon'
 import WalletChainIcon from '@/components/Wallet/ChainIcon';
 import ModalClosePosition from '@/components/Modal/ClosePosition'
 import TabSwitch from '@/components/Tab/Switch'
@@ -20,11 +22,6 @@ import PositionItemPositionValue from '@/components/PositionItem/PositionValue'
 import PositionItemUPnl from '@/components/PositionItem/UPnl'
 import PositionItemAddress from '@/components/PositionItem/Address'
 import PositionItemMarginUsedRatio from '@/components/PositionItem/MarginUsedRatio'
-import ModalCreatePrivateWallet from '@/components/Modal/CreatePrivateWallet'
-import ModalImportPrivateWallet from '@/components/Modal/ImportPrivateWallet'
-import ModalDeposit from '@/components/Modal/Deposit'
-import ModalExportPrivateKey from '@/components/Modal/ExportPrivateKey'
-import ModalRemoveWallet from '@/components/Modal/RemoveWallet'
 // import ModalWithdraw from '@/components/Modal/Withdraw'
 import SideButtonIcon from '@/components/Side/ButtonIcon'
 import TimeAgo from '@/components/TimeAgo'
@@ -90,7 +87,7 @@ const CopyTrading = () => {
       case 'address_note':
         return (
           <div className="d-flex align-items-center gap-3 w-100">
-            <WalletChainIcon platform={item.platform || 'hyperliquid'} />
+            <WalletProviderIcon platform={item.platform || 'hyperliquid'} />
             <div className="d-flex flex-column" style={{ overflow: 'hidden' }}>
               <PositionItemAddress item={item} link={false} shortener={true} className="fw-600 color-white" />
               <div className="color-secondary font-size-12 mt-1">{item.nickname || 'h'}</div>
@@ -101,7 +98,7 @@ const CopyTrading = () => {
         return (
           <div className="d-flex flex-column w-100">
             <div className="color-white font-size-13"><TimeAgo ts={item.createTs} /></div>
-            <div className="color-secondary font-size-12 mt-1">Hyperbot 创建</div>
+            <div className="color-secondary font-size-12 mt-1">{item.importWallet === 1 ? t('common.importWallet', '导入') : 'Signalxbot 创建'}</div>
           </div>
         )
       case 'balance':
@@ -120,20 +117,24 @@ const CopyTrading = () => {
       case 'operator':
         return (
           <div className="d-flex align-items-center justify-content-end gap-2 w-100">
-            <button
-              className="border-0 cursor-pointer fw-500 font-size-12 transition-2 d-none d-md-block"
-              style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '24px', padding: '6px 16px', color: '#00d1b2' }}
-              onClick={(e) => { e.stopPropagation(); merge(privateWalletStore, { openDeposit: true, operaWalletIdx: item.idx}) }}
-            >
-              {t('common.deposit') || '存款'}
-            </button>
-            <button
-              className="border-0 cursor-pointer fw-500 font-size-12 transition-2 d-none d-md-block"
-              style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '24px', padding: '6px 16px', color: '#00d1b2' }}
-              onClick={(e) => { e.stopPropagation() /* TODO Withdraw action */ }}
-            >
-              提现
-            </button>
+            {item.importWallet !== 1 && (
+              <>
+                <button
+                  className="border-0 cursor-pointer fw-500 font-size-12 transition-2 d-none d-md-block"
+                  style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '24px', padding: '6px 16px', color: '#00d1b2' }}
+                  onClick={(e) => { e.stopPropagation(); merge(privateWalletStore, { openDeposit: true, operaWalletIdx: item.idx}) }}
+                >
+                  {t('common.deposit') || '存款'}
+                </button>
+                <button
+                  className="border-0 cursor-pointer fw-500 font-size-12 transition-2 d-none d-md-block"
+                  style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '24px', padding: '6px 16px', color: '#00d1b2' }}
+                  onClick={(e) => { e.stopPropagation() /* TODO Withdraw action */ }}
+                >
+                  提现
+                </button>
+              </>
+            )}
             <Dropdown placement="bottomRight"
               menu={{ items: [
                 { content: <div onClick={(e) => { e.stopPropagation(); merge(privateWalletStore, { openExportPrivateKey: true, operaWalletIdx: item.idx}) }}>{ t('common.exportPrivateKey') }</div> },
@@ -455,16 +456,6 @@ const CopyTrading = () => {
           </div>
         </div>
       </div>
-
-      <ModalCreatePrivateWallet />
-      <ModalImportPrivateWallet />
-      <ModalDeposit />
-      <ModalExportPrivateKey />
-      <ModalRemoveWallet />
-      <ModalClosePosition />
-      <ModalCreateCopyTrading />
-      {/* <ModalWithdraw /> */}
-      <ModalShareCopyTrade />
     </>
   )
 }

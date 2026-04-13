@@ -56,6 +56,9 @@ import { hyperSpotMetaAndAssetCtxs, THyperSpotMetaAndAssetCtxs } from './hyper/s
 import { hyperUserPortfolio, THyperUserPortfolio } from './hyper/user-portfolio'
 import { hyperPerpMetaAndAssetCtxs, THyperPerpMetaAndAssetCtxs } from './hyper/perp-meta-and-asset-ctxs'
 import { hyperUserHistoricalOrders, THyperUserHistoricalOrders } from './hyper/user-historical-orders'
+import { hyperOrderLimitBuy, THyperOrderLimitBuy } from './hyper/order-limit-buy'
+import { hyperOrderLimitSell, THyperOrderLimitSell } from './hyper/order-limit-sell'
+import { hyperOrderCancel, THyperOrderCancel } from './hyper/order-cancel'
 
 export * from './utils'
 
@@ -68,7 +71,7 @@ export type TReqStore =
   TNewsLatest &
   TTrackingAddressPosition & TTrackingRemove & TTrackingCreate &
   TDiscoverList & TDiscoverTradingStatistics & TDiscoverKolList & TDiscoverKolTagging & TDiscoverKolVote &
-  THyperClearinghouseState & THyperUserFills & THyperUserTWAP & THyperUserNonFunding & THyperUserOpenOrdersAdditional & THyperUserSpotClearinghouseState & THyperSpotMetaAndAssetCtxs & THyperUserPortfolio & TDiscoverRecommend & THyperPerpMetaAndAssetCtxs & THyperUserHistoricalOrders
+  THyperClearinghouseState & THyperUserFills & THyperUserTWAP & THyperUserNonFunding & THyperUserOpenOrdersAdditional & THyperUserSpotClearinghouseState & THyperSpotMetaAndAssetCtxs & THyperUserPortfolio & TDiscoverRecommend & THyperPerpMetaAndAssetCtxs & THyperUserHistoricalOrders & THyperOrderLimitBuy & THyperOrderLimitSell & THyperOrderCancel
 
 const reqStore = {
   // Use
@@ -95,7 +98,7 @@ const reqStore = {
   // Hyper
   ...hyperClearinghouseState, ...hyperUserFills, ...hyperUserTWAP,
   ...hyperUserNonFunding, ...hyperUserOpenOrdersAdditional, ...hyperUserSpotClearinghouseState,
-  ...hyperSpotMetaAndAssetCtxs, ...hyperUserPortfolio, ...hyperPerpMetaAndAssetCtxs, ...hyperUserHistoricalOrders
+  ...hyperSpotMetaAndAssetCtxs, ...hyperUserPortfolio, ...hyperPerpMetaAndAssetCtxs, ...hyperUserHistoricalOrders, ...hyperOrderLimitBuy, ...hyperOrderLimitSell, ...hyperOrderCancel
 }
 
 export const useReqStore = createStore<TReqStore>(reqStore)

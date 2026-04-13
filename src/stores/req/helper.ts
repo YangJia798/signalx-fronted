@@ -52,11 +52,19 @@ const hyperApi = axios.create({
   },
 })
 
+const asterApi = axios.create({
+  baseURL: 'https://fapi.asterdex.com',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+})
+
 export {
   baseCheck,
   baseURL,
   baseApi,
-  hyperApi
+  hyperApi,
+  asterApi
 }
 
 

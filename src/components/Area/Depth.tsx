@@ -65,6 +65,7 @@ interface AreaDepthProps {
   onClickPrice?: (price: string) => void | null
   onClickSize?: (size: string) => void | null
   onClickTotalSize?: (totalSize: string) => void | null
+  markPrice?: string
 }
 
 const AreaDepth: React.FC<AreaDepthProps> = ({
@@ -85,6 +86,7 @@ const AreaDepth: React.FC<AreaDepthProps> = ({
   onClickPrice = null,
   onClickSize = null,
   onClickTotalSize = null,
+  markPrice = ''
 }) => {
   const areaDepth = useAreaDepth()
 
@@ -294,9 +296,14 @@ const AreaDepth: React.FC<AreaDepthProps> = ({
               [...areaDepth.sellDepth].reverse().map((item, idx) => renderDepthItem(item, idx, 'sell'))
             }
           </ul>
-          <div className='d-flex align-items-center px-3 py-1 gap-2'>
-            <small className='color-secondary'>{t('common.depthSpread')}</small>
-            { areaDepth.bidAskSpread }
+          <div className='d-flex align-items-center px-3 py-1 bg-gray-alpha-2' style={{ borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div className='col-3 d-flex align-items-center gap-2'>
+              <span className='h6 fw-bold mb-0 color-white'>{ markPrice || '-' }</span>
+            </div>
+            <div className='col d-flex align-items-center justify-content-end gap-1'>
+               <small className='color-unimportant font-size-12'>{t('common.depthSpread', '价差')}</small>
+               <small className='color-secondary font-size-12 fw-500'>{ areaDepth.bidAskSpread }</small>
+            </div>
           </div>
           <ul className={`d-flex flex-column col`}>
             {

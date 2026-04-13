@@ -62,7 +62,9 @@ const TradeOrderBook = ({ coin, unReset = false }) => {
 
     if (!coin) return
 
-    sendMessage(`{ "method": "${unsubscribe? 'unsubscribe' : 'subscribe'}", "subscription": { "type": "l2Book", "coin": "${coin}", "nSigFigs": ${selectedSigFigValue}, "mantissa": ${mantissa} } }`)
+    const hlCoin = coin.replace(/USDT?1?$/, '')
+
+    sendMessage(`{ "method": "${unsubscribe? 'unsubscribe' : 'subscribe'}", "subscription": { "type": "l2Book", "coin": "${hlCoin}", "nSigFigs": ${selectedSigFigValue}, "mantissa": ${mantissa} } }`)
   }
 
   const handleSelectSigFigs = (selected: any) => {
@@ -122,7 +124,8 @@ const TradeOrderBook = ({ coin, unReset = false }) => {
 
   // meta
   useEffect(() => {
-    if (!(hyperStore.perpMeta[coin] && hyperStore.perpMeta[coin].sizeDecimals >= 0)) {
+    const hlCoin = coin.replace(/USDT?1?$/, '')
+    if (!(hyperStore.perpMeta[hlCoin] && hyperStore.perpMeta[hlCoin].sizeDecimals >= 0)) {
       return
     }
 
@@ -137,13 +140,13 @@ const TradeOrderBook = ({ coin, unReset = false }) => {
       'kPEPE': -2,
       'PENGU': -2
     }
-    const sizeDecimals = hyperStore.perpMeta[coin].sizeDecimals + (COINS_PLUS[coin] ?? 1)
+    const sizeDecimals = hyperStore.perpMeta[hlCoin].sizeDecimals + (COINS_PLUS[hlCoin] ?? 1)
 
     tradeOrderBookStore.sigFigItems = tradeOrderBookStore.DEFAULT_SIG_FIG_ITEMS.map(item => ({
       ...item,
       label: new BN(item.label).times(Math.pow(10, sizeDecimals)).toFixed()
     }))
-  }, [hyperStore.perpMeta[coin]])
+  }, [hyperStore.perpMeta[coin.replace(/USDT?1?$/, '')]])
 
   return (
     <AreaDepth className='col'
@@ -152,7 +155,7 @@ const TradeOrderBook = ({ coin, unReset = false }) => {
       onSelectSigFigs={handleSelectSigFigs}
       coin={tradeOrderBookStore.coin}
       levels={tradeOrderBookStore.levels}
-      sizeDecimals={hyperStore.perpMeta[coin]?.sizeDecimals ?? hyperStore.DEFAULT_PERP_META.sizeDecimals}
+      sizeDecimals={hyperStore.perpMeta[coin.replace(/USDT?1?$/, '')]?.sizeDecimals ?? hyperStore.DEFAULT_PERP_META.sizeDecimals}
       orders={[
         { limitPrice: '104610', side: 'buy' },
         { limitPrice: '102001', side: 'buy' },
@@ -162,7 +165,8 @@ const TradeOrderBook = ({ coin, unReset = false }) => {
       onClickPrice={(price) => console.log(price)}
       onClickSize={(size) => console.log(size)}
       onClickTotalSize={(totalSize) => console.log(totalSize)}
-      sellDepth={tradeOrderBookStore.sellDepth} />
+      sellDepth={tradeOrderBookStore.sellDepth}
+      markPrice={hyperStore.perpMarket[coin]?.markPrice} />
   )
 }
 

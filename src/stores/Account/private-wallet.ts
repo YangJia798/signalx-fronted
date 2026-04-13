@@ -20,6 +20,7 @@ export type TPrivateWalletStore = {
   list: Array<{
     idx: number
     walletId: string // 钱包id
+    platform: string // 平台（hyperliquid | aster）
     balance: string // 余额
     hasPrivateKey: boolean // 是否有私钥
     nickname: string // 昵称
@@ -30,6 +31,7 @@ export type TPrivateWalletStore = {
     uPnlStatus: number // uPnl 状态 -1 为亏 1 为赚 0 为 不亏不赚
     address: string // 钱包地址
     withdrawable: string // 可提现余额
+    importWallet: number // 0=创建的钱包 1=导入的钱包
   }>
 
   // create

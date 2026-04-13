@@ -74,7 +74,7 @@ export const hyperClearinghouseState: THyperClearinghouseState = {
         leverage: position.leverage.value,
         direction: isLong ? 'long' : 'short' ,
         type: position.leverage.type,
-        size: bnSize.toFixed(decimalPlaces.__COMMON__),
+        size: bnSize.abs().toString(),
         positionValue: bnPositionValue.toFixed(decimalPlaces.__COMMON__),
         openPrice,
         // markPrice: 
