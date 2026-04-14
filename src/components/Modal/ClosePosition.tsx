@@ -32,8 +32,14 @@ const ModalClosePosition = () => {
   const liveMarkPrice = item ? (hyperStore.perpMarket[item.coin]?.markPrice || item.markPrice) : null;
 
   useEffect(() => {
-    // 移除默认填充逻辑
-  }, [item, traderDetailsPositionsStore.openClosePositionModal])
+    if (traderDetailsPositionsStore.openClosePositionModal && item?.size) {
+      if (isMarket) {
+        setQuantity(item.size.toString());
+      } else {
+        setQuantity('');
+      }
+    }
+  }, [item, traderDetailsPositionsStore.openClosePositionModal, isMarket])
 
   const handleSubmit = async () => {
     if (!item) return;

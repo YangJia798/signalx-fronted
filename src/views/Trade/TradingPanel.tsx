@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Input, Slider, Checkbox, Select, Modal, Dropdown, message } from 'antd'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useTradeStore, useAccountStore, usePrivateWalletStore, useHyperStore, useReqStore } from '@/stores'
 import { IOutlineEdit } from '@/components/icon'
@@ -18,6 +18,7 @@ const TradeTradingPanel = () => {
   const displayCoin = (tradeStore.coin || 'BTC').replace(/USDT?1?$/, '')
 
   const location = useLocation()
+  const navigate = useNavigate()
   const searchParams = new URLSearchParams(location.search)
   const platform = searchParams.get('platform') || 'hyperliquid'
   
@@ -38,6 +39,20 @@ const TradeTradingPanel = () => {
   useEffect(() => {
     setLeverage(maxLeverage)
   }, [platform])
+
+  // Automatically switch wallet if platform changes natively
+  useEffect(() => {
+    const activeIdx = privateWalletStore.operaWalletIdx === -1 ? 0 : privateWalletStore.operaWalletIdx;
+    const currentWallet = privateWalletStore.list[activeIdx];
+    if (privateWalletStore.list.length > 0) {
+      if (!currentWallet || currentWallet.platform !== platform) {
+        const idx = privateWalletStore.list.findIndex((w: any) => w.platform === platform);
+        if (idx !== -1 && idx !== activeIdx) {
+          privateWalletStore.operaWalletIdx = idx;
+        }
+      }
+    }
+  }, [platform, privateWalletStore.list]);
   const [quantity, setQuantity] = useState('')
   const [quantityUnit, setQuantityUnit] = useState('USD')
   const [pctValue, setPctValue] = useState(0)
@@ -157,10 +172,10 @@ const TradeTradingPanel = () => {
           }
 
           // sz 与 usd_sz 二选一
-          // usd_sz：以本位币(USDC)表示的名义金额，后端会自动结合 leverage 和市价换算 sz
+          // usd_sz：前端需传保证金（即名义金额 / 杠杆）
           // sz：直接传合约数量（COIN 单位）
           if (quantityUnit === 'USD') {
-            params.usd_sz = Number(quantity)   // 直接传 USD 名义金额，不需要除以杠杆
+            params.usd_sz = Number(requiredMargin.toFixed(4))   // 传保证金
           } else {
             params.sz = Number(quantity)        // COIN 数量
           }
@@ -172,8 +187,8 @@ const TradeTradingPanel = () => {
 
           // 止盈止损（可选）
           if (tpsl) {
-            if (tpPx) params.tp_px = Number(tpPx)
-            if (slPx) params.sl_px = Number(slPx)
+            if (tpPx) params.tp_price = Number(tpPx)
+            if (slPx) params.sl_price = Number(slPx)
           }
 
           if (isBuy) {
@@ -557,6 +572,12 @@ const TradeTradingPanel = () => {
                 ),
                 onClick: () => {
                   privateWalletStore.operaWalletIdx = idx;
+                  const selectedWallet = privateWalletStore.list[idx];
+                  if (selectedWallet && selectedWallet.platform && selectedWallet.platform !== platform) {
+                    const newParams = new URLSearchParams(location.search);
+                    newParams.set('platform', selectedWallet.platform);
+                    navigate(`${location.pathname}?${newParams.toString()}`);
+                  }
                 }
               }))
             }}

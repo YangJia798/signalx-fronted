@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Input, Button } from 'antd';
 
 import BaseModal from './Base';
-import { useTraderDetailsPositionsStore, useHyperStore } from '@/stores'
+import { useTraderDetailsPositionsStore, useHyperStore, useReqStore, usePrivateWalletStore, useTradeStore, useAccountStore, useTraderDetailsOpenOrdersAdditionalStore } from '@/stores'
 import PositionItemSide from '@/components/PositionItem/Side'
 
 const ModalTPSL = () => {
@@ -11,10 +11,17 @@ const ModalTPSL = () => {
   const hyperStore = useHyperStore();
   const { t } = useTranslation()
 
+  const reqStore = useReqStore();
+  const privateWalletStore = usePrivateWalletStore();
+  const tradeStore = useTradeStore();
+  const accountStore = useAccountStore();
+  const traderDetailsOpenOrdersAdditionalStore = useTraderDetailsOpenOrdersAdditionalStore();
+
   const [tpPrice, setTpPrice] = useState('');
   const [tpPercentage, setTpPercentage] = useState('');
   const [slPrice, setSlPrice] = useState('');
   const [slPercentage, setSlPercentage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const handleClose = () => {
     traderDetailsPositionsStore.openTPSLModal = false;
@@ -29,11 +36,6 @@ const ModalTPSL = () => {
   const item = traderDetailsPositionsStore.currentTPSLItem;
   const liveMarkPrice = item ? (hyperStore.perpMarket[item.coin]?.markPrice || item.markPrice) : null;
 
-  const handleSubmit = async () => {
-    // API logic to be done later.
-    handleClose();
-  };
-
   const isLong = useMemo(() => {
     if (!item) return true;
     const side = item.side || item.direction;
@@ -47,6 +49,89 @@ const ModalTPSL = () => {
   const size = item ? parseFloat(item.size || Math.abs(item.szi) || (item.position && Math.abs(item.position.szi)) || 0) : 0;
   const leverage = item ? parseFloat(item.leverage) : 1;
   const margin = leverage > 0 ? (entryPrice * size) / leverage : 0;
+
+  useEffect(() => {
+    if (traderDetailsPositionsStore.openTPSLModal && item) {
+      const positionOrders = traderDetailsOpenOrdersAdditionalStore.list.filter(
+          (o: any) => o.coin === item.coin && (o.isTPSL || (o.reduceOnly && o.isTrigger))
+      );
+      let initTp = '';
+      let initSl = '';
+      
+      positionOrders.forEach((o: any) => {
+          const px = o.triggerPrice || o.limitPrice;
+          if (!px) return;
+          const pxNum = Number(px);
+          const openNum = Number(item.openPrice);
+          if (isLong) {
+              if (pxNum > openNum) initTp = px;
+              else initSl = px;
+          } else {
+              if (pxNum < openNum) initTp = px;
+              else initSl = px;
+          }
+      });
+      
+      if (initTp) {
+        setTpPrice(initTp);
+        const price = parseFloat(initTp);
+        const profit = isLong ? (price - entryPrice) * size : (entryPrice - price) * size;
+        const percentage = margin > 0 ? (profit / margin) * 100 : 0;
+        setTpPercentage(percentage.toFixed(2));
+      } else {
+        setTpPrice('');
+        setTpPercentage('');
+      }
+      
+      if (initSl) {
+        setSlPrice(initSl);
+        const price = parseFloat(initSl);
+        const profit = isLong ? (price - entryPrice) * size : (entryPrice - price) * size;
+        const percentage = margin > 0 ? (profit / margin) * 100 : 0;
+        setSlPercentage(percentage.toFixed(2));
+      } else {
+        setSlPrice('');
+        setSlPercentage('');
+      }
+    }
+  }, [traderDetailsPositionsStore.openTPSLModal, item, isLong, entryPrice, size, margin, traderDetailsOpenOrdersAdditionalStore.list]);
+
+  const handleSubmit = async () => {
+    if (!item) return;
+
+    const activeWallet = privateWalletStore.list[privateWalletStore.operaWalletIdx === -1 ? 0 : privateWalletStore.operaWalletIdx] || privateWalletStore.list[0];
+    if (!activeWallet) {
+      // should fallback or warn?
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const params: any = {
+        wallet_id: activeWallet.walletId,
+        coin: item.coin,
+        sz: 0,
+        tp_price: tpPrice ? Number(tpPrice) : 0,
+        sl_price: slPrice ? Number(slPrice) : 0
+      };
+
+      await reqStore.hyperOrderTpSl(params);
+      
+      // Delaying refresh to ensure backend/blockchain state merges orders gracefully
+      setTimeout(() => {
+        tradeStore.refreshTradeData();
+      }, 1500);
+      
+      // Also refresh wallet maybe?
+      reqStore.userPrivateWallet(accountStore, privateWalletStore);
+
+      handleClose();
+    } catch (e: any) {
+      console.error(e);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleTpPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -190,11 +275,13 @@ const ModalTPSL = () => {
                 background: hasInput ? 'linear-gradient(90deg, #eecbf9, #0dcbe6)' : 'rgba(255,255,255,0.08)',
                 color: hasInput ? '#000' : 'rgba(255,255,255,0.4)',
                 height: '48px',
-                fontSize: '15px'
+                fontSize: '15px',
+                opacity: submitting ? 0.7 : 1,
+                pointerEvents: submitting ? 'none' : 'auto'
              }}
              onClick={handleSubmit}
           >
-             {t('common.confirm', '确认')}
+             {submitting ? (t('common.submitting', '提交中...')) : t('common.confirm', '确认')}
           </div>
         </div>
       )}

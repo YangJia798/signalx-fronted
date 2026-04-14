@@ -290,7 +290,9 @@
     "tpPrice": "止盈价",
     "slPrice": "止损价",
     "close": "平",
-    "quantity": "数量"
+    "quantity": "数量",
+    "buySuccess": "买入订单提交成功",
+    "sellSuccess": "卖出订单提交成功"
   },
   "header": {
     "home": "主页",

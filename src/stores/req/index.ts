@@ -59,6 +59,7 @@ import { hyperUserHistoricalOrders, THyperUserHistoricalOrders } from './hyper/u
 import { hyperOrderLimitBuy, THyperOrderLimitBuy } from './hyper/order-limit-buy'
 import { hyperOrderLimitSell, THyperOrderLimitSell } from './hyper/order-limit-sell'
 import { hyperOrderCancel, THyperOrderCancel } from './hyper/order-cancel'
+import { hyperOrderTpSl, THyperOrderTpSl } from './hyper/order-tp-sl'
 
 export * from './utils'
 
@@ -71,7 +72,7 @@ export type TReqStore =
   TNewsLatest &
   TTrackingAddressPosition & TTrackingRemove & TTrackingCreate &
   TDiscoverList & TDiscoverTradingStatistics & TDiscoverKolList & TDiscoverKolTagging & TDiscoverKolVote &
-  THyperClearinghouseState & THyperUserFills & THyperUserTWAP & THyperUserNonFunding & THyperUserOpenOrdersAdditional & THyperUserSpotClearinghouseState & THyperSpotMetaAndAssetCtxs & THyperUserPortfolio & TDiscoverRecommend & THyperPerpMetaAndAssetCtxs & THyperUserHistoricalOrders & THyperOrderLimitBuy & THyperOrderLimitSell & THyperOrderCancel
+  THyperClearinghouseState & THyperUserFills & THyperUserTWAP & THyperUserNonFunding & THyperUserOpenOrdersAdditional & THyperUserSpotClearinghouseState & THyperSpotMetaAndAssetCtxs & THyperUserPortfolio & TDiscoverRecommend & THyperPerpMetaAndAssetCtxs & THyperUserHistoricalOrders & THyperOrderLimitBuy & THyperOrderLimitSell & THyperOrderCancel & THyperOrderTpSl
 
 const reqStore = {
   // Use
@@ -98,7 +99,7 @@ const reqStore = {
   // Hyper
   ...hyperClearinghouseState, ...hyperUserFills, ...hyperUserTWAP,
   ...hyperUserNonFunding, ...hyperUserOpenOrdersAdditional, ...hyperUserSpotClearinghouseState,
-  ...hyperSpotMetaAndAssetCtxs, ...hyperUserPortfolio, ...hyperPerpMetaAndAssetCtxs, ...hyperUserHistoricalOrders, ...hyperOrderLimitBuy, ...hyperOrderLimitSell, ...hyperOrderCancel
+  ...hyperSpotMetaAndAssetCtxs, ...hyperUserPortfolio, ...hyperPerpMetaAndAssetCtxs, ...hyperUserHistoricalOrders, ...hyperOrderLimitBuy, ...hyperOrderLimitSell, ...hyperOrderCancel, ...hyperOrderTpSl
 }
 
 export const useReqStore = createStore<TReqStore>(reqStore)

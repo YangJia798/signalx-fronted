@@ -288,7 +288,9 @@
     "pleaseInputQuantity": "Please input quantity",
     "pleaseInputPrice": "Please input price",
     "close": "Close ",
-    "quantity": "Quantity"
+    "quantity": "Quantity",
+    "buySuccess": "Buy order submitted successfully",
+    "sellSuccess": "Sell order submitted successfully"
   },
   "header": {
     "home": "Home",

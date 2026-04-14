@@ -10,8 +10,8 @@ export type THyperOrderLimitBuyPrams = {
   leverage: number
   margin_mode: string
   reduce_only: boolean
-  tp_px?: number
-  sl_px?: number
+  tp_price?: number
+  sl_price?: number
 }
 
 export type THyperOrderLimitBuyRes = {

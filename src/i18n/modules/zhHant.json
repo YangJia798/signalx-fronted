@@ -275,7 +275,9 @@
     "pleaseInputQuantity": "請輸入數量",
     "pleaseInputPrice": "請輸入價格",
     "close": "平",
-    "quantity": "數量"
+    "quantity": "數量",
+    "buySuccess": "買入訂單提交成功",
+    "sellSuccess": "賣出訂單提交成功"
   },
   "header": {
     "home": "主頁",

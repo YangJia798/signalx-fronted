@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation, withTranslation, Trans } from 'react-i18next'
 
 import { formatNumber, sortArrayByKey, merge } from '@/utils'
-import { constants, useTraderDetailsPositionsStore, useReqStore, useTradeStore } from '@/stores'
+import { constants, useTraderDetailsPositionsStore, useReqStore, useTradeStore, useTraderDetailsOpenOrdersAdditionalStore } from '@/stores'
 import ColumnList from '@/components/Column/List'
 import PositionItemUPnl from '@/components/PositionItem/UPnl'
 import PositionItemDirectionLeverage from '@/components/PositionItem/DirectionLeverage'
@@ -17,6 +17,7 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
   const traderDetailsPositionsStore = useTraderDetailsPositionsStore()
   const reqStore = useReqStore()
   const tradeStore = useTradeStore()
+  const traderDetailsOpenOrdersAdditionalStore = useTraderDetailsOpenOrdersAdditionalStore()
 
   const { t, i18n } = useTranslation()
 
@@ -66,10 +67,30 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
         return <>$ { formatNumber(item.marginUsed) }</>
       case 'funding':
         return <PositionItemFunding item={item} />
-      case 'tpSl':
+      case 'tpSl': {
+        const positionOrders = traderDetailsOpenOrdersAdditionalStore.list.filter(
+            (o: any) => o.coin === item.coin && (o.isTPSL || (o.reduceOnly && o.isTrigger))
+        );
+        let tpPrice = '-';
+        let slPrice = '-';
+        const isLong = item.direction === 'long';
+        positionOrders.forEach((o: any) => {
+            const px = o.triggerPrice || o.limitPrice;
+            if (!px) return;
+            const pxNum = Number(px);
+            const openNum = Number(item.openPrice);
+            if (isLong) {
+                if (pxNum > openNum) tpPrice = px;
+                else slPrice = px;
+            } else {
+                if (pxNum < openNum) tpPrice = px;
+                else slPrice = px;
+            }
+        });
+
         return (
           <span className="color-gray-2 d-flex align-items-center justify-content-end gap-1">
-            -/-
+            {tpPrice}/{slPrice}
             <svg 
               className="cursor-pointer" 
               style={{ color: '#00d1b2' }} 
@@ -91,6 +112,7 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
             </svg>
           </span>
         )
+      }
       case 'closePosition':
         return (
           <div className="d-flex flex-wrap align-items-center justify-content-end gap-1">
