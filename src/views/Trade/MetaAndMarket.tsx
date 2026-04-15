@@ -161,52 +161,51 @@ export const TradeMetaAndMarket: FC<TradeMetaAndMarketProps> = ({
       <div className='d-flex flex-wrap'>
         <div className='d-flex col-12'>
           <div className='d-flex px-3 py-3 br-3 bg-gray-alpha-4 gap-4 mx-1 mb-2 col'>
-            <div className='d-flex flex-wrap col gap-5'>
-              <div className='d-flex align-items-center gap-1 linker col-12 col-md-auto' onClick={() => tradeStore.openSelectCoins = true}>
+            <div className='d-flex align-items-center col gap-4 overflow-hidden'>
+              <div className='d-flex align-items-center gap-1 linker flex-shrink-0' onClick={() => tradeStore.openSelectCoins = true}>
                 <CoinIcon size='smd' id={platform === 'aster' ? coin.replace(/USDT?1?$/, '') : coin} className='me-2' />
                 <span className='h5 fw-bold'>{platform === 'aster' ? coin : `${coin}-USD`}</span>
                 <IOutlineFlash className='w-20 color-secondary' />
               </div>
-              {
-                [
-                  {
-                    label: t('common.markPrice'),
-                    content: hyperStore.perpMarket[coin]?.markPrice ?? '-',
-                  },
-                  {
-                    label: t('common.pct24h'),
-                    content: <span className='d-flex gap-1'>
-                      <PositionItemCommonPnl prefix='' value={hyperStore.perpMarket[coin]?.priceChange24h} />
-                      <span className='color-secondary'>/</span>
-                      <PositionItemCommonPnl prefix='' value={hyperStore.perpMarket[coin]?.priceChange24hPct} suffix=' %' />
-                    </span>
-                  },
-                  {
-                    label: t('common.24hVolume'),
-                    content: <>$ {hyperStore.perpMarket[coin]?.dayNtlVolume ? formatNumber(new BN(hyperStore.perpMarket[coin]?.dayNtlVolume).toFixed(constants.decimalPlaces.__COMMON__)) : '-'}</>,
-                    // sub: <>{formatNumber(new BN(hyperStore.perpMarket[coin]?.dayBaseVlm).toFixed(hyperStore.perpMeta[coin]?.sizeDecimals))} {coin}</>
-                  },
-                  {
-                    label: t('common.openInterest'),
-                    content: <>$ {hyperStore.perpMarket[coin]?.markPrice ? formatNumber(new BN(hyperStore.perpMarket[coin]?.markPrice).times(hyperStore.perpMarket[coin]?.openInterest).toFixed(decimalPlaces.__COMMON__)) : '-'}</>,
-                    // sub: <>{formatNumber(hyperStore.perpMarket[coin]?.openInterest)} {coin}</>
-                  },
-                  {
-                    label: t('common.fundingFee'),
-                    content: <>{hyperStore.perpMarket[coin]?.fundingPct ?? '-'} %</>
-                  },
-                ].map((item, idx) => (
-                  <div key={idx} className={`d-flex flex-column col-auto ${item.className ?? ''}`}>
-                    <small className="color-unimportant pb-1">{item.label}</small>
-                    <span className="color-secondary">
-                      <span className="d-flex flex-column">
-                        <span className="color-white">{item.content}</span>
-                        {item.sub && <small>{item.sub}</small>}
+              <div className='d-flex gap-5 overflow-auto' style={{ flexWrap: 'nowrap' }}>
+                {
+                  [
+                    {
+                      label: t('common.markPrice'),
+                      content: hyperStore.perpMarket[coin]?.markPrice ?? '-',
+                    },
+                    {
+                      label: t('common.pct24h'),
+                      content: <span className='d-flex gap-1'>
+                        <PositionItemCommonPnl prefix='' value={hyperStore.perpMarket[coin]?.priceChange24h} />
+                        <span className='color-secondary'>/</span>
+                        <PositionItemCommonPnl prefix='' value={hyperStore.perpMarket[coin]?.priceChange24hPct} suffix=' %' />
                       </span>
-                    </span>
-                  </div>
-                ))
-              }
+                    },
+                    {
+                      label: t('common.24hVolume'),
+                      content: <>$ {hyperStore.perpMarket[coin]?.dayNtlVolume ? formatNumber(new BN(hyperStore.perpMarket[coin]?.dayNtlVolume).toFixed(constants.decimalPlaces.__COMMON__)) : '-'}</>,
+                    },
+                    {
+                      label: t('common.openInterest'),
+                      content: <>$ {hyperStore.perpMarket[coin]?.markPrice ? formatNumber(new BN(hyperStore.perpMarket[coin]?.markPrice).times(hyperStore.perpMarket[coin]?.openInterest).toFixed(decimalPlaces.__COMMON__)) : '-'}</>,
+                    },
+                    {
+                      label: t('common.fundingFee'),
+                      content: <>{hyperStore.perpMarket[coin]?.fundingPct ?? '-'} %</>
+                    },
+                  ].map((item, idx) => (
+                    <div key={idx} className='d-flex flex-column flex-shrink-0'>
+                      <small className="color-unimportant pb-1" style={{ whiteSpace: 'nowrap' }}>{item.label}</small>
+                      <span className="color-secondary">
+                        <span className="d-flex flex-column">
+                          <span className="color-white">{item.content}</span>
+                        </span>
+                      </span>
+                    </div>
+                  ))
+                }
+              </div>
             </div>
           </div>
         </div>
