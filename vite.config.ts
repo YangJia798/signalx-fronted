@@ -66,16 +66,20 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {
-          manualChunks: {
-            // Web3 相关（最重，单独缓存）
-            'vendor-web3': ['wagmi', 'viem', '@rainbow-me/rainbowkit', '@okxconnect/ui'],
-            // UI 框架
-            'vendor-antd': ['antd', '@ant-design/cssinjs'],
-            'vendor-mui': ['@mui/material', '@mui/x-charts', '@emotion/react', '@emotion/styled'],
+          manualChunks: (id) => {
+            // Web3 库各自独立 chunk，避免合并导致循环依赖初始化顺序错乱
+            if (id.includes('node_modules/wagmi')) return 'vendor-wagmi'
+            if (id.includes('node_modules/viem')) return 'vendor-viem'
+            if (id.includes('node_modules/@rainbow-me')) return 'vendor-rainbowkit'
+            if (id.includes('node_modules/@okxconnect')) return 'vendor-okx'
+            // UI 框架合并安全（无循环依赖）
+            if (id.includes('node_modules/antd') || id.includes('node_modules/@ant-design')) return 'vendor-antd'
+            if (id.includes('node_modules/@mui') || id.includes('node_modules/@emotion')) return 'vendor-mui'
             // 工具库
-            'vendor-utils': ['axios', 'bignumber.js', 'dayjs', 'i18next', 'react-i18next'],
+            if (id.includes('node_modules/axios') || id.includes('node_modules/bignumber') || id.includes('node_modules/dayjs')) return 'vendor-utils'
+            if (id.includes('node_modules/i18next') || id.includes('node_modules/react-i18next')) return 'vendor-i18n'
             // React 核心
-            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) return 'vendor-react'
           }
         }
       }
