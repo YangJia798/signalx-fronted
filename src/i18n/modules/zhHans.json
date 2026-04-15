@@ -289,10 +289,31 @@
     "pleaseInputPrice": "请输入价格",
     "tpPrice": "止盈价",
     "slPrice": "止损价",
+    "withdraw": "提现",
+    "imported": "导入",
+    "createdBySignalxbot": "Signalxbot 创建",
+    "importWallet": "导入钱包",
+    "copyTargets": "跟单目标",
+    "copyRecords": "跟单记录",
+    "addressOverview": "地址概览",
+    "accountAssets": "账户资产",
+    "spotWithArrow": "现货 >",
     "close": "平",
     "quantity": "数量",
     "buySuccess": "买入订单提交成功",
-    "sellSuccess": "卖出订单提交成功"
+    "sellSuccess": "卖出订单提交成功",
+    "strategyTrading": "策略交易",
+    "buyLong": "买入/做多",
+    "sellShort": "卖出/做空",
+    "available": "可用",
+    "priceWithUnit": "价格 (USD)",
+    "orderValue": "订单价值",
+    "requiredMargin": "所需保证金",
+    "slippage": "滑点",
+    "maximumValue": "最大值",
+    "reminder": "提醒",
+    "noWalletTip": "请前往\"我的钱包\"创建交易钱包，才能继续操作",
+    "visitMyWallet": "访问我的钱包"
   },
   "header": {
     "home": "主页",
@@ -387,7 +408,13 @@
   },
   "footer": {
     "websiteService": "网站服务",
-    "socialMedia": "社交媒体"
+    "socialMedia": "社交媒体",
+    "intro": "Signalxbot 是一款 AI 驱动的全自动链上量化交易平台，为您捕捉全网最有价值的交易信号与赚钱机会。",
+    "resourcesSupport": "资源与支持",
+    "apiDocs": "API 文档",
+    "helpCenter": "帮助中心",
+    "tutorials": "使用教程",
+    "feedback": "提交反馈"
   },
   "toolTip": {
     "turnOffAutoRefresh": "关闭自动刷新",

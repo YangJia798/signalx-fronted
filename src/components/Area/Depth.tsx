@@ -301,7 +301,7 @@ const AreaDepth: React.FC<AreaDepthProps> = ({
               <span className='h6 fw-bold mb-0 color-white'>{ markPrice || '-' }</span>
             </div>
             <div className='col d-flex align-items-center justify-content-end gap-1'>
-               <small className='color-unimportant font-size-12'>{t('common.depthSpread', '价差')}</small>
+               <small className='color-unimportant font-size-12'>{t('common.depthSpread')}</small>
                <small className='color-secondary font-size-12 fw-500'>{ areaDepth.bidAskSpread }</small>
             </div>
           </div>

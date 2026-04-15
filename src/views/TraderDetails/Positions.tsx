@@ -22,16 +22,16 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
   const { t, i18n } = useTranslation()
 
   const tabPosition = [
-    { id: 'symbol', label: t('common.symbol'), className: 'col-2' },
-    { id: 'positionValue', sort: true, sortByKey: 'positionValue', label: t('common.positionValue'), className: 'justify-content-end text-end col-2' },
-    { id: 'uPnl', sort: true, sortByKey: 'uPnl', label: t('common.uPnl'), className: 'justify-content-end text-end col' },
-    { id: 'openingPrice', sort: true, sortByKey: 'openPrice', label: t('common.openingPrice'), className: 'justify-content-end text-end col' },
-    { id: 'markPrice', sort: true, sortByKey: 'markPrice', label: t('common.markPrice'), className: 'justify-content-end text-end col' },
-    { id: 'liquidationPrice', sort: true, sortByKey: 'liquidationPrice', label: t('common.liquidationPrice'), className: 'justify-content-end text-end col' },
+    { id: 'symbol', label: t('common.symbol'), className: 'col-xl-1 col-md-2 col' },
+    { id: 'positionValue', sort: true, sortByKey: 'positionValue', label: t('common.positionValue'), className: 'justify-content-end text-end col-2 text-nowrap' },
+    { id: 'uPnl', sort: true, sortByKey: 'uPnl', label: t('common.uPnl'), className: 'justify-content-end text-end col text-nowrap' },
+    { id: 'openingPrice', sort: true, sortByKey: 'openPrice', label: t('common.openingPrice'), className: 'justify-content-end text-end col text-nowrap' },
+    { id: 'markPrice', sort: true, sortByKey: 'markPrice', label: t('common.markPrice'), className: 'justify-content-end text-end col text-nowrap' },
+    { id: 'liquidationPrice', sort: true, sortByKey: 'liquidationPrice', label: t('common.liquidationPrice'), className: 'justify-content-end text-end col text-nowrap' },
     { id: 'margin', sort: true, sortByKey: 'marginUsed', label: t('common.margin'), className: 'justify-content-end text-end col' },
-    { id: 'funding', sort: true, sortByKey: 'funding', label: t('common.fundingFee', '资金费用'), className: 'justify-content-end text-end col' },
-    { id: 'tpSl', label: t('common.tpSl', '止盈/止损'), className: 'justify-content-end text-end col' },
-    { id: 'closePosition', label: t('common.closePosition', '平仓'), className: 'justify-content-end text-end col' },
+    { id: 'funding', sort: true, sortByKey: 'funding', label: t('common.fundingFee', '资金费用'), className: 'justify-content-end text-end col text-nowrap' },
+    { id: 'tpSl', label: t('common.tpSl', '止盈/止损'), className: 'justify-content-end text-end col text-nowrap' },
+    { id: 'closePosition', label: t('common.closePosition', '平仓'), className: 'justify-content-end text-end col-2 text-nowrap' },
   ]
 
   const renderPositionItem = (item, columnIndex) => {
@@ -89,11 +89,11 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
         });
 
         return (
-          <span className="color-gray-2 d-flex align-items-center justify-content-end gap-1">
+          <span className="color-gray-2 d-flex align-items-center justify-content-end gap-1 text-nowrap" style={{ whiteSpace: 'nowrap' }}>
             {tpPrice}/{slPrice}
             <svg 
               className="cursor-pointer" 
-              style={{ color: '#00d1b2' }} 
+              style={{ color: '#00d1b2', flexShrink: 0 }} 
               width="14" 
               height="14" 
               viewBox="0 0 24 24" 
@@ -115,10 +115,10 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
       }
       case 'closePosition':
         return (
-          <div className="d-flex flex-wrap align-items-center justify-content-end gap-1">
+          <div className="d-flex flex-wrap align-items-center justify-content-end gap-1 flex-nowrap" style={{ whiteSpace: 'nowrap' }}>
             <span 
-              className="br-1 px-1 font-size-12" 
-              style={{ background: 'rgba(255,255,255,0.1)', cursor: 'pointer', color: '#00d1b2' }}
+              className="br-1 px-1 font-size-12 whitespace-nowrap" 
+              style={{ background: 'rgba(255,255,255,0.1)', cursor: 'pointer', color: '#00d1b2', whiteSpace: 'nowrap' }}
               onClick={() => {
                 traderDetailsPositionsStore.currentClosePositionItem = item;
                 traderDetailsPositionsStore.closePositionType = 'limit';
@@ -128,8 +128,8 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
               {t('common.limitPrice', '限价')}
             </span>
             <span 
-              className="br-1 px-1 font-size-12" 
-              style={{ background: 'rgba(255,255,255,0.1)', cursor: 'pointer', color: '#00d1b2' }}
+              className="br-1 px-1 font-size-12 whitespace-nowrap" 
+              style={{ background: 'rgba(255,255,255,0.1)', cursor: 'pointer', color: '#00d1b2', whiteSpace: 'nowrap' }}
               onClick={() => {
                 traderDetailsPositionsStore.currentClosePositionItem = item;
                 traderDetailsPositionsStore.closePositionType = 'market';
@@ -191,6 +191,8 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
       <ColumnList
         columns={tabPosition}
         className={className}
+        headClassName="ps-3 pe-3 py-3 gap-3"
+        rowClassName="ps-3 pe-3 py-3 gap-3"
         data={traderDetailsPositionsStore.list}
         busy={reqStore.hyperClearinghouseStateInit || !unUpdate && reqStore.hyperClearinghouseStateBusy}
         sortColumnId={traderDetailsPositionsStore.sortColumnId}

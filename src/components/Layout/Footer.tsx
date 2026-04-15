@@ -26,7 +26,7 @@ const LayoutFooter = () => {
               <Logo size="large" />
             </div>
             <p className="color-secondary" style={{ lineHeight: '1.8' }}>
-              Signalxbot 是一款 AI 驱动的全自动链上量化交易平台，为您捕捉全网最有价值的交易信号与赚钱机会。
+              {t('footer.intro') || 'Signalxbot 是一款 AI 驱动的全自动链上量化交易平台，为您捕捉全网最有价值的交易信号与赚钱机会。'}
             </p>
           </div>
 
@@ -54,12 +54,12 @@ const LayoutFooter = () => {
 
           {/* Links Column 2 */}
           <div className="col-6 col-lg-3 d-flex flex-column gap-4">
-            <span className="h6 fw-bold color-white">资源与支持</span>
+            <span className="h6 fw-bold color-white">{t('footer.resourcesSupport') || '资源与支持'}</span>
             <ul className="d-flex flex-column fw-500 color-secondary gap-3 m-0 p-0" style={{ listStyle: 'none' }}>
-              <li className="footer-link-item"><a className="linker color-secondary hover-color-primary transition-all">API 文档</a></li>
-              <li className="footer-link-item"><a className="linker color-secondary hover-color-primary transition-all">帮助中心</a></li>
-              <li className="footer-link-item"><a className="linker color-secondary hover-color-primary transition-all">使用教程</a></li>
-              <li className="footer-link-item"><a className="linker color-secondary hover-color-primary transition-all">提交反馈</a></li>
+              <li className="footer-link-item"><a className="linker color-secondary hover-color-primary transition-all">{t('footer.apiDocs') || 'API 文档'}</a></li>
+              <li className="footer-link-item"><a className="linker color-secondary hover-color-primary transition-all">{t('footer.helpCenter') || '帮助中心'}</a></li>
+              <li className="footer-link-item"><a className="linker color-secondary hover-color-primary transition-all">{t('footer.tutorials') || '使用教程'}</a></li>
+              <li className="footer-link-item"><a className="linker color-secondary hover-color-primary transition-all">{t('footer.feedback') || '提交反馈'}</a></li>
             </ul>
           </div>
 

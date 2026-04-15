@@ -15,11 +15,11 @@ const TraderDetailsNonFunding = ({ address, displayedRecordsMessage = 2000, clas
   const { t, i18n } = useTranslation()
 
   const tabPosition = [
-    { id: 'time', sort: true, sortByKey: 'createTs', label: t('common.time'), className: 'col-4 col-sm-3 col-md-2 col-xl-2' },
-    { id: 'type', label: t('common.type'), className: 'col-6 col-sm-4 col-md-4 col-lg-2' },
-    { id: 'value', sort: true, sortByKey: 'usdcValue', label: t('common.value'), className: 'justify-content-end text-end d-none d-sm-flex col-sm-3 col-md-4 col-lg-3' },
-    { id: 'amount', sort: true, sortByKey: 'amount', label: t('common.amount'), className: 'justify-content-end text-end col-6 col-sm-4 col-lg-3' },
-    { id: 'transaction', label: t('common.transaction'), className: 'justify-content-end text-end d-none d-lg-flex col-lg-2 col-xl-2 ' },
+    { id: 'time', sort: true, sortByKey: 'createTs', label: t('common.time'), className: 'col-4 col-sm-3 col-md-2 col-xl-2 text-nowrap' },
+    { id: 'type', label: t('common.type'), className: 'col-6 col-sm-4 col-md-4 col-lg-2 text-nowrap' },
+    { id: 'value', sort: true, sortByKey: 'usdcValue', label: t('common.value'), className: 'justify-content-end text-end d-none d-sm-flex col-sm-3 col-md-4 col-lg-3 text-nowrap' },
+    { id: 'amount', sort: true, sortByKey: 'amount', label: t('common.amount'), className: 'justify-content-end text-end col-6 col-sm-4 col-lg-3 text-nowrap' },
+    { id: 'transaction', label: t('common.transaction'), className: 'justify-content-end text-end d-none d-lg-flex col-lg-2 col-xl-2 text-nowrap' },
   ]
 
   const renderPositionItem = (item, columnIndex) => {

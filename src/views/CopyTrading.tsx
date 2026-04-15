@@ -46,12 +46,12 @@ const CopyTrading = () => {
   const [activeListTab, setActiveListTab] = useState('targets')
 
   const ownWalletsColumn = [
-    { id: 'address_note', label: t('common.addressNote') || '地址/备注', className: 'col-4' },
+    { id: 'address_note', label: t('common.addressNote') || '地址/备注', className: 'col-3' },
     { id: 'createTs', label: t('common.createImportTime') || '创建/导入时间', className: 'd-none d-xl-flex col-xl-2' },
     { id: 'balance', label: t('common.totalAccountValue') || '账户总价值', className: 'justify-content-center text-center col' },
     { id: 'uPnl', label: t('common.uPnl') || '未实现盈亏', className: 'justify-content-center text-center col' },
     { id: 'withdrawable', label: t('common.withdrawable') || '可提取', className: 'justify-content-center text-center col' },
-    { id: 'operator', label: '', className: 'justify-content-end text-end col-2' },
+    { id: 'operator', label: '', className: 'justify-content-end text-end col-3 col-xl-2' },
   ]
 
   const ownCopyTradesColumn = [
@@ -98,7 +98,7 @@ const CopyTrading = () => {
         return (
           <div className="d-flex flex-column w-100">
             <div className="color-white font-size-13"><TimeAgo ts={item.createTs} /></div>
-            <div className="color-secondary font-size-12 mt-1">{item.importWallet === 1 ? t('common.importWallet', '导入') : 'Signalxbot 创建'}</div>
+            <div className="color-secondary font-size-12 mt-1">{item.importWallet === 1 ? t('common.imported') : t('common.createdBySignalxbot')}</div>
           </div>
         )
       case 'balance':
@@ -121,17 +121,17 @@ const CopyTrading = () => {
               <>
                 <button
                   className="border-0 cursor-pointer fw-500 font-size-12 transition-2 d-none d-md-block"
-                  style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '24px', padding: '6px 16px', color: '#00d1b2' }}
+                  style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '24px', padding: '6px 16px', color: '#00d1b2', whiteSpace: 'nowrap', flexShrink: 0 }}
                   onClick={(e) => { e.stopPropagation(); merge(privateWalletStore, { openDeposit: true, operaWalletIdx: item.idx}) }}
                 >
                   {t('common.deposit') || '存款'}
                 </button>
                 <button
                   className="border-0 cursor-pointer fw-500 font-size-12 transition-2 d-none d-md-block"
-                  style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '24px', padding: '6px 16px', color: '#00d1b2' }}
+                  style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '24px', padding: '6px 16px', color: '#00d1b2', whiteSpace: 'nowrap', flexShrink: 0 }}
                   onClick={(e) => { e.stopPropagation() /* TODO Withdraw action */ }}
                 >
-                  提现
+                  {t('common.withdraw')}
                 </button>
               </>
             )}
@@ -340,7 +340,7 @@ const CopyTrading = () => {
                   <polyline points="7 10 12 15 17 10"/>
                   <line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
-                <span className="d-none d-sm-block">{t('common.importWallet', '导入钱包')}</span>
+                <span className="d-none d-sm-block">{t('common.importWallet')}</span>
               </button>
             </div>
           </div>
@@ -377,13 +377,13 @@ const CopyTrading = () => {
                   style={activeListTab === 'targets' ? { borderBottom: '2px solid white', marginBottom: '-1px' } : {}}
                   onClick={() => setActiveListTab('targets')}
              >
-                跟单目标 {accountStore.logged && `(${copyTradingStore.copyTradingList.length})`}
+                {t('common.copyTargets')} {accountStore.logged && `(${copyTradingStore.copyTradingList.length})`}
              </div>
              <div className={`py-2 fw-bold font-size-15 cursor-pointer pb-2 ${activeListTab === 'records' ? 'color-white' : 'color-secondary hover-text-white transition-2'}`}
                   style={activeListTab === 'records' ? { borderBottom: '2px solid white', marginBottom: '-1px' } : {}}
                   onClick={() => setActiveListTab('records')}
              >
-                跟单记录
+                {t('common.copyRecords')}
              </div>
           </div>
 
@@ -398,7 +398,7 @@ const CopyTrading = () => {
           <div className="d-flex gap-4 align-items-center justify-content-between col mb-0">
             <h4 className="d-flex gap-2 align-items-center fw-bold m-0 text-white">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path><path d="M12 7v5l3 3"></path></svg>
-              {t('common.addressOverview', '地址概览')}
+              {t('common.addressOverview')}
             </h4>
             {
               privateWalletStore.addresses[0] && (() => {

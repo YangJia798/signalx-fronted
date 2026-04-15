@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useAccountStore, usePrivateWalletStore,  useReqStore } from '@/stores';
 import ModalBase from './Base';
+import WalletProviderIcon from '../Wallet/ProviderIcon';
 
 const ModalImportPrivateWallet = () => {
   const privateWalletStore = usePrivateWalletStore();
@@ -53,10 +54,7 @@ const ModalImportPrivateWallet = () => {
             onClick={() => privateWalletStore.importWalletProvider = 'hyperliquid'}
           >
             <div className="d-flex align-items-center justify-content-center gap-2">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5.5 15C3.57 15 2 13.43 2 11.5S3.57 8 5.5 8 9 9.57 9 11.5 7.43 15 5.5 15zm13 0c-1.93 0-3.5-1.57-3.5-3.5S16.57 8 18.5 8 22 9.57 22 11.5 20.43 15 18.5 15z" fill="#00e5ff"/>
-                <circle cx="12" cy="11.5" r="2.5" fill="#00e5ff" opacity="0.8"/>
-              </svg>
+              <WalletProviderIcon platform="hyperliquid" width="18" height="18" />
               Hyperliquid
             </div>
           </div>
@@ -66,9 +64,7 @@ const ModalImportPrivateWallet = () => {
             onClick={() => privateWalletStore.importWalletProvider = 'aster'}
           >
             <div className="d-flex align-items-center justify-content-center gap-2">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="#f7b500" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
+              <WalletProviderIcon platform="aster" width="18" height="18" />
               Aster
             </div>
           </div>
@@ -159,7 +155,7 @@ const ModalImportPrivateWallet = () => {
               height: '46px',
               borderRadius: '24px', 
               background: 'rgba(255,255,255,0.06)',
-              color: '#00e5ff'
+              color: '#38d1b3'
             }}
           >
             导入教程 
@@ -186,7 +182,7 @@ const ModalImportPrivateWallet = () => {
           </Button>
           <style>{`
             #wallet-import-submit-btn:not(:disabled) {
-              background: linear-gradient(90deg, #fce0fc 0%, #c4f1ff 40%, #00e5ff 100%) !important;
+              background: linear-gradient(90deg, #fce0fc 0%, #c4f1ff 40%, #38d1b3 100%) !important;
               color: #1a1d2d !important;
               font-weight: bold;
             }

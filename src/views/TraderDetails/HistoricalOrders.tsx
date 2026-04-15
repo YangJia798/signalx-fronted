@@ -44,15 +44,15 @@ const TraderDetailsHistoricalOrders: FC<TraderDetailsHistoricalOrdersProps> = ({
   const { t, i18n } = useTranslation()
 
   const column = [
-    { id: 'time', sort: true, sortByKey: 'createTs', label: t('common.time'), className: 'col-5 col-sm-3 col-md-2 col-xl-1' },
-    { id: 'symbol', filter: filterCoin, label: t('common.symbol'), className: 'col-4 col-sm-2 col-md-2 col-lg-1' },
-    { id: 'orderType', label: t('common.type'), className: 'col-2 col-md-2 col-lg-1' },
-    { id: 'side', label: t('common.side'), className: 'col-2 col-sm-2 col-md-2 col-lg-1' },
-    { id: 'size', sort: true, sortByKey: 'size', label: t('common.orderSize'), className: 'justify-content-end text-end col-4 col-sm-3 col-md-3 col-lg-2' },
-    { id: 'price', sort: true, sortByKey: 'limitPrice', label: t('common.price'), className: 'justify-content-end text-end col-6 col-sm-5 col-md-3 col-xl-2' },
-    { id: 'trigger', label: t('common.trigger'), className: 'justify-content-end text-end col-3 col-lg-2 col-xl-1' },
-    { id: 'executionStatus', label: t('common.executionStatus'), className: 'justify-content-end text-end col-4 col-sm-3 col-md-2 col-lg-1' },
-    { id: 'orderId', label: t('common.orderId'), className: 'justify-content-end text-end col-5 col-sm-4 col-md-3 col-lg-2' },
+    { id: 'time', sort: true, sortByKey: 'createTs', label: t('common.time'), className: 'col-5 col-sm-3 col-md-2 col-xl-1 text-nowrap' },
+    { id: 'symbol', filter: filterCoin, label: t('common.symbol'), className: 'col-4 col-sm-2 col-md-2 col-lg-1 text-nowrap' },
+    { id: 'orderType', label: t('common.type'), className: 'col-2 col-md-2 col-lg-1 text-nowrap' },
+    { id: 'side', label: t('common.side'), className: 'col-2 col-sm-2 col-md-2 col-lg-1 text-nowrap' },
+    { id: 'size', sort: true, sortByKey: 'size', label: t('common.orderSize'), className: 'justify-content-end text-end col-4 col-sm-3 col-md-3 col-lg-2 text-nowrap' },
+    { id: 'price', sort: true, sortByKey: 'limitPrice', label: t('common.price'), className: 'justify-content-end text-end col-6 col-sm-5 col-md-3 col-xl-2 text-nowrap' },
+    { id: 'trigger', label: t('common.trigger'), className: 'justify-content-end text-end col-3 col-lg-2 col-xl-1 text-nowrap' },
+    { id: 'executionStatus', label: t('common.executionStatus'), className: 'justify-content-end text-end col-4 col-sm-3 col-md-2 col-lg-1 text-nowrap' },
+    { id: 'orderId', label: t('common.orderId'), className: 'justify-content-end text-end col-5 col-sm-4 col-md-3 col-lg-1 text-nowrap' },
   ]
 
   const renderItem = (item, columnIndex) => {

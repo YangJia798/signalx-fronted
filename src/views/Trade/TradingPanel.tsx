@@ -208,8 +208,56 @@ const TradeTradingPanel = () => {
         } finally {
           setSubmitting(false)
         }
+      } else if (platform === 'aster') {
+        try {
+          if (orderType === 'limit' && !limitPx) {
+            message.warning(t('common.pleaseInputPrice') || '请输入限价')
+            return
+          }
+
+          setSubmitting(true)
+
+          const params: any = {
+            wallet_id: activeWallet.walletId,
+            coin: displayCoin,
+            order_type: orderType,
+            leverage: leverage,
+            margin_mode: marginMode,
+            reduce_only: reduceOnly,
+          }
+
+          if (quantityUnit === 'USD') {
+            params.usd_sz = Number(requiredMargin.toFixed(4))
+          } else {
+            params.sz = Number(quantity)
+          }
+
+          if (orderType === 'limit') {
+            params.limit_px = Number(limitPx)
+          }
+
+          if (tpsl) {
+            if (tpPx) params.tp_price = Number(tpPx)
+            if (slPx) params.sl_price = Number(slPx)
+          }
+
+          if (isBuy) {
+            await reqStore.asterOrderLimitBuy(params)
+            message.success(t('common.buySuccess') || '买入订单提交成功')
+          } else {
+            await reqStore.asterOrderLimitSell(params)
+            message.success(t('common.sellSuccess') || '卖出订单提交成功')
+          }
+          
+          tradeStore.refreshTradeData()
+          reqStore.userPrivateWallet(accountStore, privateWalletStore)
+        } catch (e: any) {
+          message.error(e.message || t('common.submitFailed') || '订单提交失败')
+        } finally {
+          setSubmitting(false)
+        }
       } else {
-        message.info('Aster 接口尚未适配')
+        message.info('该平台接口尚未适配')
       }
     }
   }
@@ -228,7 +276,7 @@ const TradeTradingPanel = () => {
           className="py-2 px-3 cursor-pointer font-size-13"
           style={{ color: 'rgba(255,255,255,0.35)' }}
         >
-          策略交易 <span className="font-size-11" style={{ color: '#00d1b2' }}>Beta</span>
+          {t('common.strategyTrading') || '策略交易'} <span className="font-size-11" style={{ color: '#00d1b2' }}>Beta</span>
         </div>
       </div>
 
@@ -243,7 +291,7 @@ const TradeTradingPanel = () => {
           }}
           onClick={() => setOrderSide('buy')}
         >
-          买入/做多
+          {t('common.buyLong') || '买入/做多'}
         </button>
         <button
           className="flex-grow-1 py-1 fw-600 font-size-14 border-0 cursor-pointer transition-2"
@@ -253,7 +301,7 @@ const TradeTradingPanel = () => {
           }}
           onClick={() => setOrderSide('sell')}
         >
-          卖出/做空
+          {t('common.sellShort') || '卖出/做空'}
         </button>
       </div>
 
@@ -282,7 +330,7 @@ const TradeTradingPanel = () => {
           }}
           onClick={() => setShowMarginModal(true)}
         >
-          {marginMode === 'cross' ? '全仓' : '逐仓'}
+          {marginMode === 'cross' ? (t('common.crossMargin') || '全仓') : (t('common.isolatedMargin') || '逐仓')}
           <IOutlineEdit width={14} height={14} />
         </div>
         <div
@@ -303,11 +351,11 @@ const TradeTradingPanel = () => {
 
       {/* Available + Current Position */}
       <div className="d-flex justify-content-between font-size-12" style={{ color: 'rgba(255,255,255,0.65)' }}>
-        <span>可用</span>
+        <span>{t('common.available') || '可用'}</span>
         <span className="color-white fw-500">$ {formatNumber(availableBalance.toFixed(2))}</span>
       </div>
       <div className="d-flex justify-content-between font-size-12" style={{ color: 'rgba(255,255,255,0.65)' }}>
-        <span>当前持仓</span>
+        <span>{t('common.currentPosition') || '当前持仓'}</span>
         <span className="color-white fw-500">0 {displayCoin}</span>
       </div>
 
@@ -323,12 +371,12 @@ const TradeTradingPanel = () => {
           <Input
             value={limitPx}
             onChange={(e) => setLimitPx(e.target.value)}
-            placeholder="价格 (USD)"
+            placeholder={t('common.priceWithUnit') || '价格 (USD)'}
             variant="borderless"
             style={{ color: '#fff', height: '100%' }}
             className="flex-grow-1 px-3"
           />
-          <span className="cursor-pointer pe-3 font-size-12 fw-500" style={{ color: '#00d1b2', whiteSpace: 'nowrap' }}>盘中价</span>
+          <span className="cursor-pointer pe-3 font-size-12 fw-500" style={{ color: '#00d1b2', whiteSpace: 'nowrap' }} onClick={() => setLimitPx(String(marketPrice))}>{t('common.midPrice') || '盘中价'}</span>
         </div>
       )}
 
@@ -344,7 +392,7 @@ const TradeTradingPanel = () => {
           <Input
             value={quantity}
             onChange={handleQuantityChange}
-            placeholder="数量"
+            placeholder={t('common.quantity') || '数量'}
             variant="borderless"
             style={{ color: '#fff', height: '100%' }}
             className="flex-grow-1 px-3"
@@ -527,7 +575,7 @@ const TradeTradingPanel = () => {
           }}
           onClick={handleActionClick}
         >
-          {submitting ? (t('common.submitting') || '提交中...') : (isBuy ? '买入/做多' : '卖出/做空')}
+          {submitting ? (t('common.submitting') || '提交中...') : (isBuy ? (t('common.buyLong') || '买入/做多') : (t('common.sellShort') || '卖出/做空'))}
         </button>
       )}
 
@@ -535,15 +583,15 @@ const TradeTradingPanel = () => {
       <div className="d-flex flex-column gap-2 font-size-12">
         {[
           { label: t('common.liquidationPrice') || '清算价', value: (quantityNum > 0 && price > 0) ? formatNumber(liquidationPrice.toFixed(2)) : 'N/A' },
-          { label: '订单价值', value: quantityNum > 0 ? `$ ${formatNumber(orderValue.toFixed(2))}` : 'N/A' },
-          { label: '所需保证金', value: quantityNum > 0 ? `$ ${formatNumber(requiredMargin.toFixed(2))}` : 'N/A' },
+          { label: t('common.orderValue') || '订单价值', value: quantityNum > 0 ? `$ ${formatNumber(orderValue.toFixed(2))}` : 'N/A' },
+          { label: t('common.requiredMargin') || '所需保证金', value: quantityNum > 0 ? `$ ${formatNumber(requiredMargin.toFixed(2))}` : 'N/A' },
           {
             label: (
               <span className="d-flex align-items-center gap-1">
-                滑点 <span style={{ color: 'rgba(255,255,255,0.25)', cursor: 'pointer' }}>ⓘ</span>
+                {t('common.slippage') || '滑点'} <span style={{ color: 'rgba(255,255,255,0.25)', cursor: 'pointer' }}>ⓘ</span>
               </span>
             ),
-            value: '最大值: 8.00 %',
+            value: `${t('common.maximumValue') || '最大值'}: 8.00 %`,
           },
         ].map((row, idx) => (
           <div key={idx} className="d-flex justify-content-between" style={{ color: 'rgba(255,255,255,0.45)' }}>
@@ -652,7 +700,7 @@ const TradeTradingPanel = () => {
       >
         <div className="d-flex flex-column">
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <span className="color-white fw-500 font-size-16">提醒</span>
+            <span className="color-white fw-500 font-size-16">{t('common.reminder') || '提醒'}</span>
             <span 
               className="cursor-pointer d-flex align-items-center justify-content-center" 
               style={{ color: 'rgba(255,255,255,0.45)', fontSize: '20px', width: '24px', height: '24px' }}
@@ -662,7 +710,7 @@ const TradeTradingPanel = () => {
             </span>
           </div>
           <div className="font-size-14 mb-4" style={{ lineHeight: '1.5', color: 'rgba(255,255,255,0.85)' }}>
-            请前往"我的钱包"创建交易钱包，才能继续操作
+            {t('common.noWalletTip') || '请前往"我的钱包"创建交易钱包，才能继续操作'}
           </div>
           <button
             className="w-100 py-2 fw-600 font-size-14 cursor-pointer text-center d-flex align-items-center justify-content-center gap-1"
@@ -678,7 +726,7 @@ const TradeTradingPanel = () => {
               privateWalletStore.openCreatePrivateWallet = true
             }}
           >
-            访问我的钱包 <span style={{ fontSize: '12px', marginTop: '2px' }}>&gt;</span>
+            {t('common.visitMyWallet') || '访问我的钱包'} <span style={{ fontSize: '12px', marginTop: '2px' }}>&gt;</span>
           </button>
         </div>
       </Modal>

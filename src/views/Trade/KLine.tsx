@@ -29,6 +29,34 @@ export const calculateMA = (data: CandlestickData[], period: number): LineData[]
   return maData
 }
 
+const isValidCandle = (c: any): boolean => {
+  return (
+    c &&
+    typeof c.time !== 'undefined' &&
+    !isNaN(Number(c.time)) &&
+    !isNaN(Number(c.open)) &&
+    !isNaN(Number(c.high)) &&
+    !isNaN(Number(c.low)) &&
+    !isNaN(Number(c.close)) &&
+    c.open !== null &&
+    c.high !== null &&
+    c.low !== null &&
+    c.close !== null
+  )
+}
+
+const filterAndSortData = <T extends { time: any }>(data: T[]): T[] => {
+  const seenTime = new Set()
+  return data
+    .filter(item => {
+      const timeVal = Number(item.time)
+      if (isNaN(timeVal) || seenTime.has(timeVal)) return false
+      seenTime.add(timeVal)
+      return true
+    })
+    .sort((a, b) => Number(a.time) - Number(b.time))
+}
+
 const TradeKLine = () => {
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
@@ -192,17 +220,23 @@ const TradeKLine = () => {
               const close = Number(item[4])
               const volume = Number(item[5])
               
-              cData.push({ time, open, high, low, close })
-              vData.push({ time, value: volume, color: close >= open ? 'rgba(22, 199, 132, 0.4)' : 'rgba(234, 57, 67, 0.4)' })
+              const candle = { time, open, high, low, close }
+              if (isValidCandle(candle)) {
+                cData.push(candle)
+                vData.push({ time, value: volume, color: close >= open ? 'rgba(22, 199, 132, 0.4)' : 'rgba(234, 57, 67, 0.4)' })
+              }
             })
 
-            candleDataRef.current = cData
-            seriesRef.current.candle?.setData(cData)
-            seriesRef.current.volume?.setData(vData)
+            const finalCData = filterAndSortData(cData)
+            const finalVData = filterAndSortData(vData)
 
-            seriesRef.current.ma5?.setData(calculateMA(cData, 5))
-            seriesRef.current.ma10?.setData(calculateMA(cData, 10))
-            seriesRef.current.ma20?.setData(calculateMA(cData, 20))
+            candleDataRef.current = finalCData
+            seriesRef.current.candle?.setData(finalCData)
+            seriesRef.current.volume?.setData(finalVData)
+
+            seriesRef.current.ma5?.setData(calculateMA(finalCData, 5))
+            seriesRef.current.ma10?.setData(calculateMA(finalCData, 10))
+            seriesRef.current.ma20?.setData(calculateMA(finalCData, 20))
 
             const timeScale = chartRef.current?.timeScale()
             if (timeScale && cData.length > 0) {
@@ -226,19 +260,25 @@ const TradeKLine = () => {
 
             res.data.forEach((c: any) => {
               const time = Math.floor(c.t / 1000) as any
-              cData.push({ time, open: Number(c.o), high: Number(c.h), low: Number(c.l), close: Number(c.c) })
-              vData.push({ time, value: Number(c.v), color: Number(c.c) >= Number(c.o) ? 'rgba(22, 199, 132, 0.4)' : 'rgba(234, 57, 67, 0.4)' })
+              const candle = { time, open: Number(c.o), high: Number(c.h), low: Number(c.l), close: Number(c.c) }
+              if (isValidCandle(candle)) {
+                cData.push(candle)
+                vData.push({ time, value: Number(c.v), color: candle.close >= candle.open ? 'rgba(22, 199, 132, 0.4)' : 'rgba(234, 57, 67, 0.4)' })
+              }
             })
 
+            const finalCData = filterAndSortData(cData)
+            const finalVData = filterAndSortData(vData)
+
             // Clear old data only when new data is ready
-            candleDataRef.current = cData
+            candleDataRef.current = finalCData
 
-            seriesRef.current.candle?.setData(cData)
-            seriesRef.current.volume?.setData(vData)
+            seriesRef.current.candle?.setData(finalCData)
+            seriesRef.current.volume?.setData(finalVData)
 
-            seriesRef.current.ma5?.setData(calculateMA(cData, 5))
-            seriesRef.current.ma10?.setData(calculateMA(cData, 10))
-            seriesRef.current.ma20?.setData(calculateMA(cData, 20))
+            seriesRef.current.ma5?.setData(calculateMA(finalCData, 5))
+            seriesRef.current.ma10?.setData(calculateMA(finalCData, 10))
+            seriesRef.current.ma20?.setData(calculateMA(finalCData, 20))
 
             const timeScale = chartRef.current?.timeScale()
             if (timeScale && cData.length > 0) {
@@ -281,6 +321,9 @@ const TradeKLine = () => {
 
         const time = Math.floor(c.t / 1000) as any
         const bar: CandlestickData = { time, open: Number(c.o), high: Number(c.h), low: Number(c.l), close: Number(c.c) }
+        
+        if (!isValidCandle(bar)) return
+
         const vol: HistogramData = { time, value: Number(c.v), color: bar.close >= bar.open ? 'rgba(22, 199, 132, 0.4)' : 'rgba(234, 57, 67, 0.4)' }
 
         seriesRef.current.candle?.update(bar)
@@ -336,6 +379,9 @@ const TradeKLine = () => {
             const k = res.k
             const time = Math.floor(k.t / 1000) as any
             const bar: CandlestickData = { time, open: Number(k.o), high: Number(k.h), low: Number(k.l), close: Number(k.c) }
+            
+            if (!isValidCandle(bar)) return
+
             const vol: HistogramData = { time, value: Number(k.v), color: bar.close >= bar.open ? 'rgba(22, 199, 132, 0.4)' : 'rgba(234, 57, 67, 0.4)' }
 
             seriesRef.current.candle?.update(bar)

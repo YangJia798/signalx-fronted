@@ -67,9 +67,12 @@ const TradeTrades = ({ coin, unReset = false }) => {
 
     if (readyState !== ReadyState.OPEN) return
 
-    handleSendMessage()
+    const timer = setTimeout(() => {
+      handleSendMessage()
+    }, 100)
 
     return () => {
+      clearTimeout(timer)
       handleSendMessage(true)
       if (!unReset) {
         tradeTradesStore.reset()

@@ -39,16 +39,16 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
   const { t, i18n } = useTranslation()
 
   const column = [
-    { id: 'time', sort: true, sortByKey: 'createTs', label: t('common.time'), className: 'col-5 col-md-2' },
-    { id: 'symbol', filter: 'symbol', label: t('common.symbol'), className: 'col-4 col-md-1' },
-    { id: 'orderType', label: t('common.type'), className: 'col-2 col-md-1' },
-    { id: 'side', label: t('common.side'), className: 'col-2 col-md-1' },
-    { id: 'value', sort: true, sortByKey: 'value', label: t('common.value'), className: 'justify-content-center text-center col-3 col-md-1' },
-    { id: 'size', sort: true, sortByKey: 'size', label: t('common.amount'), className: 'justify-content-end text-end col-4 col-md-1' },
-    { id: 'price', sort: true, sortByKey: 'limitPrice', label: t('common.price'), className: 'justify-content-end text-end col-6 col-md-2' },
-    { id: 'trigger', label: t('common.trigger'), className: 'justify-content-end text-end col-3 col-md-1' },
-    { id: 'status', label: t('common.status'), className: 'justify-content-end text-end col-4 col-md-1' },
-    { id: 'operator', label: t('common.cancelAll'), className: 'justify-content-end text-end col-5 col-md-1' },
+    { id: 'time', sort: true, sortByKey: 'createTs', label: t('common.time'), className: 'col-5 col-md-2 text-nowrap' },
+    { id: 'symbol', filter: 'symbol', label: t('common.symbol'), className: 'col-4 col-md-1 text-nowrap' },
+    { id: 'orderType', label: t('common.type'), className: 'col-2 col-md-1 text-nowrap' },
+    { id: 'side', label: t('common.side'), className: 'col-2 col-md-1 text-nowrap' },
+    { id: 'value', sort: true, sortByKey: 'value', label: t('common.value'), className: 'justify-content-center text-center col-3 col-md-1 text-nowrap' },
+    { id: 'size', sort: true, sortByKey: 'size', label: t('common.amount'), className: 'justify-content-end text-end col-4 col-md-1 text-nowrap' },
+    { id: 'price', sort: true, sortByKey: 'limitPrice', label: t('common.price'), className: 'justify-content-end text-end col-6 col-md-2 text-nowrap' },
+    { id: 'trigger', label: t('common.trigger'), className: 'justify-content-end text-end col-3 col-md-1 text-nowrap' },
+    { id: 'status', label: t('common.status'), className: 'justify-content-end text-end col-4 col-md-1 text-nowrap' },
+    { id: 'operator', label: t('common.cancelAll'), className: 'justify-content-end text-end col-5 col-md-1 text-nowrap' },
   ]
 
   const handleCancelOrder = async (item: any) => {

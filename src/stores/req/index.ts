@@ -61,6 +61,9 @@ import { hyperOrderLimitSell, THyperOrderLimitSell } from './hyper/order-limit-s
 import { hyperOrderCancel, THyperOrderCancel } from './hyper/order-cancel'
 import { hyperOrderTpSl, THyperOrderTpSl } from './hyper/order-tp-sl'
 
+import { asterOrderLimitBuy, TAsterOrderLimitBuy } from './aster/order-limit-buy'
+import { asterOrderLimitSell, TAsterOrderLimitSell } from './aster/order-limit-sell'
+
 export * from './utils'
 
 export type TReqStore =
@@ -72,7 +75,7 @@ export type TReqStore =
   TNewsLatest &
   TTrackingAddressPosition & TTrackingRemove & TTrackingCreate &
   TDiscoverList & TDiscoverTradingStatistics & TDiscoverKolList & TDiscoverKolTagging & TDiscoverKolVote &
-  THyperClearinghouseState & THyperUserFills & THyperUserTWAP & THyperUserNonFunding & THyperUserOpenOrdersAdditional & THyperUserSpotClearinghouseState & THyperSpotMetaAndAssetCtxs & THyperUserPortfolio & TDiscoverRecommend & THyperPerpMetaAndAssetCtxs & THyperUserHistoricalOrders & THyperOrderLimitBuy & THyperOrderLimitSell & THyperOrderCancel & THyperOrderTpSl
+  THyperClearinghouseState & THyperUserFills & THyperUserTWAP & THyperUserNonFunding & THyperUserOpenOrdersAdditional & THyperUserSpotClearinghouseState & THyperSpotMetaAndAssetCtxs & THyperUserPortfolio & TDiscoverRecommend & THyperPerpMetaAndAssetCtxs & THyperUserHistoricalOrders & THyperOrderLimitBuy & THyperOrderLimitSell & THyperOrderCancel & THyperOrderTpSl & TAsterOrderLimitBuy & TAsterOrderLimitSell
 
 const reqStore = {
   // Use
@@ -99,7 +102,9 @@ const reqStore = {
   // Hyper
   ...hyperClearinghouseState, ...hyperUserFills, ...hyperUserTWAP,
   ...hyperUserNonFunding, ...hyperUserOpenOrdersAdditional, ...hyperUserSpotClearinghouseState,
-  ...hyperSpotMetaAndAssetCtxs, ...hyperUserPortfolio, ...hyperPerpMetaAndAssetCtxs, ...hyperUserHistoricalOrders, ...hyperOrderLimitBuy, ...hyperOrderLimitSell, ...hyperOrderCancel, ...hyperOrderTpSl
+  ...hyperSpotMetaAndAssetCtxs, ...hyperUserPortfolio, ...hyperPerpMetaAndAssetCtxs, ...hyperUserHistoricalOrders, ...hyperOrderLimitBuy, ...hyperOrderLimitSell, ...hyperOrderCancel, ...hyperOrderTpSl,
+  // Aster
+  ...asterOrderLimitBuy, ...asterOrderLimitSell
 }
 
 export const useReqStore = createStore<TReqStore>(reqStore)

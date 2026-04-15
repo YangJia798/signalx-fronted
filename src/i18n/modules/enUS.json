@@ -290,7 +290,30 @@
     "close": "Close ",
     "quantity": "Quantity",
     "buySuccess": "Buy order submitted successfully",
-    "sellSuccess": "Sell order submitted successfully"
+    "sellSuccess": "Sell order submitted successfully",
+    "strategyTrading": "Strategy Trading",
+    "buyLong": "Buy/Long",
+    "sellShort": "Sell/Short",
+    "available": "Available",
+    "priceWithUnit": "Price (USD)",
+    "orderValue": "Order Value",
+    "requiredMargin": "Required Margin",
+    "slippage": "Slippage",
+    "maximumValue": "Max",
+    "reminder": "Reminder",
+    "noWalletTip": "Please go to \"My Wallets\" to create a trading wallet to continue.",
+    "visitMyWallet": "Visit My Wallets",
+    "tpPrice": "TP Price",
+    "slPrice": "SL Price",
+    "withdraw": "Withdraw",
+    "imported": "Imported",
+    "createdBySignalxbot": "Created by Signalxbot",
+    "importWallet": "Import Wallet",
+    "copyTargets": "Copy Targets",
+    "copyRecords": "Copy Records",
+    "addressOverview": "Address Overview",
+    "accountAssets": "Account Assets",
+    "spotWithArrow": "Spot >"
   },
   "header": {
     "home": "Home",
@@ -385,7 +408,13 @@
   },
   "footer": {
     "websiteService": "Website Service",
-    "socialMedia": "Social Media"
+    "socialMedia": "Social Media",
+    "intro": "Signalxbot is an AI-driven, fully automated on-chain quantitative trading platform tracking the most valuable trading signals and earning opportunities.",
+    "resourcesSupport": "Resources & Support",
+    "apiDocs": "API Docs",
+    "helpCenter": "Help Center",
+    "tutorials": "Tutorials",
+    "feedback": "Submit Feedback"
   },
   "toolTip": {
     "turnOffAutoRefresh": "Turn off auto-refresh",

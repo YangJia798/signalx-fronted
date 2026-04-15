@@ -17,14 +17,14 @@ const TraderDetailsCompletedTrades = ({ address, filterCoin = '', displayedRecor
   const { t, i18n } = useTranslation()
 
   const column = [
-    { id: 'time', sort: true, sortByKey: 'createTs', label: t('common.endTime', '结束时间'), className: 'col-4 col-md-2' },
-    { id: 'symbol', filter: 'symbol', label: t('common.symbol', '币种'), className: 'col-4 col-md-1' },
-    { id: 'side', label: t('common.action', '方向'), className: 'col-3 col-md-1' },
-    { id: 'duration', sort: true, sortByKey: 'duration', label: t('common.duration', '持续时间'), className: 'justify-content-end text-end col-4 col-md-2' },
-    { id: 'closedPnl', sort: true, sortByKey: 'closedPnl', label: t('common.netPnl', '净盈亏'), className: 'justify-content-end text-end col-6 col-md-2' },
-    { id: 'size', sort: true, sortByKey: 'size', label: t('common.scale', '规模'), className: 'justify-content-end text-end col-6 col-md-2' },
-    { id: 'price', sort: true, sortByKey: 'price', label: t('common.closePrice', '平仓价'), className: 'justify-content-end text-end col-6 col-md-1' },
-    { id: 'fee', sort: true, sortByKey: 'fee', label: t('common.fee', '费用'), className: 'justify-content-end text-end col-4 col-md-1' },
+    { id: 'time', sort: true, sortByKey: 'createTs', label: t('common.endTime', '结束时间'), className: 'col-4 col-md-2 text-nowrap' },
+    { id: 'symbol', filter: 'symbol', label: t('common.symbol', '币种'), className: 'col-4 col-md-1 text-nowrap' },
+    { id: 'side', label: t('common.action', '方向'), className: 'col-3 col-md-1 text-nowrap' },
+    { id: 'duration', sort: true, sortByKey: 'duration', label: t('common.duration', '持续时间'), className: 'justify-content-end text-end col-4 col-md-2 text-nowrap' },
+    { id: 'closedPnl', sort: true, sortByKey: 'closedPnl', label: t('common.netPnl', '净盈亏'), className: 'justify-content-end text-end col-6 col-md-2 text-nowrap' },
+    { id: 'size', sort: true, sortByKey: 'size', label: t('common.scale', '规模'), className: 'justify-content-end text-end col-6 col-md-2 text-nowrap' },
+    { id: 'price', sort: true, sortByKey: 'price', label: t('common.closePrice', '平仓价'), className: 'justify-content-end text-end col-6 col-md-1 text-nowrap' },
+    { id: 'fee', sort: true, sortByKey: 'fee', label: t('common.fee', '费用'), className: 'justify-content-end text-end col-4 col-md-1 text-nowrap' },
   ]
 
   const renderItem = (item, columnIndex) => {

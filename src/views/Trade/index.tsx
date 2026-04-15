@@ -126,20 +126,20 @@ const Trade = () => {
 
           {/* Right: Account Assets */}
           <div className='d-flex flex-column p-3 br-3 glass-container gap-3' style={{ width: '300px', minWidth: '280px' }}>
-            <div className="fw-500 font-size-14 color-white">账户资产</div>
+            <div className="fw-500 font-size-14 color-white">{t('common.accountAssets')}</div>
 
             <div className="d-flex flex-column gap-2 font-size-12">
               <div className="d-flex justify-content-between" style={{ color: 'rgba(255,255,255,0.55)' }}>
                 <span className="d-flex align-items-center gap-1">
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3B82F6' }}></span>
-                  永续合约
+                  {t('common.perpetual')}
                 </span>
                 <span className="color-white">$ {formatNumber(traderDetailsPositionsStore.summary?.perpEquity) || '0.00'}</span>
               </div>
               <div className="d-flex justify-content-between" style={{ color: 'rgba(255,255,255,0.55)' }}>
                 <span className="d-flex align-items-center gap-1">
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3B82F6' }}></span>
-                  现货 &gt;
+                  {t('common.spotWithArrow')}
                 </span>
                 <span className="color-white">$ 0.00</span>
               </div>
@@ -148,11 +148,11 @@ const Trade = () => {
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }} />
 
             <div className="d-flex flex-column gap-2 font-size-12">
-              <div className="fw-500 font-size-12" style={{ color: 'rgba(255,255,255,0.55)' }}>永续合约</div>
+              <div className="fw-500 font-size-12" style={{ color: 'rgba(255,255,255,0.55)' }}>{t('common.perpetual')}</div>
               {[
-                { label: '总持仓价值', value: `$ ${formatNumber(traderDetailsPositionsStore.summary?.totalPositionValue) || '0.00'}` },
-                { label: '杠杆比', value: `${traderDetailsPositionsStore.summary?.leverageRatio || '0.00'}x` },
-                { label: '保证金使用率', value: `${traderDetailsPositionsStore.summary?.totalMarginUsagePct || '0.00'}%` },
+                { label: t('common.totalPositionValue'), value: `$ ${formatNumber(traderDetailsPositionsStore.summary?.totalPositionValue) || '0.00'}` },
+                { label: t('common.leverageRatio'), value: `${traderDetailsPositionsStore.summary?.leverageRatio || '0.00'}x` },
+                { label: t('common.marginUsedRatio'), value: `${traderDetailsPositionsStore.summary?.totalMarginUsagePct || '0.00'}%` },
               ].map((row, idx) => (
                 <div key={idx} className="d-flex justify-content-between" style={{ color: 'rgba(255,255,255,0.45)' }}>
                   <span>{row.label}</span>
@@ -171,7 +171,7 @@ const Trade = () => {
             </div>
 
             <div className="d-flex justify-content-between font-size-12" style={{ color: 'rgba(255,255,255,0.45)' }}>
-              <span>未实现盈亏</span>
+              <span>{t('common.uPnl')}</span>
               <span className={Number(traderDetailsPositionsStore.summary?.totalUPnl) >= 0 ? 'color-buy' : 'color-sell'}>
                 $ {formatNumber(traderDetailsPositionsStore.summary?.totalUPnl) || '0.00'}
               </span>

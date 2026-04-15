@@ -87,9 +87,12 @@ const TradeOrderBook = ({ coin, unReset = false }) => {
 
     if (readyState !== ReadyState.OPEN) return
 
-    handleSendMessage()
+    const timer = setTimeout(() => {
+      handleSendMessage()
+    }, 100)
 
     return () => {
+      clearTimeout(timer)
       handleSendMessage(true)
       if (!unReset) {
         // NOTE: 设置 reset 的话，同页面切换组件会闪

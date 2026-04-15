@@ -5,26 +5,27 @@
 
   .header-main {
     height: 100%;
-    padding: 0 48px !important;
-    gap: 200px;
+    padding: 0 clamp(16px, 3vw, 48px) !important;
+    gap: 24px;
     flex-wrap: nowrap !important;
     
     .logo-nav-group {
-      gap: 48px !important;
+      gap: clamp(24px, 3vw, 48px) !important;
     }
   }
 
 
   .nav-links {
-    gap: 40px !important;
+    gap: clamp(16px, 2vw, 40px) !important;
 
     .nav-item {
-      font-size: 16px;
+      font-size: clamp(14px, 1.2vw, 16px);
       font-weight: 300;
       opacity: 0.7;
       transition: opacity 0.2s, color 0.2s;
       text-decoration: none;
       color: #FFFFFF;
+      white-space: nowrap;
 
       &:hover, &.active {
         opacity: 1;
