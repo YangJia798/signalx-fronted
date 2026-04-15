@@ -25,6 +25,8 @@ import { luminous } from '@/themes'
 import { muiTheme } from '@/themes/mui'
 import { HyperWSProvider } from '@/components/Hyper/WSContext'
 
+const queryClient = new QueryClient()
+
 message.config({
   duration: 5,
   maxCount: 3,
@@ -63,7 +65,7 @@ const App = () => {
 
   return (
     <WagmiProvider config={config}>
-       <QueryClientProvider client={new QueryClient()}>
+       <QueryClientProvider client={queryClient}>
         <RainbowKitAuthenticationProvider adapter={authenticationAdapter} status={accountStore.evmAuthStatus}>
            <RainbowKitProvider theme={theme} appInfo={appInfo} avatar={customAvatar}>
             <ThemeProvider theme={muiTheme}>

@@ -1,19 +1,26 @@
 import { createBrowserRouter } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 
 import { constants } from '@/stores/constants'
 
 import ErrorView from '@/views/ErrorView'
-import LayoutRootDefault from '@/components/Layout/RootDefault'
 import LayoutRootStarlight from '@/components/Layout/RootStarlight'
 
+// 首屏直接加载（首页本身）
 import Home from '@/views/Home/index'
-import CopyTrading from '@/views/CopyTrading'
-import Rewards from '@/views/Rewards'
-import Leaderboard from '@/views/Leaderboard/index'
-import TrackMonitor from '@/views/TrackMonitor'
-import Discover from '@/views/Discover/index'
-import TraderDetails from '@/views/TraderDetails'
-import Trade from '@/views/Trade'
+
+// 其他路由懒加载，各自独立 chunk
+const CopyTrading  = lazy(() => import('@/views/CopyTrading'))
+const Rewards      = lazy(() => import('@/views/Rewards'))
+const Leaderboard  = lazy(() => import('@/views/Leaderboard/index'))
+const TrackMonitor = lazy(() => import('@/views/TrackMonitor'))
+const Discover     = lazy(() => import('@/views/Discover/index'))
+const TraderDetails = lazy(() => import('@/views/TraderDetails'))
+const Trade        = lazy(() => import('@/views/Trade'))
+
+const LazyPage = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={null}>{children}</Suspense>
+)
 
 const router = createBrowserRouter([
   {
@@ -36,32 +43,32 @@ const router = createBrowserRouter([
       {
         path: 'copy-trading',
         index: true,
-        element: <CopyTrading />
+        element: <LazyPage><CopyTrading /></LazyPage>
       },
       {
         path: 'rewards',
         index: true,
-        element: <Rewards />
+        element: <LazyPage><Rewards /></LazyPage>
       },
       {
         path: 'whales',
         index: true,
-        element: <Leaderboard />
+        element: <LazyPage><Leaderboard /></LazyPage>
       },
       {
         path: 'track-monitor',
         index: true,
-        element: <TrackMonitor />
+        element: <LazyPage><TrackMonitor /></LazyPage>
       },
       {
         path: 'discover',
         index: true,
-        element: <Discover />
+        element: <LazyPage><Discover /></LazyPage>
       },
       {
         path: 'trader/:address',
         index: true,
-        element: <TraderDetails />
+        element: <LazyPage><TraderDetails /></LazyPage>
       }
     ]
   },
@@ -73,7 +80,7 @@ const router = createBrowserRouter([
       {
         path: 'trade/:coin?',
         index: true,
-        element: <Trade />
+        element: <LazyPage><Trade /></LazyPage>
       }
     ]
   }

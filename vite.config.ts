@@ -62,7 +62,23 @@ export default defineConfig(({ mode }) => {
       }
     },
     build: {
-      sourcemap: false
+      sourcemap: false,
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Web3 相关（最重，单独缓存）
+            'vendor-web3': ['wagmi', 'viem', '@rainbow-me/rainbowkit', '@okxconnect/ui'],
+            // UI 框架
+            'vendor-antd': ['antd', '@ant-design/cssinjs'],
+            'vendor-mui': ['@mui/material', '@mui/x-charts', '@emotion/react', '@emotion/styled'],
+            // 工具库
+            'vendor-utils': ['axios', 'bignumber.js', 'dayjs', 'i18next', 'react-i18next'],
+            // React 核心
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          }
+        }
+      }
     },
     optimizeDeps: { exclude: ['node_modules/.cache'] }
   }
