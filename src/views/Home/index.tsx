@@ -283,7 +283,7 @@ const Home = () => {
       <div className="container-fluid px-0 d-flex flex-column my-5 pt-5 brain">
         <div className="container-xl d-flex flex-column align-items-center px-3 px-md-4 gap-4 gap-md-5 my-0 my-md-5 py-0">
           <div className="d-flex flex-column gap-3 align-items-center justify-content-center col-12 col-md-8">
-            <h2 className=”fw-bolder text-center color-white mb-2” style={{ fontSize: '2.5rem' }}>{t('home.aiHunterTitle')}</h2>
+            <h2 className="fw-bolder text-center color-white mb-2" style={{ fontSize: '2.5rem' }}>{t('home.aiHunterTitle')}</h2>
             <span className='color-secondary text-center px-md-5'>{t('home.aiHunterSubTitle')}</span>
           </div>
           <ul className="d-flex flex-wrap justify-content-center col-12 mt-3 g-2">
