@@ -38,7 +38,7 @@ const ModalCreatePrivateWallet = () => {
   return (
     <ModalBase
       title={
-        <div className="d-flex align-items-center justify-content-between w-100 pe-4 mt-1">
+        <div className="d-flex align-items-center justify-content-between w-100 mt-1" style={{ paddingRight: '40px' }}>
           <span className="fw-bold font-size-18" style={{ color: '#ebebeb' }}>{t('common.createWallet')}</span>
           <span
             className="color-secondary fw-normal d-flex align-items-center gap-1 cursor-pointer"
