@@ -20,9 +20,9 @@ interface HyperWSProviderProps {
 export const HyperWSProvider: React.FC<HyperWSProviderProps> = ({ children }) => {
   const { sendMessage, lastMessage, readyState } = useWebSocket('wss://api.hyperliquid.xyz/ws', {
     share: true,
-    // reconnectAttempts: 10,
-    // reconnectInterval: 3000,
-    // shouldReconnect: (closeEvent) => true,
+    reconnectAttempts: 10,
+    reconnectInterval: 3000,
+    shouldReconnect: () => true,
   });
 
   // 创建上下文值对象
