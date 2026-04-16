@@ -269,7 +269,8 @@ const nativeNow = nativeDate.now
 
 export const now = nativeNow
 
-export const formatNumber = (val: string | number) => {
+export const formatNumber = (val: string | number | undefined | null) => {
+  if (val === undefined || val === null) return ''
   const list = (val + '').split('.')
   const prefix = list[0].charAt(0) === '-' ? '-' : ''
   let num = prefix ? list[0].slice(1) : list[0]
