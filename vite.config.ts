@@ -64,6 +64,18 @@ export default defineConfig(({ mode }) => {
     build: {
       sourcemap: false,
       chunkSizeWarningLimit: 2000,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-antd': ['antd', '@ant-design/cssinjs'],
+            'vendor-mui': ['@mui/material', '@mui/x-charts', '@emotion/react', '@emotion/styled'],
+            'vendor-web3': ['wagmi', 'viem', '@rainbow-me/rainbowkit', '@okxconnect/ui'],
+            'vendor-query': ['@tanstack/react-query'],
+            'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+          }
+        }
+      }
     },
     optimizeDeps: { exclude: ['node_modules/.cache'] }
   }
