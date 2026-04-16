@@ -40,15 +40,20 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
         return item.walletId
       case 'symbol':
         return (
-          <div className="d-flex align-items-center gap-2">
-            <PositionItemDirectionLeverage item={{ ...item, leverage: undefined }} />
-            <div className="d-flex flex-column gap-1">
-              <span className="fw-bold color-white font-size-14 text-capitalize">{item.coin}</span>
-              <span className="font-size-12 color-gray-2 d-flex align-items-center gap-1">
-                <span>{t('common.crossMargin', '全仓')}</span> 
-                <span className="fw-500">{item.leverage}x</span>
+          <div className="d-flex flex-column gap-1">
+            <div className="d-flex align-items-center gap-2">
+              <span className="fw-bold color-white font-size-14">{item.coin}</span>
+              <span
+                className={`font-size-11 fw-600 px-1 br-1 ${item.direction === 'long' ? 'bg-success-1' : 'bg-error-1'}`}
+                style={{ whiteSpace: 'nowrap', lineHeight: '18px' }}
+              >
+                {t(`common.${item.direction}`)}
               </span>
             </div>
+            <span className="font-size-12 color-gray-2 d-flex align-items-center gap-1" style={{ whiteSpace: 'nowrap' }}>
+              <span>{item.marginMode === 'isolated' ? t('common.isolatedMargin') : t('common.crossMargin')}</span>
+              <span className="fw-500">{item.leverage}x</span>
+            </span>
           </div>
         )
       case 'positionValue':
