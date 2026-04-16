@@ -40,14 +40,14 @@ const ModalCreatePrivateWallet = () => {
       title={
         <div className="d-flex align-items-center justify-content-between w-100 pe-4 mt-1">
           <span className="fw-bold font-size-18" style={{ color: '#ebebeb' }}>{t('common.createWallet')}</span>
-          <span 
-            className="font-size-12 color-secondary fw-normal d-flex align-items-center gap-1 cursor-pointer"
+          <span
+            className="color-secondary fw-normal d-flex align-items-center gap-1 cursor-pointer"
             onClick={() => window.open('https://www.turnkey.com/', '_blank')}
-            style={{ opacity: 0.8, letterSpacing: '0.2px' }}
+            style={{ fontSize: '11px', opacity: 0.7, letterSpacing: '0.2px' }}
           >
             Protected by
-            <span className="color-white fw-bold d-flex align-items-center gap-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <span className="color-white fw-500 d-flex align-items-center gap-1">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2a4 4 0 0 0-4 4v2c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V6a4 4 0 0 0-4-4zm-6 9v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-9H6z"/>
               </svg>
               turnkey
