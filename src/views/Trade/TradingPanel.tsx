@@ -56,7 +56,7 @@ const TradeTradingPanel = () => {
   const [quantity, setQuantity] = useState('')
   const [quantityUnit, setQuantityUnit] = useState('USD')
   const [pctValue, setPctValue] = useState(0)
-  const [reduceOnly, setReduceOnly] = useState(false)
+  const reduceOnly = false
   const [tpsl, setTpsl] = useState(false)
   const [showMarginModal, setShowMarginModal] = useState(false)
   const [showLeverageModal, setShowLeverageModal] = useState(false)
@@ -456,90 +456,49 @@ const TradeTradingPanel = () => {
         </div>
       </div>
 
-      {/* Reduce Only + TP/SL */}
+      {/* TP/SL */}
       <div className="d-flex flex-column gap-2 font-size-13">
-        <div className="d-flex align-items-center justify-content-between">
-          <Checkbox
-            checked={reduceOnly}
-            onChange={(e) => {
-              const checked = e.target.checked
-              setReduceOnly(checked)
-              if (checked) setTpsl(false)
-            }}
-          >
-            <span style={{ color: 'rgba(255,255,255,0.85)' }}>{t('common.reduceOnly') || '仅减仓'}</span>
-          </Checkbox>
-          
-          {orderType === 'limit' && (
-            <div className="d-flex align-items-center gap-2">
-              <span className="font-size-12 fw-500" style={{ color: 'rgba(255,255,255,0.45)' }}>TIF</span>
-              <Select
-                defaultValue="GTC"
+        <Checkbox
+          checked={tpsl}
+          onChange={(e) => setTpsl(e.target.checked)}
+        >
+          <span style={{ color: 'rgba(255,255,255,0.85)' }}>{t('common.tpSl') || '止盈/止损'}</span>
+        </Checkbox>
+
+        {tpsl && (
+          <div className="d-flex flex-column gap-2 mt-1">
+            <div className="d-flex align-items-center" style={{
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '8px',
+              height: '36px',
+            }}>
+              <Input
+                value={tpPx}
+                onChange={(e) => setTpPx(e.target.value)}
+                placeholder={t('common.tpPrice', '止盈价')}
                 variant="borderless"
-                style={{ 
-                  background: 'rgba(255,255,255,0.06)', 
-                  borderRadius: '6px',
-                  width: '74px',
-                  height: '26px'
-                }}
-                className="font-size-12 color-white tif-select d-flex align-items-center custom-select-icon"
-                options={[
-                  { label: 'GTC', value: 'GTC' },
-                  { label: 'IOC', value: 'IOC' },
-                  { label: 'ALO', value: 'ALO' },
-                ]}
+                style={{ color: '#fff', height: '100%' }}
+                className="px-3 font-size-12"
               />
             </div>
-          )}
-        </div>
-
-        <div className="d-flex flex-column gap-2">
-          <Checkbox
-            checked={tpsl}
-            onChange={(e) => {
-              const checked = e.target.checked
-              setTpsl(checked)
-              if (checked) setReduceOnly(false)
-            }}
-          >
-            <span style={{ color: 'rgba(255,255,255,0.85)' }}>{t('common.tpSl') || '止盈/止损'}</span>
-          </Checkbox>
-
-          {tpsl && (
-            <div className="d-flex flex-column gap-2 mt-1">
-              <div className="d-flex align-items-center" style={{
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: '8px',
-                height: '36px',
-              }}>
-                <Input
-                  value={tpPx}
-                  onChange={(e) => setTpPx(e.target.value)}
-                  placeholder={t('common.tpPrice', '止盈价')}
-                  variant="borderless"
-                  style={{ color: '#fff', height: '100%' }}
-                  className="px-3 font-size-12"
-                />
-              </div>
-              <div className="d-flex align-items-center" style={{
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: '8px',
-                height: '36px',
-              }}>
-                <Input
-                  value={slPx}
-                  onChange={(e) => setSlPx(e.target.value)}
-                  placeholder={t('common.slPrice', '止损价')}
-                  variant="borderless"
-                  style={{ color: '#fff', height: '100%' }}
-                  className="px-3 font-size-12"
-                />
-              </div>
+            <div className="d-flex align-items-center" style={{
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '8px',
+              height: '36px',
+            }}>
+              <Input
+                value={slPx}
+                onChange={(e) => setSlPx(e.target.value)}
+                placeholder={t('common.slPrice', '止损价')}
+                variant="borderless"
+                style={{ color: '#fff', height: '100%' }}
+                className="px-3 font-size-12"
+              />
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Divider */}
