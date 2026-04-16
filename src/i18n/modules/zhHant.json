@@ -154,7 +154,7 @@
     "copyPrivateKey": "複製私鑰",
     "recentFills": "最近成交",
     "completedTrades": "已完成交易",
-    "twap": "TWAP",
+    "twap": "時加權均價",
     "depositsAndWithdrawals": "存取款",
     "funding": "資金費",
     "fee": "費用",
