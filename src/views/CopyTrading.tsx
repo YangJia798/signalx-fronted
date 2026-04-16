@@ -372,7 +372,7 @@ const CopyTrading = () => {
             </div>
           </div>
           
-          <div className="d-flex align-items-center justify-content-start gap-4 mt-2 border-bottom border-secondary-subtle">
+          <div className="d-flex align-items-center justify-content-start gap-4 mt-2">
              <div className={`py-2 fw-bold font-size-15 cursor-pointer pb-2 ${activeListTab === 'targets' ? 'color-white' : 'color-secondary hover-text-white transition-2'}`}
                   style={activeListTab === 'targets' ? { borderBottom: '2px solid white', marginBottom: '-1px' } : {}}
                   onClick={() => setActiveListTab('targets')}
