@@ -89,7 +89,7 @@ const Trade = () => {
         {/* Bottom Row: Positions/Orders + Account Assets */}
         <div className='d-flex gap-2'>
           {/* Left: Tab records */}
-          <div className='d-flex flex-column br-3 overflow-hidden glass-container' style={{ flex: '1 1 0', minWidth: 0 }}>
+          <div className='d-flex flex-column br-3 overflow-hidden glass-container' style={{ flex: '1 1 0', minWidth: 0, minHeight: '220px' }}>
             <TabSwitch
               labelSuffixes={[` (${traderDetailsPositionsStore.list.length})`, ` (${traderDetailsOpenOrdersAdditionalStore.list.length})`]}
               data={tradeStore.recordTabs}

@@ -118,7 +118,7 @@ const ColumnList: React.FC<ColumnListProps> = ({
 
   return (
     <dl className={`d-flex flex-column bg-gray-alpha-4 overflow-hidden column-list position-relative ${className}`} style={{ height: isNumber(height) && `${height}px` || isString(height) && height || undefined, maxHeight: maxHeight ? `${maxHeight}px` : undefined, ...style }}>
-      <dt ref={refDT} className={`d-flex bg-gray-alpha-4 align-items-center fw-500 overflow-x-auto ${headClassName}`}>
+      <dt ref={refDT} className={`d-flex align-items-center fw-500 overflow-x-auto ${headClassName}`} style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
         {
           columns.map((item, idx) => (
             <small key={idx} className={`d-flex align-items-center gap-1 color-unimportant ${item.className ?? ''} ${(item.sort || item.filter) ? 'linker' : ''} ${ sortColumnId === item.id ? 'color-white fw-bold' : '' }`}
