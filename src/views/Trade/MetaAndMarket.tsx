@@ -161,13 +161,13 @@ export const TradeMetaAndMarket: FC<TradeMetaAndMarketProps> = ({
       <div className='d-flex flex-wrap'>
         <div className='d-flex col-12'>
           <div className='d-flex px-3 py-3 br-3 bg-gray-alpha-4 gap-4 mx-1 mb-2 col'>
-            <div className='d-flex align-items-center col gap-4 overflow-hidden'>
+            <div className='d-flex align-items-center col gap-4' style={{ minWidth: 0 }}>
               <div className='d-flex align-items-center gap-1 linker flex-shrink-0' onClick={() => tradeStore.openSelectCoins = true}>
                 <CoinIcon size='smd' id={platform === 'aster' ? coin.replace(/USDT?1?$/, '') : coin} className='me-2' />
                 <span className='h5 fw-bold'>{platform === 'aster' ? coin : `${coin}-USD`}</span>
                 <IOutlineFlash className='w-20 color-secondary' />
               </div>
-              <div className='d-flex gap-5 overflow-auto' style={{ flexWrap: 'nowrap' }}>
+              <div className='d-flex gap-5' style={{ flexWrap: 'nowrap', flex: '1 1 0%', minWidth: 0, overflowX: 'auto' }}>
                 {
                   [
                     {
