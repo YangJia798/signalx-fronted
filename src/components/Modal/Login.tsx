@@ -131,6 +131,17 @@ const ModalLogin = () => {
     asyncFunc()
   }, [accountStore.logged])
 
+  // 切换到验证码步骤后自动聚焦第一个输入框
+  useEffect(() => {
+    if (step === 'verify') {
+      // 等 Modal 动画完成后再 focus，避免被动画打断
+      const timer = setTimeout(() => {
+        inputRefs.current[0]?.focus()
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [step])
+
   // sync
   useEffect(() => {
     if (!accountStore.openModalLogin) return
