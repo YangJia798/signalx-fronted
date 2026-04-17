@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { isAddress } from 'viem'
-import { message, Input, InputNumber, Button, Radio, Slider, Checkbox, Select } from 'antd';
+import { message, Input, Button, Slider, Checkbox, Select } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next'
 
@@ -8,7 +8,6 @@ import { formatNumber, inputIsNumber, sleep, merge } from '@/utils';
 import { IOutlineInfoCircle } from '@/components/icon'
 import { constants, useAccountStore, usePrivateWalletStore, useReqStore, useCopyTradingStore } from '@/stores'
 import BaseModal from './Base';
-import WalletChainIcon from '@/components/Wallet/ChainIcon';
 import WalletProviderIcon from '@/components/Wallet/ProviderIcon';
 import ColumnList from '@/components/Column/List'
 import PositionItemDirectionLeverage from '@/components/PositionItem/DirectionLeverage'
@@ -19,7 +18,6 @@ import ColumnTooltip from '@/components/Column/Tooltip'
 import InputSearch from '@/components/Input/Search';
 import LoginBtn from '@/components/Login/Btn'
 import { useNotification } from '@/components/Notification'
-import BN from 'bignumber.js'
 
 const ModalCreateCopyTrading = () => {
   const accountStore = useAccountStore()
@@ -67,7 +65,10 @@ const ModalCreateCopyTrading = () => {
   };
 
   const handleSubmit = async () => {
-    const { error } = await reqStore.copyTradingCreateCopyTrading(accountStore, copyTradingStore)
+    const isEdit = copyTradingStore.isOpenPositionTargetEdit
+    const { error } = isEdit
+      ? await reqStore.copyTradingUpdateCopyTrading(accountStore, copyTradingStore)
+      : await reqStore.copyTradingCreateCopyTrading(accountStore, copyTradingStore)
 
     if (error) return
 

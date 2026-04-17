@@ -23,6 +23,7 @@ import { copyTradingMyPosition, TCopyTradingMyPosition } from './copy-trading/my
 import { copyTradingTargetPosition, TCopyTradingTargetPosition } from './copy-trading/target-position'
 import { copyTradingRemoveMyCopyTrading, TCopyTradingRemoveMyCopyTrading } from './copy-trading/remove-my-copy-trading'
 import { copyTradingFindByAddress, TCopyTradingFindByAddress } from './copy-trading/find-by-address'
+import { copyTradingUpdateCopyTrading, TCopyTradingUpdateCopyTrading } from './copy-trading/update-copy-trading'
 
 import { leaderboardProfitList, TLeaderboardProfitList } from './leaderboard/profit'
 import { leaderboardCoinList, TLeaderboardCoinList } from './leaderboard/coin'
@@ -69,7 +70,7 @@ export * from './utils'
 export type TReqStore =
   TUserTgLogin & TUserInfo & TUserTgCode & TUserExportPrivateKey & TUserImportPrivateWallet & TUserPrivateWallet & TUserWalletDeposit & TUserCreatePrivateWallet & TUserDeletePrivateWallet & TUserEvmLogin & TUserEvmSignMessage &
   TRewardUserLv & TRewardUserInfo & TRewardDetailedList &
-  TCopyTryTradingClosePosition & TCopyTradingCreateCopyTrading & TCopyTradingMyCopyTrading & TCopyTradingMyPosition & TCopyTradingTargetPosition & TCopyTradingRemoveMyCopyTrading & TCopyTradingFindByAddress &
+  TCopyTryTradingClosePosition & TCopyTradingCreateCopyTrading & TCopyTradingUpdateCopyTrading & TCopyTradingMyCopyTrading & TCopyTradingMyPosition & TCopyTradingTargetPosition & TCopyTradingRemoveMyCopyTrading & TCopyTradingFindByAddress &
   TLeaderboardProfitList & TLeaderboardCoinList & TLeaderboardSearchProfit & TLeaderboardPointOverallList & TLeaderboardPointReferralList &
   TWhalePositions & TWhaleEvents &
   TNewsLatest &
@@ -85,9 +86,9 @@ const reqStore = {
   // Reward
   ...rewardUserLv, ...rewardUserInfo, ...rewardDetailedList,
   // Copy Trading
-  ...copyTryTradingClosePosition, ...copyTradingCreateCopyTrading, ...copyTradingMyCopyTrading,
-  ...copyTradingMyPosition, ...copyTradingTargetPosition, ...copyTradingRemoveMyCopyTrading,
-  ...copyTradingFindByAddress,
+  ...copyTryTradingClosePosition, ...copyTradingCreateCopyTrading, ...copyTradingUpdateCopyTrading,
+  ...copyTradingMyCopyTrading, ...copyTradingMyPosition, ...copyTradingTargetPosition,
+  ...copyTradingRemoveMyCopyTrading, ...copyTradingFindByAddress,
   // Leaderboard
   ...leaderboardProfitList, ...leaderboardCoinList, ...leaderboardSearchProfit, ...leaderboardPointOverallList, ...leaderboardPointReferralList,
 
