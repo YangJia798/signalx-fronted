@@ -62,7 +62,7 @@ export const formatOpenPositionByItem = (item: any): Record<string, any> => {
 
   return {
     address: item.masterAddress ?? item.targetWallet ?? item.wallet,
-    operaAddress: item.apiWalletAddress ?? item.mainWallet,
+    operaAddress: item.mainWallet ?? item.apiWalletAddress,
     note: item.remark ?? '',
     leverage: item.maxLeverage ?? item.leverage,
     followModel: item.followModel ?? item.buyModel,
