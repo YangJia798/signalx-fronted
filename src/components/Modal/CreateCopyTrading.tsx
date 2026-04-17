@@ -42,16 +42,21 @@ const ModalCreateCopyTrading = () => {
   const renderPositionItem = (item: any, columnIndex: number) => {
     switch (targetPosition[columnIndex].id) {
       case 'symbol':
-        return <div className="d-flex align-items-center gap-2">
-           <span className="fw-bold color-white">{item.coin}</span>
-           <span className="color-secondary font-size-12">{item.leverage}x</span>
-        </div>
+        return (
+          <div className="d-flex align-items-center gap-2">
+            <PositionItemDirectionLeverage item={item} />
+            <div className="d-flex flex-column">
+              <span className="fw-bold color-white">{item.coin}</span>
+              <small className="color-secondary">
+                {t(`common.${item.type === 'cross' ? 'crossMargin' : 'isolatedMargin'}`)} {item.leverage}x
+              </small>
+            </div>
+          </div>
+        )
       case 'positionValue':
-        return <div className="text-center fw-bold color-white">{formatNumber(item.positionValue)}</div>
+        return <PositionItemPositionValue item={item} />
       case 'uPnl':
-        return <div className={`${item.uPnlStatus === 1 ? 'color-success' : item.uPnlStatus === 2 ? 'color-danger' : 'color-white'} text-end fw-bold`}>
-           {item.uPnlStatus === 1 && '+'}{formatNumber(item.uPnl)}
-        </div>
+        return <PositionItemUPnl item={item} />
       default:
         return null
     }
@@ -90,7 +95,7 @@ const ModalCreateCopyTrading = () => {
     if (error) return
   }
 
-  const handleSyncOpenPositionSellModelValue = (decode?: boolean = false) => {
+  const handleSyncOpenPositionSellModelValue = (decode: boolean = false) => {
     if (copyTradingStore.openPositionSellModel !== 3) return
 
     if (decode) {
@@ -120,7 +125,7 @@ const ModalCreateCopyTrading = () => {
     const hasQuickerOpenPositionItem = !!copyTradingStore.quickerOpenPositionItem
     copyTradingStore.isOpenPositionTargetEdit = hasQuickerOpenPositionItem
 
-    if (hasQuickerOpenPositionItem) {
+    if (hasQuickerOpenPositionItem && copyTradingStore.quickerOpenPositionItem) {
       const { address, note, leverage, buyModel, buyModelValue, sellModel, sellModelValue } = copyTradingStore.quickerOpenPositionItem
       merge(copyTradingStore, {
         copyTradingSearchTargetAddress: address,
