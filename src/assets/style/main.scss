@@ -1,7 +1,7 @@
-@import './root.scss';
+@use './root.scss';
+@use "./font.scss";
+@use "./andt.scss";
 @import "bootstrap/dist/css/bootstrap.min.css";
-@import "./font.scss";
-@import "./andt.scss";
 
 #root {
   width: 100%;
