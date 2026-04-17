@@ -159,13 +159,23 @@ const CopyTrading = () => {
   const renderOwnCopyTradesItem = (item: any, columnIndex: number) => {
     switch (ownCopyTradesColumn[columnIndex].id) {
       case 'status':
-        return <span className="color-success font-size-14">-</span>
+        return item.isEnabled
+          ? <span className="color-success font-size-14">● {t('common.on', '开启')}</span>
+          : <span className="color-secondary font-size-14">● {t('common.off', '关闭')}</span>
       case 'note':
         return <span className="color-white fw-500 font-size-14">{item.note || '-'}</span>
       case 'target':
         return <PositionItemAddress item={item} link={false} shortener={true} className="fw-600 color-white" />
-      case 'mode':
-        return <span className="color-white font-size-14">{item.mode || '-'}</span>
+      case 'mode': {
+        const marginModeMap = { 1: t('common.isolatedMargin'), 2: t('common.crossMargin'), 3: t('common.followTargetMargin') }
+        const followModelMap = { 1: t('common.assetProportional'), 2: t('common.positionProportional'), 3: t('common.fixedValue') }
+        return (
+          <div className="d-flex flex-column gap-1">
+            <span className="color-white font-size-13">{marginModeMap[item.marginMode] || '-'}</span>
+            <span className="color-secondary font-size-12">{followModelMap[item.followModel] || '-'}</span>
+          </div>
+        )
+      }
       case 'address':
         return <span className="color-white font-size-14">
           <PositionItemAddress item={{address: item.operaAddress || '-'}} link={false} shortener={true} className="fw-500 color-white" />
