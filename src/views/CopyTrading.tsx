@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Popconfirm, Dropdown, Select } from 'antd'
+import { Popconfirm, Dropdown, Select, Switch } from 'antd'
 import { useTranslation } from 'react-i18next'
 import BN from 'bignumber.js'
 
@@ -152,21 +152,24 @@ const CopyTrading = () => {
 
   const renderOwnCopyTradesItem = (item: any, columnIndex: number) => {
     switch (ownCopyTradesColumn[columnIndex].id) {
-      case 'status': {
-        const enabled = !!item.isEnabled
+      case 'status':
         return (
-          <span
-            className={`font-size-14 cursor-pointer ${enabled ? 'color-success' : 'color-secondary'}`}
-            onClick={() => handleToggleStatus(item)}
-          >
-            ● {enabled ? t('common.on', '开启') : t('common.off', '关闭')}
-          </span>
+          <Switch
+            checked={!!item.isEnabled}
+            loading={reqStore.copyTradingToggleStatusBusy}
+            onChange={() => handleToggleStatus(item)}
+            size="default"
+          />
         )
-      }
       case 'note':
         return <span className="color-white fw-500 font-size-14">{item.note || '-'}</span>
       case 'target':
-        return <PositionItemAddress item={item} link={false} shortener={true} className="fw-600 color-white" />
+        return (
+          <div className="d-flex align-items-center gap-2">
+            <WalletProviderIcon platform={item.platform || 'hyperliquid'} />
+            <PositionItemAddress item={item} link={false} shortener={true} className="fw-600 color-white" />
+          </div>
+        )
       case 'mode': {
         const followModelMap: Record<number, string> = { 1: t('common.assetProportional'), 2: t('common.positionProportional'), 3: t('common.fixedValue') }
         return (
@@ -180,9 +183,12 @@ const CopyTrading = () => {
         )
       }
       case 'address':
-        return <span className="color-white font-size-14">
-          <PositionItemAddress item={{address: item.operaAddress || '-'}} link={false} shortener={true} className="fw-500 color-white" />
-        </span>
+        return (
+          <div className="d-flex align-items-center gap-2">
+            <WalletProviderIcon platform={item.operaPlatform || item.platform || 'hyperliquid'} />
+            <PositionItemAddress item={{address: item.operaAddress || '-'}} link={false} shortener={true} className="fw-500 color-white" />
+          </div>
+        )
       case 'operator':
         return (
           <span className='d-flex gap-3 align-items-center justify-content-end w-100'>
