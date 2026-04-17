@@ -44,6 +44,9 @@ const CopyTrading = () => {
   const { t, i18n } = useTranslation()
 
   const [activeListTab, setActiveListTab] = useState('targets')
+  const [selectedAddress, setSelectedAddress] = useState<string>('')
+
+  const currentAddress = selectedAddress || privateWalletStore.addresses[0] || ''
 
   const ownWalletsColumn = [
     { id: 'address_note', label: t('common.addressNote') || '地址/备注', className: 'col-3' },
@@ -412,22 +415,38 @@ const CopyTrading = () => {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path><path d="M12 7v5l3 3"></path></svg>
               {t('common.addressOverview')}
             </h4>
-            {
-              privateWalletStore.addresses[0] && (() => {
-                const wAddr = privateWalletStore.addresses[0];
-                const wData = privateWalletStore.list.find(w => w.address === wAddr);
-                const wBalance = wData ? formatNumber(wData.balance) : '0';
-                return (
-                  <div className="d-flex align-items-center gap-2 border bg-gray-alpha-4 px-3 py-1 cursor-pointer hover-gray br-4" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
-                    <WalletChainIcon platform="hyperliquid" />
-                    <span className="color-white font-size-14 fw-bold">{wAddr.slice(0, 6)}...{wAddr.slice(-6)}</span>
-                    <span className="color-secondary font-size-13 ms-1">h</span>
-                    <span className="color-white font-size-14 fw-bold ms-1">$ {wBalance}</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="color-secondary ms-1"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                  </div>
-                );
-              })()
-            }
+            {privateWalletStore.list.length > 0 && (
+              <Select
+                value={currentAddress || undefined}
+                onChange={setSelectedAddress}
+                style={{ minWidth: 260 }}
+                dropdownStyle={{ background: '#1a1a2e' }}
+                bordered={false}
+                className="bg-gray-alpha-4 br-4"
+                optionLabelProp="label"
+              >
+                {privateWalletStore.list.map(w => {
+                  const shortAddr = `${w.address.slice(0, 6)}...${w.address.slice(-6)}`
+                  return (
+                    <Select.Option key={w.address} value={w.address} label={
+                      <div className="d-flex align-items-center gap-2">
+                        <WalletChainIcon platform={w.platform || 'hyperliquid'} />
+                        <span className="color-white fw-bold">{shortAddr}</span>
+                        <span className="color-secondary font-size-12">{w.nickname || 'h'}</span>
+                        <span className="color-white fw-bold ms-1">$ {formatNumber(w.balance)}</span>
+                      </div>
+                    }>
+                      <div className="d-flex align-items-center gap-2 py-1">
+                        <WalletChainIcon platform={w.platform || 'hyperliquid'} />
+                        <span className="color-white fw-bold">{shortAddr}</span>
+                        <span className="color-secondary font-size-12">{w.nickname || 'h'}</span>
+                        <span className="color-white fw-bold ms-1">$ {formatNumber(w.balance)}</span>
+                      </div>
+                    </Select.Option>
+                  )
+                })}
+              </Select>
+            )}
           </div>
 
           <div className='d-flex flex-column br-3 overflow-hidden'>
@@ -443,27 +462,27 @@ const CopyTrading = () => {
             }
             {
               copyTradingStore.tabId === 'openOrders' &&
-                <TraderDetailsOpenOrdersAdditional address={privateWalletStore.addresses[0]} />
+                <TraderDetailsOpenOrdersAdditional address={currentAddress} />
             }
             {
               copyTradingStore.tabId === 'historicalOrders' &&
-                <TraderDetailsHistoricalOrders address={privateWalletStore.addresses[0]} />
+                <TraderDetailsHistoricalOrders address={currentAddress} />
             }
             {
               copyTradingStore.tabId === 'recentFills' &&
-                <TraderDetailsRecentFills address={privateWalletStore.addresses[0]} />
+                <TraderDetailsRecentFills address={currentAddress} />
             }
             {
               copyTradingStore.tabId === 'completedTrades' &&
-                <TraderDetailsCompletedTrades address={privateWalletStore.addresses[0]} />
+                <TraderDetailsCompletedTrades address={currentAddress} />
             }
             {
               copyTradingStore.tabId === 'twap' &&
-                <TraderDetailsTWAP address={privateWalletStore.addresses[0]} />
+                <TraderDetailsTWAP address={currentAddress} />
             }
             {
               copyTradingStore.tabId === 'depositsAndWithdrawals' &&
-                <TraderDetailsNonFunding address={privateWalletStore.addresses[0]} />
+                <TraderDetailsNonFunding address={currentAddress} />
             }
           </div>
         </div>
