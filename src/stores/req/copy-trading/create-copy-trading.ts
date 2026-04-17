@@ -1,9 +1,5 @@
-
-import { merge, defaults } from '@/utils'
 import { baseCheck, baseApi } from '@/stores/req/helper'
-import { constants, TAccountStore, TCopyTradingStore } from '@/stores'
-
-import { formatPositionByItem } from '../utils'
+import { TAccountStore, TCopyTradingStore } from '@/stores'
 
 type CopyTradingCreateCopyTradingResult = {
   data: Record<string, any>,
@@ -24,22 +20,19 @@ export const copyTradingCreateCopyTrading: TCopyTradingCreateCopyTrading = {
 
     this.copyTradingCreateCopyTradingBusy = true
 
-    const res = await baseApi.post('/copy-trading/create-copy-trading', {
-      wallet: copyTradingStore.copyTradingTargetAddress,
+    const res = await baseApi.post('/wallet/copy-trading/config', {
+      mainWallet: copyTradingStore.openPositionWalletAddress,
+      mainWalletPlatform: 'hyper',
+      targetWallet: copyTradingStore.copyTradingTargetAddress,
+      targetWalletPlatform: 'hyper',
       remark: copyTradingStore.openPositionTargeNote,
-      leverage: copyTradingStore.openPositionLeverage, // 1-40
-      buyModel: copyTradingStore.openPositionBuyModel, // 1=固定跟买，2=等比跟买，3=最大跟买
-      buyModelValue: +copyTradingStore.openPositionBuyModelValue, // 当buyModel为1，3最此值必填
-      sellModel: copyTradingStore.openPositionSellModel, // 1=翻本卖出，2=等比跟卖，3=止盈止损，4=不跟卖
-      /*
-      格式：止盈比例|止损比例
-      例如：
-      涨100%止盈, 跌50%止损：100|50
-      涨100%止盈：100|
-      跌50%止损：|50
-      */
-      sellModelValue: copyTradingStore.openPositionSellModelValue, // 当sellModel=3时，为必填，格式为 30|40
-      direction: copyTradingStore.openPositionTradeStrategyValue // 0=正常，1=跟反向
+      leverage: copyTradingStore.openPositionLeverage,         // [1..50]
+      followMasterLeverage: copyTradingStore.openPositionFollowTargetLeverage ? 1 : 0, // 0=否 1=是
+      marginMode: copyTradingStore.openPositionMarginMode,     // 1=逐仓 2=全仓 3=跟随目标
+      followModel: copyTradingStore.openPositionBuyModel,      // 1=资产等比 2=仓位等比 3=固定价值
+      followModelValue: +copyTradingStore.openPositionBuyModelValue,
+      maxMarginUsage: parseFloat(copyTradingStore.openPositionHighMarginProtect) / 100, // 0-1
+      status: 1
     })
 
     result.error = baseCheck(res, accountStore)
@@ -47,15 +40,8 @@ export const copyTradingCreateCopyTrading: TCopyTradingCreateCopyTrading = {
 
     if (result.error) return result
 
-    // update
     const { data } = res.data
-
-    result.data = {
-      positionList: (data.recodes || []).map((item: any, idx: number) => formatPositionByItem(item, idx))
-    }
-
-    // update
-    merge(copyTradingStore, result.data)
+    result.data = { id: data?.id }
 
     return result
   },
