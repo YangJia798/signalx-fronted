@@ -14,5 +14,4 @@ export * from './Trade'
 
 export * from './Hyper'
 export * from './req'
-export * from './wallet'
 export * from './type'
