@@ -1,19 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Button, Progress, Popconfirm, Tooltip, Dropdown, message, Select } from 'antd'
-import dayjs from 'dayjs'
-import { useTranslation, withTranslation, Trans } from 'react-i18next'
+import { Popconfirm, Dropdown, Select } from 'antd'
+import { useTranslation } from 'react-i18next'
 import BN from 'bignumber.js'
-import { isAddress } from 'viem'
 
-import { IOutlineMoreSquare, IShare, IOutlineCopy, IOutlineEdit, IOutlineAdd, IOutlineShare, IOutlineMonitor, IOutlineTrash, IOutlineWallet3 } from '@/components/icon'
+import { IShare, IOutlineEdit, IOutlineAdd, IOutlineShare, IOutlineTrash, IOutlineWallet3 } from '@/components/icon'
 import { formatNumber, merge } from '@/utils'
-import { constants, useAccountStore, useTraderDetailsOpenOrdersAdditionalStore, usePrivateWalletStore, useReqStore, useCopyTradingStore } from '@/stores'
-import ColumnTooltip from '@/components/Column/Tooltip'
+import { useAccountStore, useTraderDetailsOpenOrdersAdditionalStore, usePrivateWalletStore, useReqStore, useCopyTradingStore } from '@/stores'
 import ColumnList from '@/components/Column/List'
-import TabBase from '@/components/Tab/Base'
-import UserAvatar from '@/components/UserAvatar'
 import WalletProviderIcon from '@/components/Wallet/ProviderIcon'
-import WalletChainIcon from '@/components/Wallet/ChainIcon';
 import ModalClosePosition from '@/components/Modal/ClosePosition'
 import TabSwitch from '@/components/Tab/Switch'
 import ModalCreateCopyTrading from '@/components/Modal/CreateCopyTrading'
@@ -21,12 +15,9 @@ import PositionItemDirectionLeverage from '@/components/PositionItem/DirectionLe
 import PositionItemPositionValue from '@/components/PositionItem/PositionValue'
 import PositionItemUPnl from '@/components/PositionItem/UPnl'
 import PositionItemAddress from '@/components/PositionItem/Address'
-import PositionItemMarginUsedRatio from '@/components/PositionItem/MarginUsedRatio'
-// import ModalWithdraw from '@/components/Modal/Withdraw'
 import SideButtonIcon from '@/components/Side/ButtonIcon'
 import TimeAgo from '@/components/TimeAgo'
 import ModalShareCopyTrade from '@/components/Modal/ShareCopyTrade'
-import ButtonIcon from '@/components/ButtonIcon'
 
 import TraderDetailsNonFunding from '@/views/TraderDetails/NonFunding'
 import TraderDetailsRecentFills from '@/views/TraderDetails/RecentFills'
@@ -41,7 +32,7 @@ const CopyTrading = () => {
   const privateWalletStore = usePrivateWalletStore()
   const copyTradingStore = useCopyTradingStore()
   const traderDetailsOpenOrdersAdditionalStore = useTraderDetailsOpenOrdersAdditionalStore()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
 
   const [activeListTab, setActiveListTab] = useState('targets')
   const [selectedAddress, setSelectedAddress] = useState<string>('')
@@ -193,7 +184,7 @@ const CopyTrading = () => {
                 { icon: <IShare className='zoom-85' />, title: t('common.share'), onClick: () => handleOpenShareCopyTrade(item) },
                 { icon: <IOutlineEdit className='zoom-85' />, title: t('common.editCopyTrading'), onClick: () => handleOpenCreateCopyTrade(item, true) },
                 { icon: <Popconfirm title={t('common.removeCopyTrading')} onConfirm={() => handleOpenRemoveCopyTrade(item)} okText={t('common.remove')} icon={<IOutlineTrash className='zoom-80' />} showCancel={false}><IOutlineTrash className='zoom-90 linker' /></Popconfirm>, title: t('common.removeCopyTrading'), logged: true},
-              ].map((op, idx) => <SideButtonIcon key={idx} title={op.title} onClick={op.onClick} logged={op.logged} icon={op.icon} />)
+              ].map((op, idx) => <SideButtonIcon key={idx} title={op.title} onClick={op.onClick ?? (() => {})} logged={op.logged} icon={op.icon} />)
             }
           </span>
         )
@@ -207,7 +198,7 @@ const CopyTrading = () => {
       case 'address_note':
         return (
           <div className="d-flex align-items-center gap-3 w-100">
-            <WalletChainIcon platform={item.platform || 'hyperliquid'} />
+            <WalletProviderIcon platform={item.platform || 'hyperliquid'} />
             <div className="d-flex flex-column" style={{ overflow: 'hidden' }}>
               <PositionItemAddress item={item} link={false} shortener={true} className="fw-600 color-white" />
               <div className="color-secondary font-size-12 mt-1">{item.note || '-'}</div>
@@ -430,14 +421,14 @@ const CopyTrading = () => {
                   return (
                     <Select.Option key={w.address} value={w.address} label={
                       <div className="d-flex align-items-center gap-2">
-                        <WalletChainIcon platform={w.platform || 'hyperliquid'} />
+                        <WalletProviderIcon platform={w.platform || 'hyperliquid'} />
                         <span className="color-white fw-bold">{shortAddr}</span>
                         <span className="color-secondary font-size-12">{w.nickname || 'h'}</span>
                         <span className="color-white fw-bold ms-1">$ {formatNumber(w.balance)}</span>
                       </div>
                     }>
                       <div className="d-flex align-items-center gap-2 py-1">
-                        <WalletChainIcon platform={w.platform || 'hyperliquid'} />
+                        <WalletProviderIcon platform={w.platform || 'hyperliquid'} />
                         <span className="color-white fw-bold">{shortAddr}</span>
                         <span className="color-secondary font-size-12">{w.nickname || 'h'}</span>
                         <span className="color-white fw-bold ms-1">$ {formatNumber(w.balance)}</span>
