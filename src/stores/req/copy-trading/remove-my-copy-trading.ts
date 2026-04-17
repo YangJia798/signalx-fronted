@@ -1,9 +1,5 @@
-
-import { merge, defaults } from '@/utils'
 import { baseCheck, baseApi } from '@/stores/req/helper'
-import { constants, TAccountStore, TCopyTradingStore } from '@/stores'
-
-import { formatPositionByItem } from '../utils'
+import { TAccountStore, TCopyTradingStore } from '@/stores'
 
 type CopyTradingRemoveMyCopyTradingResult = {
   data: Record<string, any>,
@@ -19,26 +15,16 @@ export const copyTradingRemoveMyCopyTrading: TCopyTradingRemoveMyCopyTrading = {
   async copyTradingRemoveMyCopyTrading(accountStore, copyTradingStore) {
     const result: CopyTradingRemoveMyCopyTradingResult = { data: {}, error: true }
     const { logged } = accountStore
+    const item = copyTradingStore.operaCopyTradingTargetItem
 
-    if (this.copyTradingRemoveMyCopyTradingBusy || !logged || !copyTradingStore.operaCopyTradingTargetItem) return result
+    if (this.copyTradingRemoveMyCopyTradingBusy || !logged || !item) return result
 
     this.copyTradingRemoveMyCopyTradingBusy = true
 
-    const res = await baseApi.post('/copy-trading/del-copy-trading', {
-      wallet: copyTradingStore.operaCopyTradingTargetItem.address
-    })
+    const res = await baseApi.delete(`/wallet/copy-trading/config/${item.id}`)
 
     result.error = baseCheck(res, accountStore)
     this.copyTradingRemoveMyCopyTradingBusy = false
-
-    if (result.error) return result
-
-    // update
-    const { data } = res.data
-
-    result.data = {}
-
-    // update
 
     return result
   },
