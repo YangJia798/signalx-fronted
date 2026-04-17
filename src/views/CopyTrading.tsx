@@ -5,20 +5,17 @@ import BN from 'bignumber.js'
 
 import { IShare, IOutlineEdit, IOutlineAdd, IOutlineShare, IOutlineTrash, IOutlineWallet3 } from '@/components/icon'
 import { formatNumber, merge } from '@/utils'
-import { useAccountStore, useTraderDetailsOpenOrdersAdditionalStore, usePrivateWalletStore, useReqStore, useCopyTradingStore } from '@/stores'
+import { useAccountStore, useTraderDetailsOpenOrdersAdditionalStore, useTraderDetailsPositionsStore, usePrivateWalletStore, useReqStore, useCopyTradingStore } from '@/stores'
 import ColumnList from '@/components/Column/List'
 import WalletProviderIcon from '@/components/Wallet/ProviderIcon'
-import ModalClosePosition from '@/components/Modal/ClosePosition'
 import TabSwitch from '@/components/Tab/Switch'
 import ModalCreateCopyTrading from '@/components/Modal/CreateCopyTrading'
-import PositionItemDirectionLeverage from '@/components/PositionItem/DirectionLeverage'
-import PositionItemPositionValue from '@/components/PositionItem/PositionValue'
-import PositionItemUPnl from '@/components/PositionItem/UPnl'
 import PositionItemAddress from '@/components/PositionItem/Address'
 import SideButtonIcon from '@/components/Side/ButtonIcon'
 import TimeAgo from '@/components/TimeAgo'
 import ModalShareCopyTrade from '@/components/Modal/ShareCopyTrade'
 
+import TraderDetailsPositions from '@/views/TraderDetails/Positions'
 import TraderDetailsNonFunding from '@/views/TraderDetails/NonFunding'
 import TraderDetailsRecentFills from '@/views/TraderDetails/RecentFills'
 import TraderDetailsTWAP from '@/views/TraderDetails/TWAP'
@@ -32,6 +29,7 @@ const CopyTrading = () => {
   const privateWalletStore = usePrivateWalletStore()
   const copyTradingStore = useCopyTradingStore()
   const traderDetailsOpenOrdersAdditionalStore = useTraderDetailsOpenOrdersAdditionalStore()
+  const traderDetailsPositionsStore = useTraderDetailsPositionsStore()
   const { t } = useTranslation()
 
   const [activeListTab, setActiveListTab] = useState('targets')
@@ -63,18 +61,6 @@ const CopyTrading = () => {
     { id: 'uPnl', label: t('common.uPnl', '未实现盈亏'), className: 'justify-content-end text-end col-4' },
   ]
 
-  const tabPosition = [
-    { id: 'symbol', label: t('common.asset', '币种'), filter: 'symbol', className: 'd-none d-sm-flex col-sm-2 col-md-2 col-lg-1' },
-    { id: 'positionValue', label: t('common.positionValue', '持仓价值'), sort: true, sortByKey: 'positionValue', className: 'col-3 col-md-2 col-xl-1' },
-    { id: 'uPnl', label: t('common.uPnl', '未实现盈亏'), sort: true, sortByKey: 'uPnl', className: 'col-3 col-sm-2 col-md-2 col-lg-1' },
-    { id: 'openingPrice', label: t('common.openingPrice', '入场均价'), sort: true, sortByKey: 'openingPrice', className: 'd-none d-xl-flex col-xl-1' },
-    { id: 'markPrice', label: t('common.markPrice', '标记价'), sort: true, sortByKey: 'markPrice', className: 'd-none d-lg-flex col-lg-2 col-xl-1' },
-    { id: 'liquidationPrice', label: t('common.liquidationPrice', '清算价'), sort: true, sortByKey: 'liquidationPrice', className: 'd-none d-md-flex col-md-1 col-xl-1' },
-    { id: 'margin', label: t('common.margin', '保证金'), sort: true, sortByKey: 'margin', className: 'd-none d-md-flex col-md-2 col-lg-1 col-xl-1' },
-    { id: 'fundingFee', label: t('common.fundingFee', '资金费用'), sort: true, sortByKey: 'fundingFee', className: 'd-none d-xl-flex col-xl-1' },
-    { id: 'tpSl', label: t('common.tpSl', '止盈/止损'), className: 'd-none d-xl-flex col-xl-1' },
-    { id: 'operator', label: t('common.closePos', '平仓'), className: 'ms-auto justify-content-end col' },
-  ]
 
   const renderOwnWalletItem = (item: any, columnIndex: number) => {
     switch (ownWalletsColumn[columnIndex].id) {
@@ -227,34 +213,6 @@ const CopyTrading = () => {
     }
   }
 
-  const renderPositionItem = (item, columnIndex) => {
-    switch (tabPosition[columnIndex].id) {
-      case 'walletId':
-        return item.walletId
-      case 'symbol':
-        return item.coin
-      case 'leverage':
-        return <PositionItemDirectionLeverage item={item} />
-      case 'positionValue':
-        return <PositionItemPositionValue item={item} />
-      case 'uPnl':
-        return <PositionItemUPnl item={item} />
-      case 'openingPrice':
-        return <>$ {item.openPrice}</>
-      case 'liquidationPrice':
-        return item.liquidationPrice
-          ? <>$ {item.liquidationPrice}</>
-          : '-'
-      case 'margin':
-        return <>$ { formatNumber(item.marginUsed) }</>
-      case 'markPrice':
-        return <>$ { item.markPrice }</>
-      case 'operator':
-        return <div className='hover-primary br-4 px-2 py-1 fw-500' onClick={() => merge(copyTradingStore, { openClosePosition: true, operaPositionIdx: item.idx}) }>{ t('common.closeAll')}</div>
-      default:
-        return null
-    }
-  }
 
   const handleToggleStatus = async (item: any) => {
     const newStatus = item.isEnabled ? 0 : 1
@@ -297,7 +255,6 @@ const CopyTrading = () => {
     const asyncFunc = async () => {
       await reqStore.userPrivateWallet(accountStore, privateWalletStore)
       await reqStore.copyTradingMyCopyTrading(accountStore, copyTradingStore)
-      await reqStore.copyTradingMyPosition(accountStore, copyTradingStore)
     }
 
     if (!accountStore.logged) {
@@ -463,13 +420,13 @@ const CopyTrading = () => {
           <div className='d-flex flex-column br-3 overflow-hidden'>
             <TabSwitch
               className="color-white"
-              labelSuffixes={[` (${copyTradingStore.positionList.length})`, ` (${traderDetailsOpenOrdersAdditionalStore.list.length})`]}
+              labelSuffixes={[` (${traderDetailsPositionsStore.list.length})`, ` (${traderDetailsOpenOrdersAdditionalStore.list.length})`]}
               data={copyTradingStore.tabs}
               currId={copyTradingStore.tabId}
               onClick={(item) => copyTradingStore.tabId = item.id} />
             {
               copyTradingStore.tabId === 'positions' &&
-                <ColumnList columns={tabPosition} logged data={copyTradingStore.positionList} busy={reqStore.copyTradingMyPositionBusy} renderItem={renderPositionItem} />
+                <TraderDetailsPositions address={currentAddress} unReset />
             }
             {
               copyTradingStore.tabId === 'openOrders' &&
