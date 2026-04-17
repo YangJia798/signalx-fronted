@@ -58,16 +58,16 @@ export const formatCopyTradingByItem = (item: any, idx: number): Record<string, 
 
 export const formatOpenPositionByItem = (item: any): Record<string, any> => {
   return {
-    address: item.targetWallet ?? item.wallet,
-    operaAddress: item.mainWallet,
-    note: item.remark,
-    leverage: item.leverage,
+    address: item.masterAddress ?? item.targetWallet ?? item.wallet,
+    operaAddress: item.apiWalletAddress ?? item.mainWallet,
+    note: item.remark ?? '',
+    leverage: item.maxLeverage ?? item.leverage,
     followModel: item.followModel ?? item.buyModel,
     followModelValue: String(item.followModelValue ?? item.buyModelValue ?? ''),
     marginMode: item.marginMode,
     followMasterLeverage: item.followMasterLeverage,
     maxMarginUsage: item.maxMarginUsage,
-    status: item.status,
+    isEnabled: item.isEnabled ?? item.status ?? 1,
   }
 }
 

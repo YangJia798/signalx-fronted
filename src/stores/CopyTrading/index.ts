@@ -37,7 +37,7 @@ export type TCopyTradingTargetItem = {
   marginMode: number        // 1=逐仓 2=全仓 3=跟随目标
   followMasterLeverage: number // 0=否 1=是
   maxMarginUsage: number
-  status: number
+  isEnabled: number            // 1=启用 0=禁用
 }
 
 export type TCopyTradingStore = {
