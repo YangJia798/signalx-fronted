@@ -428,10 +428,9 @@ const CopyTrading = () => {
               copyTradingStore.tabId === 'positions' &&
                 <TraderDetailsPositions address={currentAddress} unReset />
             }
-            {
-              copyTradingStore.tabId === 'openOrders' &&
-                <TraderDetailsOpenOrdersAdditional address={currentAddress} />
-            }
+            <div style={{ display: copyTradingStore.tabId === 'openOrders' ? undefined : 'none' }}>
+              <TraderDetailsOpenOrdersAdditional address={currentAddress} unReset />
+            </div>
             {
               copyTradingStore.tabId === 'historicalOrders' &&
                 <TraderDetailsHistoricalOrders address={currentAddress} />
