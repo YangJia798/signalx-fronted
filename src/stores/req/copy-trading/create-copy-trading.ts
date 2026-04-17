@@ -21,18 +21,18 @@ export const copyTradingCreateCopyTrading: TCopyTradingCreateCopyTrading = {
     this.copyTradingCreateCopyTradingBusy = true
 
     const res = await baseApi.post('/wallet/copy-trading/config', {
-      apiWalletAddress: copyTradingStore.openPositionWalletAddress,
+      mainWallet: copyTradingStore.openPositionWalletAddress,
       mainWalletPlatform: 'hyper',
-      masterAddress: copyTradingStore.copyTradingTargetAddress,
+      targetWallet: copyTradingStore.copyTradingTargetAddress,
       targetWalletPlatform: 'hyper',
       remark: copyTradingStore.openPositionTargeNote,
-      maxLeverage: copyTradingStore.openPositionLeverage,         // [1..50]
+      leverage: copyTradingStore.openPositionLeverage,            // [1..50]
       followMasterLeverage: copyTradingStore.openPositionFollowTargetLeverage ? 1 : 0, // 0=否 1=是
       marginMode: copyTradingStore.openPositionMarginMode,        // 1=逐仓 2=全仓 3=跟随目标
       followModel: copyTradingStore.openPositionBuyModel,         // 1=资产等比 2=仓位等比 3=固定价值
       followModelValue: +copyTradingStore.openPositionBuyModelValue,
       maxMarginUsage: parseFloat(copyTradingStore.openPositionHighMarginProtect) / 100, // 0-1
-      isEnabled: 1
+      status: 1
     })
 
     result.error = baseCheck(res, accountStore)
