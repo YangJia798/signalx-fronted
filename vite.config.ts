@@ -77,6 +77,9 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
+    esbuild: {
+      keepNames: true,
+    },
     optimizeDeps: { exclude: ['node_modules/.cache'] }
   }
 })
