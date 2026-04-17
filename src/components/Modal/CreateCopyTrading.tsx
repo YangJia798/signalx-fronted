@@ -149,10 +149,11 @@ const ModalCreateCopyTrading = () => {
       }
 
       if (copyTradingStore.operaCopyTradingTargetItemIdx >= 0 && copyTradingStore.operaCopyTradingTargetItem && copyTradingStore.isOpenPositionTargetEdit) {
-        const { address, note, leverage, followModel, copyRatio, highMarginProtect, marginMode, followMasterLeverage } = copyTradingStore.operaCopyTradingTargetItem
+        const { address, operaAddress, note, leverage, followModel, copyRatio, highMarginProtect, marginMode, followMasterLeverage } = copyTradingStore.operaCopyTradingTargetItem
 
         merge(copyTradingStore, {
           copyTradingSearchTargetAddress: address,
+          openPositionWalletAddress: operaAddress || copyTradingStore.openPositionWalletAddress,
           openPositionTargeNote: note,
           openPositionLeverage: leverage,
           openPositionBuyModel: followModel,
