@@ -342,7 +342,7 @@ const ModalCreateCopyTrading = () => {
                 copyTradingStore.openPositionSellModel === 3 && !copyTradingStore.openPositionSellModelTakeProfitRatioValue && !copyTradingStore.openPositionSellModelStopLossRatioValue && t('copyTrading.takeProfitStopLossWarning')
                   || ''
               }>
-               <Button type='primary' loading={reqStore.copyTradingCreateCopyTradingBusy} disabled={!copyTradingStore.copyTradingTargetAddress || (copyTradingStore.openPositionSellModel === 3 && !copyTradingStore.openPositionSellModelTakeProfitRatioValue && !copyTradingStore.openPositionSellModelStopLossRatioValue)} className="flex-grow-1 d-flex justify-content-center align-items-center font-size-14 fw-bold br-pill border-0 w-100" style={{ height: '48px' }} onClick={handleSubmit}>{t('common.create', '创建')}</Button>
+               <Button type='primary' loading={copyTradingStore.isOpenPositionTargetEdit ? reqStore.copyTradingUpdateCopyTradingBusy : reqStore.copyTradingCreateCopyTradingBusy} disabled={!copyTradingStore.copyTradingTargetAddress} className="flex-grow-1 d-flex justify-content-center align-items-center font-size-14 fw-bold br-pill border-0 w-100" style={{ height: '48px' }} onClick={handleSubmit}>{copyTradingStore.isOpenPositionTargetEdit ? t('common.confirm') : t('common.create', '创建')}</Button>
              </ColumnTooltip>
           </div>
         </div>
