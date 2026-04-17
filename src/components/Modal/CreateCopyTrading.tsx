@@ -127,14 +127,16 @@ const ModalCreateCopyTrading = () => {
     copyTradingStore.isOpenPositionTargetEdit = hasQuickerOpenPositionItem
 
     if (hasQuickerOpenPositionItem && copyTradingStore.quickerOpenPositionItem) {
-      const { address, note, leverage, followModel, followModelValue, marginMode } = copyTradingStore.quickerOpenPositionItem
+      const { address, note, leverage, followModel, copyRatio, highMarginProtect, marginMode, followMasterLeverage } = copyTradingStore.quickerOpenPositionItem
       merge(copyTradingStore, {
         copyTradingSearchTargetAddress: address,
         openPositionTargeNote: note,
         openPositionLeverage: leverage,
         openPositionBuyModel: followModel,
-        openPositionBuyModelValue: followModelValue,
         openPositionMarginMode: marginMode,
+        openPositionFollowTargetLeverage: !!followMasterLeverage,
+        openPositionCopyRatio: copyRatio ?? '100',
+        openPositionHighMarginProtect: highMarginProtect ?? '70',
       })
     }
   }
@@ -147,15 +149,17 @@ const ModalCreateCopyTrading = () => {
       }
 
       if (copyTradingStore.operaCopyTradingTargetItemIdx >= 0 && copyTradingStore.operaCopyTradingTargetItem && copyTradingStore.isOpenPositionTargetEdit) {
-        const { address, note, leverage, followModel, followModelValue, marginMode } = copyTradingStore.operaCopyTradingTargetItem
+        const { address, note, leverage, followModel, copyRatio, highMarginProtect, marginMode, followMasterLeverage } = copyTradingStore.operaCopyTradingTargetItem
 
         merge(copyTradingStore, {
           copyTradingSearchTargetAddress: address,
           openPositionTargeNote: note,
           openPositionLeverage: leverage,
           openPositionBuyModel: followModel,
-          openPositionBuyModelValue: followModelValue,
           openPositionMarginMode: marginMode,
+          openPositionFollowTargetLeverage: !!followMasterLeverage,
+          openPositionCopyRatio: copyRatio ?? '100',
+          openPositionHighMarginProtect: highMarginProtect ?? '70',
         })
 
         handleSearchTargetAddress()

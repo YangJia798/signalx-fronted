@@ -57,16 +57,21 @@ export const formatCopyTradingByItem = (item: any, idx: number): Record<string, 
 }
 
 export const formatOpenPositionByItem = (item: any): Record<string, any> => {
+  const followModelValue = item.followModelValue ?? item.buyModelValue ?? 1
+  const maxMarginUsage = item.maxMarginUsage ?? 0.7
+
   return {
     address: item.masterAddress ?? item.targetWallet ?? item.wallet,
     operaAddress: item.apiWalletAddress ?? item.mainWallet,
     note: item.remark ?? '',
     leverage: item.maxLeverage ?? item.leverage,
     followModel: item.followModel ?? item.buyModel,
-    followModelValue: String(item.followModelValue ?? item.buyModelValue ?? ''),
+    followModelValue: String(followModelValue),
+    copyRatio: String(Math.round(+followModelValue * 100)),   // 0-1 → 0-100 for UI
+    highMarginProtect: String(Math.round(+maxMarginUsage * 100)), // 0-1 → 0-100 for UI
     marginMode: item.marginMode,
-    followMasterLeverage: item.followMasterLeverage,
-    maxMarginUsage: item.maxMarginUsage,
+    followMasterLeverage: item.followMasterLeverage ?? 0,
+    maxMarginUsage: maxMarginUsage,
     isEnabled: item.isEnabled ?? item.status ?? 1,
   }
 }

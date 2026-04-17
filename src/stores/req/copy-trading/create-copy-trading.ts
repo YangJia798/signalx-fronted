@@ -30,7 +30,7 @@ export const copyTradingCreateCopyTrading: TCopyTradingCreateCopyTrading = {
       followMasterLeverage: copyTradingStore.openPositionFollowTargetLeverage ? 1 : 0, // 0=否 1=是
       marginMode: copyTradingStore.openPositionMarginMode,        // 1=逐仓 2=全仓 3=跟随目标
       followModel: copyTradingStore.openPositionBuyModel,         // 1=资产等比 2=仓位等比 3=固定价值
-      followModelValue: +copyTradingStore.openPositionBuyModelValue,
+      followModelValue: parseFloat(copyTradingStore.openPositionCopyRatio) / 100,
       maxMarginUsage: parseFloat(copyTradingStore.openPositionHighMarginProtect) / 100, // 0-1
       status: 1
     })

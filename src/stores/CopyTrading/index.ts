@@ -32,9 +32,11 @@ export type TCopyTradingTargetItem = {
   marginUsedRatio: string
 
   leverage: number
-  followModel: number       // 1=资产等比 2=仓位等比 3=固定价值
+  followModel: number          // 1=资产等比 2=仓位等比 3=固定价值
   followModelValue: string
-  marginMode: number        // 1=逐仓 2=全仓 3=跟随目标
+  copyRatio: string            // followModelValue * 100，用于UI显示 (0-100)
+  highMarginProtect: string    // maxMarginUsage * 100，用于UI显示 (0-100)
+  marginMode: number           // 1=逐仓 2=全仓 3=跟随目标
   followMasterLeverage: number // 0=否 1=是
   maxMarginUsage: number
   isEnabled: number            // 1=启用 0=禁用
