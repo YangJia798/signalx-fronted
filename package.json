@@ -67,5 +67,17 @@
     "vite-plugin-node-polyfills": "^0.22.0",
     "vite-plugin-svgr": "^4.2.0",
     "vite-plugin-top-level-await": "^1.4.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@swc/core",
+      "bigint-buffer",
+      "bufferutil",
+      "core-js",
+      "esbuild",
+      "keccak",
+      "utf-8-validate"
+    ]
   }
 }
