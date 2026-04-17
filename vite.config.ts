@@ -20,9 +20,8 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       proxy: {
         '/api': {
-          target: 'https://43.106.1.190:8001',
-          changeOrigin: true,
-          secure: false
+          target: 'http://43.106.1.190:8001',
+          changeOrigin: true
         }
       }
     },
