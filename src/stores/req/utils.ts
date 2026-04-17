@@ -3,11 +3,11 @@ import BN from 'bignumber.js'
 import { getDecimalLength } from '@/utils'
 import { constants } from '@/stores'
 
-export const formatUPnlStatus = (bn) => {
+export const formatUPnlStatus = (bn: BN) => {
   return bn.gt(0) && 1 || bn.lt(0) && -1 || 0
 }
 
-export const formatStatusClassName = (status) => {
+export const formatStatusClassName = (status: number) => {
   return status > 0 && 'color-success' || status < 0 && 'color-error' || ''
 }
 
@@ -40,45 +40,38 @@ export const formatPositionByItem = (item: any, idx: number): Record<string, any
 }
 
 export const formatCopyTradingByItem = (item: any, idx: number): Record<string, any> => {
-  const bnPnl = new BN(item.pnl)
+  const bnPnl = new BN(item.pnl || 0)
   const pnlStatus = formatUPnlStatus(bnPnl)
+  const marginUsedRatioRaw = item.marginUsedRatio ?? '0'
 
   return {
     idx,
-    balance: new BN(item.balance).toFixed(constants.decimalPlaces.__COMMON__), // 余额
-    pnl: bnPnl.toFixed(constants.decimalPlaces.__uPnl__), // 未实现盈亏
+    id: item.id,
+    balance: new BN(item.balance || 0).toFixed(constants.decimalPlaces.__COMMON__),
+    pnl: bnPnl.toFixed(constants.decimalPlaces.__uPnl__),
     pnlStatus,
     pnlStatusClassname: formatStatusClassName(pnlStatus),
-    // NOTE: 因为有进度条，所以去掉接受后的%
-    marginUsedRatio: new BN(item.marginUsedRatio.replace('%', '')).toFixed(2), // 保证金利用率，直接显示即可
-
-    // NOTE: 旧的写法，没问题可删除
-    // leverage: item.copyTrading.leverage,
-    // buyModel: item.copyTrading.buyModel,
-    // buyModelValue: item.copyTrading.buyModelValue,
-    // sellModel: item.copyTrading.sellModel,
-    // sellModelValue: item.copyTrading.sellModelValue,
-    ...formatOpenPositionByItem({
-      wallet: item.wallet,
-      remark: item.remark,
-      ...item.copyTrading,
-    })
+    marginUsedRatio: new BN(String(marginUsedRatioRaw).replace('%', '')).toFixed(2),
+    ...formatOpenPositionByItem(item)
   }
 }
 
 export const formatOpenPositionByItem = (item: any): Record<string, any> => {
   return {
-    address: item.wallet,
+    address: item.targetWallet ?? item.wallet,
+    operaAddress: item.mainWallet,
     note: item.remark,
     leverage: item.leverage,
-    buyModel: item.buyModel,
-    buyModelValue: item.buyModelValue,
-    sellModel: item.sellModel,
-    sellModelValue: item.sellModelValue,
+    followModel: item.followModel ?? item.buyModel,
+    followModelValue: String(item.followModelValue ?? item.buyModelValue ?? ''),
+    marginMode: item.marginMode,
+    followMasterLeverage: item.followMasterLeverage,
+    maxMarginUsage: item.maxMarginUsage,
+    status: item.status,
   }
 }
 
-export function timeToLocal(originalTime) {
+export function timeToLocal(originalTime: number) {
     const d = new Date(originalTime);
     return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds(), d.getMilliseconds());
 }

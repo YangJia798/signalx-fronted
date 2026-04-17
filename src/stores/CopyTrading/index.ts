@@ -1,7 +1,7 @@
 import { createStore } from '@/stores/helpers'
 
 import { merge } from '@/utils'
-import { constants } from '@/stores'
+
 
 export type TPositionItem = {
   idx: number
@@ -23,17 +23,21 @@ export type TPositionItem = {
 
 export type TCopyTradingTargetItem = {
   idx: number
-  address: string
-  note: string
+  id: string
+  address: string      // targetWallet
+  operaAddress: string // mainWallet
+  note: string         // remark
   balance: string
-  uPnl: string
+  pnl: string
   marginUsedRatio: string
 
-  leverage: number,
-  buyModel: number,
-  buyModelValue: string,
-  sellModel: number,
-  sellModelValue: string,
+  leverage: number
+  followModel: number       // 1=资产等比 2=仓位等比 3=固定价值
+  followModelValue: string
+  marginMode: number        // 1=逐仓 2=全仓 3=跟随目标
+  followMasterLeverage: number // 0=否 1=是
+  maxMarginUsage: number
+  status: number
 }
 
 export type TCopyTradingStore = {

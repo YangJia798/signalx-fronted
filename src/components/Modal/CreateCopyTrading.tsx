@@ -126,15 +126,14 @@ const ModalCreateCopyTrading = () => {
     copyTradingStore.isOpenPositionTargetEdit = hasQuickerOpenPositionItem
 
     if (hasQuickerOpenPositionItem && copyTradingStore.quickerOpenPositionItem) {
-      const { address, note, leverage, buyModel, buyModelValue, sellModel, sellModelValue } = copyTradingStore.quickerOpenPositionItem
+      const { address, note, leverage, followModel, followModelValue, marginMode } = copyTradingStore.quickerOpenPositionItem
       merge(copyTradingStore, {
         copyTradingSearchTargetAddress: address,
         openPositionTargeNote: note,
         openPositionLeverage: leverage,
-        openPositionBuyModel: buyModel,
-        openPositionBuyModelValue: buyModelValue,
-        openPositionSellModel: sellModel,
-        openPositionSellModelValue: sellModelValue,
+        openPositionBuyModel: followModel,
+        openPositionBuyModelValue: followModelValue,
+        openPositionMarginMode: marginMode,
       })
     }
   }
@@ -147,16 +146,15 @@ const ModalCreateCopyTrading = () => {
       }
 
       if (copyTradingStore.operaCopyTradingTargetItemIdx >= 0 && copyTradingStore.operaCopyTradingTargetItem && copyTradingStore.isOpenPositionTargetEdit) {
-        const { address, note, leverage, buyModel, buyModelValue, sellModel, sellModelValue } = copyTradingStore.operaCopyTradingTargetItem
+        const { address, note, leverage, followModel, followModelValue, marginMode } = copyTradingStore.operaCopyTradingTargetItem
 
         merge(copyTradingStore, {
           copyTradingSearchTargetAddress: address,
           openPositionTargeNote: note,
           openPositionLeverage: leverage,
-          openPositionBuyModel: buyModel,
-          openPositionBuyModelValue: buyModelValue,
-          openPositionSellModel: sellModel,
-          openPositionSellModelValue: sellModelValue,
+          openPositionBuyModel: followModel,
+          openPositionBuyModelValue: followModelValue,
+          openPositionMarginMode: marginMode,
         })
 
         handleSearchTargetAddress()
