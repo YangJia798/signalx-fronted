@@ -152,10 +152,17 @@ const CopyTrading = () => {
 
   const renderOwnCopyTradesItem = (item: any, columnIndex: number) => {
     switch (ownCopyTradesColumn[columnIndex].id) {
-      case 'status':
-        return item.isEnabled
-          ? <span className="color-success font-size-14">● {t('common.on', '开启')}</span>
-          : <span className="color-secondary font-size-14">● {t('common.off', '关闭')}</span>
+      case 'status': {
+        const enabled = !!item.isEnabled
+        return (
+          <span
+            className={`font-size-14 cursor-pointer ${enabled ? 'color-success' : 'color-secondary'}`}
+            onClick={() => handleToggleStatus(item)}
+          >
+            ● {enabled ? t('common.on', '开启') : t('common.off', '关闭')}
+          </span>
+        )
+      }
       case 'note':
         return <span className="color-white fw-500 font-size-14">{item.note || '-'}</span>
       case 'target':
@@ -241,6 +248,13 @@ const CopyTrading = () => {
       default:
         return null
     }
+  }
+
+  const handleToggleStatus = async (item: any) => {
+    const newStatus = item.isEnabled ? 0 : 1
+    const { error } = await reqStore.copyTradingToggleStatus(accountStore, item.id, newStatus)
+    if (error) return
+    await reqStore.copyTradingMyCopyTrading(accountStore, copyTradingStore)
   }
 
   const handleOpenCreateCopyTrade = (item?: any, edit: boolean = false) => {

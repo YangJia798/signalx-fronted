@@ -9,6 +9,8 @@ type CopyTradingUpdateCopyTradingResult = {
 export type TCopyTradingUpdateCopyTrading = {
   copyTradingUpdateCopyTrading: (accountStore: TAccountStore, copyTradingStore: TCopyTradingStore) => Promise<CopyTradingUpdateCopyTradingResult>
   copyTradingUpdateCopyTradingBusy: boolean
+  copyTradingToggleStatus: (accountStore: TAccountStore, id: string, status: number) => Promise<CopyTradingUpdateCopyTradingResult>
+  copyTradingToggleStatusBusy: boolean
 }
 
 export const copyTradingUpdateCopyTrading: TCopyTradingUpdateCopyTrading = {
@@ -39,4 +41,21 @@ export const copyTradingUpdateCopyTrading: TCopyTradingUpdateCopyTrading = {
     return result
   },
   copyTradingUpdateCopyTradingBusy: false,
+
+  async copyTradingToggleStatus(accountStore, id, status) {
+    const result: CopyTradingUpdateCopyTradingResult = { data: {}, error: true }
+    const { logged } = accountStore
+
+    if (this.copyTradingToggleStatusBusy || !logged) return result
+
+    this.copyTradingToggleStatusBusy = true
+
+    const res = await baseApi.put('/wallet/copy-trading/config', { id, status })
+
+    result.error = baseCheck(res, accountStore)
+    this.copyTradingToggleStatusBusy = false
+
+    return result
+  },
+  copyTradingToggleStatusBusy: false,
 }
