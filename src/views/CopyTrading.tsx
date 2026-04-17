@@ -6,6 +6,7 @@ import BN from 'bignumber.js'
 import { IShare, IOutlineEdit, IOutlineAdd, IOutlineShare, IOutlineTrash, IOutlineWallet3 } from '@/components/icon'
 import { formatNumber, merge } from '@/utils'
 import { useAccountStore, useTraderDetailsOpenOrdersAdditionalStore, useTraderDetailsPositionsStore, usePrivateWalletStore, useReqStore, useCopyTradingStore } from '@/stores'
+import { hyperApi } from '@/stores/req/helper'
 import ColumnList from '@/components/Column/List'
 import WalletProviderIcon from '@/components/Wallet/ProviderIcon'
 import TabSwitch from '@/components/Tab/Switch'
@@ -34,6 +35,7 @@ const CopyTrading = () => {
 
   const [activeListTab, setActiveListTab] = useState('targets')
   const [selectedAddress, setSelectedAddress] = useState<string>('')
+  const [targetStats, setTargetStats] = useState<Record<string, any>>({})
 
   const currentAddress = selectedAddress || privateWalletStore.addresses[0] || ''
 
@@ -193,6 +195,10 @@ const CopyTrading = () => {
   }
 
   const renderCopyRecordsItem = (item: any, columnIndex: number) => {
+    const stats = targetStats[item.address] || {}
+    const accountValue = stats.perpEquity || '0'
+    const uPnl = stats.totalUPnl || '0'
+    const bnUPnl = new BN(uPnl)
     switch (copyRecordsColumn[columnIndex].id) {
       case 'address_note':
         return (
@@ -205,9 +211,13 @@ const CopyTrading = () => {
           </div>
         )
       case 'accountValue':
-        return <div className="text-center w-100 fw-600 color-white">$ {formatNumber(item.balance || 0)}</div>
+        return <div className="text-center w-100 fw-600 color-white">$ {formatNumber(accountValue)}</div>
       case 'uPnl':
-        return <div className={`text-center w-100 fw-600 ${ new BN(item.uPnl || 0).gt(0) ? 'color-success' : 'color-danger' }`} >$ {new BN(item.uPnl || 0).gt(0) && '+'}{formatNumber(item.uPnl || 0)}</div>
+        return (
+          <div className={`text-end w-100 fw-600 ${bnUPnl.gt(0) ? 'color-success' : bnUPnl.lt(0) ? 'color-error' : 'color-secondary'}`}>
+            {bnUPnl.gt(0) && '+'}$ {formatNumber(uPnl)}
+          </div>
+        )
       default:
         return null
     }
@@ -269,6 +279,32 @@ const CopyTrading = () => {
       copyTradingStore.reset()
     }
   }, [accountStore.logged])
+
+  useEffect(() => {
+    if (!copyTradingStore.copyTradingList.length) return
+    const fetchStats = async () => {
+      const results: Record<string, any> = {}
+      await Promise.all(
+        copyTradingStore.copyTradingList.map(async (item) => {
+          try {
+            const res = await hyperApi.post('/info', { type: 'clearinghouseState', user: item.address })
+            const data = res.data
+            const marginSummary = data.marginSummary || {}
+            let totalUPnl = new BN(0)
+            ;(data.assetPositions || []).forEach((p: any) => {
+              totalUPnl = totalUPnl.plus(new BN(p.position?.unrealizedPnl || 0))
+            })
+            results[item.address] = {
+              perpEquity: new BN(marginSummary.accountValue || 0).toFixed(2),
+              totalUPnl: totalUPnl.toFixed(2),
+            }
+          } catch {}
+        })
+      )
+      setTargetStats(results)
+    }
+    fetchStats()
+  }, [copyTradingStore.copyTradingList.length])
 
   return (
     <>
@@ -373,7 +409,7 @@ const CopyTrading = () => {
           {activeListTab === 'targets' ? (
             <ColumnList className='br-3 mt-2' logged columns={ownCopyTradesColumn} data={copyTradingStore.copyTradingList} busy={reqStore.copyTradingMyCopyTradingBusy} renderItem={renderOwnCopyTradesItem} />
           ) : (
-            <ColumnList className='br-3 mt-2' logged columns={copyRecordsColumn} data={[]} busy={false} renderItem={renderCopyRecordsItem} />
+            <ColumnList className='br-3 mt-2' logged columns={copyRecordsColumn} data={copyTradingStore.copyTradingList} busy={reqStore.copyTradingMyCopyTradingBusy} renderItem={renderCopyRecordsItem} />
           )}
         </div>
 
@@ -454,6 +490,8 @@ const CopyTrading = () => {
           </div>
         </div>
       </div>
+      <ModalCreateCopyTrading />
+      <ModalShareCopyTrade />
     </>
   )
 }
