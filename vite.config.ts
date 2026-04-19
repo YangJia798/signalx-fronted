@@ -7,14 +7,52 @@ import { fileURLToPath } from 'url'
 import mkcert from "vite-plugin-mkcert"
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import topLevelAwait from "vite-plugin-top-level-await";
-import viteCompression from 'vite-plugin-compression';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(async ({ mode, command }) => {
   const env = loadEnv(mode, process.cwd())
+  const enableDevHttps = command === 'serve' && env.VITE_DEV_HTTPS === 'true'
+  const plugins = [
+    nodePolyfills({ include: ['buffer', 'process', 'util', 'stream', 'events'] }),
+    react(),
+    svgr(),
+    topLevelAwait({
+      promiseExportName: "__tla",
+      promiseImportName: i => `__tla_${i}`
+    }),
+    createHtmlPlugin({
+      minify: true,
+      inject: {
+        data: {
+          title: env.VITE_DEFAULT_TITLE,
+          keywords: env.VITE_KEYWORDS,
+          description: env.VITE_DESCRIPTION,
+          site_name: env.VITE_SITE_NAME,
+          twitter_site: `@${env.VITE_TWITTER_SITE}`,
+          twitter_image: env.VITE_TWITTER_IMAGE
+        }
+      }
+    }),
+  ]
+
+  if (command === 'build') {
+    try {
+      const { default: viteCompression } = await import('vite-plugin-compression')
+      plugins.push(
+        viteCompression({ algorithm: 'gzip', ext: '.gz' }),
+        viteCompression({ algorithm: 'brotliCompress', ext: '.br' })
+      )
+    } catch {
+      console.warn('[vite] vite-plugin-compression is not installed, skipping compressed asset generation.')
+    }
+  }
+
+  if (enableDevHttps) {
+    plugins.splice(3, 0, mkcert({ source: 'coding' }))
+  }
 
   return {
     server: {
@@ -34,31 +72,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     base: env.VITE_PUBLIC_PATH_BASE,
-    plugins: [
-      nodePolyfills({ include: ['buffer', 'process', 'util', 'stream', 'events'] }),
-      react(),
-      svgr(),
-      mkcert({ source: 'coding' }),
-      topLevelAwait({
-        promiseExportName: "__tla",
-        promiseImportName: i => `__tla_${i}`
-      }),
-      createHtmlPlugin({
-        minify: true,
-        inject: {
-          data: {
-            title: env.VITE_DEFAULT_TITLE,
-            keywords: env.VITE_KEYWORDS,
-            description: env.VITE_DESCRIPTION,
-            site_name: env.VITE_SITE_NAME,
-            twitter_site: `@${env.VITE_TWITTER_SITE}`,
-            twitter_image: env.VITE_TWITTER_IMAGE
-          }
-        }
-      }),
-      viteCompression({ algorithm: 'gzip', ext: '.gz' }),
-      viteCompression({ algorithm: 'brotliCompress', ext: '.br' }),
-    ],
+    plugins,
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.', 'src')
@@ -70,19 +84,36 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         plugins: [
           {
-            // wagmi's injected.js sets injected.type before the function declaration,
-            // relying on function hoisting. Bundlers convert function declarations to
-            // variable assignments, breaking hoisting and causing a runtime crash.
-            // Fix: move the type assignment to after the function declaration.
-            name: 'fix-wagmi-injected-order',
+            // Some wagmi connector modules store their connector type on a static
+            // function property (for example `metaMask.type = 'metaMask'` and
+            // then `type: metaMask.type`). Bundlers can reorder or erase those
+            // function-property writes, which breaks production bundles.
+            // Fix: inline the connector type string and strip the static writes.
+            name: 'fix-wagmi-connector-types',
             transform(code: string, id: string) {
-              if (id.includes('@wagmi/core') && id.includes('connectors/injected')) {
-                const patched = code.replace("injected.type = 'injected';\n", '')
-                if (patched !== code) {
-                  return patched + "\ninjected.type = 'injected';\n"
-                }
+              if (!id.includes('@wagmi')) return null
+
+              const connectorTypes: Array<[string, string]> = [
+                ['injected', 'injected'],
+                ['metaMask', 'metaMask'],
+                ['coinbaseWallet', 'coinbaseWallet'],
+                ['safe', 'safe'],
+                ['walletConnect', 'walletConnect'],
+              ]
+
+              let patched = code
+              for (const [symbol, type] of connectorTypes) {
+                patched = patched.replace(
+                  new RegExp(`\\b${symbol}\\.type\\s*=\\s*['"]${type}['"](?:\\s+as const)?;?\\r?\\n?`, 'g'),
+                  '',
+                )
+                patched = patched.replace(
+                  new RegExp(`type:\\s*${symbol}\\.type\\b`, 'g'),
+                  `type: '${type}'`,
+                )
               }
-              return null
+
+              return patched === code ? null : patched
             }
           }
         ],

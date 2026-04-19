@@ -149,6 +149,7 @@ const AreaDrawerCoins = ({ onClose = (item) => {} }) => {
           }
         } catch (e) {
           console.error('Failed to fetch Aster markets', e)
+          return true
         }
         return
       }

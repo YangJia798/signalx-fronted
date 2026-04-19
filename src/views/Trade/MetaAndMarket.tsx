@@ -4,7 +4,7 @@ import { useTranslation, withTranslation, Trans } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { asterApi } from '@/stores/req/helper'
 
-import { formatNumber, infiniteLoop } from '@/utils'
+import { formatNumber } from '@/utils'
 import { constants, useReqStore, useHyperStore, useTradeStore, hyperRawByWsActiveAssetCtx } from '@/stores'
 import { IOutlineFlash } from '@/components/icon'
 import AreaDrawerCoins from '@/components/Area/DrawerCoins'
@@ -62,6 +62,13 @@ export const TradeMetaAndMarket: FC<TradeMetaAndMarketProps> = ({
     handleSendMessage()
   }
 
+  const getAsterRetryDelay = (failureCount: number) => {
+    if (failureCount >= 5) return 60000
+    if (failureCount >= 3) return 30000
+    if (failureCount >= 1) return 10000
+    return 3000
+  }
+
   // init
   useEffect(() => {
     let isCancelled = false;
@@ -74,49 +81,58 @@ export const TradeMetaAndMarket: FC<TradeMetaAndMarketProps> = ({
       if (!autoRefreshing) return
 
       if (platform === 'aster') {
-          // Address updating
           if (coin !== tradeStore.coin) {
               tradeStore.coin = coin
           }
 
-          // Start aster REST loop for active coin
-          infiniteLoop(async () => {
-            if (tradeStore.coin !== coin) return true; // auto-stop on change
+          let timer: ReturnType<typeof setTimeout> | null = null
+          let failureCount = 0
 
-            try {
-                const [tickerRes, premiumRes, openInterestRes] = await Promise.all([
-                   asterApi.get(`/fapi/v1/ticker/24hr?symbol=${coin}`).catch(() => null),
-                   asterApi.get(`/fapi/v1/premiumIndex?symbol=${coin}`).catch(() => null),
-                   asterApi.get(`/fapi/v1/openInterest?symbol=${coin}`).catch(() => null)
-                ])
+          cancelFunc = () => {
+            if (timer) clearTimeout(timer)
+          }
 
-                const ticker = Array.isArray(tickerRes?.data) ? tickerRes.data[0] : tickerRes?.data;
-                const premium = Array.isArray(premiumRes?.data) ? premiumRes.data[0] : premiumRes?.data;
-                const openInterestData = openInterestRes?.data;
+          const pollAsterMarket = async () => {
+            if (isCancelled || tradeStore.coin !== coin) return
 
-                if (ticker && ticker.symbol) {
-                    const funding = premium ? new BN(premium.lastFundingRate).times(100).toFixed(4) : '0.0000';
-                    const oi = openInterestData ? new BN(openInterestData.openInterest).toString() : '0';
+            const [tickerRes, premiumRes, openInterestRes] = await Promise.allSettled([
+              asterApi.get(`/fapi/v1/ticker/24hr?symbol=${coin}`),
+              asterApi.get(`/fapi/v1/premiumIndex?symbol=${coin}`),
+              asterApi.get(`/fapi/v1/openInterest?symbol=${coin}`)
+            ])
 
-                    hyperStore.perpMarket[coin] = {
-                        ...(hyperStore.perpMarket[coin] || {}),
-                        markPrice: ticker.lastPrice,
-                        priceChange24h: ticker.priceChange,
-                        priceChange24hPct: ticker.priceChangePercent,
-                        dayNtlVolume: ticker.quoteVolume,
-                        fundingPct: funding,
-                        openInterest: oi 
-                    }
-                    hyperStore.perpMarket = { ...hyperStore.perpMarket }
-                }
-            } catch (e) {}
-          }, 3000).then((res: any) => {
-            if (isCancelled) {
-              res.cancel();
-            } else {
-              cancelFunc = res.cancel;
+            const tickerData = tickerRes.status === 'fulfilled' ? tickerRes.value?.data : null
+            const premiumData = premiumRes.status === 'fulfilled' ? premiumRes.value?.data : null
+            const openInterestData = openInterestRes.status === 'fulfilled' ? openInterestRes.value?.data : null
+
+            const ticker = Array.isArray(tickerData) ? tickerData[0] : tickerData
+            const premium = Array.isArray(premiumData) ? premiumData[0] : premiumData
+            const hasSuccess = tickerRes.status === 'fulfilled' || premiumRes.status === 'fulfilled' || openInterestRes.status === 'fulfilled'
+
+            failureCount = hasSuccess ? 0 : failureCount + 1
+
+            if (ticker && ticker.symbol) {
+              const funding = premium ? new BN(premium.lastFundingRate).times(100).toFixed(4) : '0.0000'
+              const oi = openInterestData ? new BN(openInterestData.openInterest).toString() : '0'
+
+              hyperStore.perpMarket[coin] = {
+                ...(hyperStore.perpMarket[coin] || {}),
+                markPrice: ticker.lastPrice,
+                priceChange24h: ticker.priceChange,
+                priceChange24hPct: ticker.priceChangePercent,
+                dayNtlVolume: ticker.quoteVolume,
+                fundingPct: funding,
+                openInterest: oi
+              }
+              hyperStore.perpMarket = { ...hyperStore.perpMarket }
             }
-          });
+
+            if (!isCancelled && tradeStore.coin === coin) {
+              timer = setTimeout(pollAsterMarket, getAsterRetryDelay(failureCount))
+            }
+          }
+
+          await pollAsterMarket()
       } else {
           await onInitUpdate()
       }

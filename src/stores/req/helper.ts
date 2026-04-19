@@ -52,8 +52,10 @@ const hyperApi = axios.create({
   },
 })
 
+const asterBaseURL = import.meta.env.VITE_ASTER_API_PATH || 'https://fapi.asterdex.com'
+
 const asterApi = axios.create({
-  baseURL: 'https://fapi.asterdex.com',
+  baseURL: asterBaseURL,
   headers: {
     'Content-Type': 'application/json'
   },
