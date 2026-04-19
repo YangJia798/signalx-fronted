@@ -362,7 +362,8 @@ const TradeKLine = () => {
     const asterSymbol = parseSymbol.toLowerCase()
     const streamName = `${asterSymbol}@kline_${astInterval}`
 
-    const ws = new WebSocket('wss://fstream.asterdex.com/ws')
+    const asterWsUrl = import.meta.env.VITE_ASTER_WS_URL || 'wss://fstream.asterdex.com/ws'
+    const ws = new WebSocket(asterWsUrl)
 
     ws.onopen = () => {
         ws.send(JSON.stringify({

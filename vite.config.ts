@@ -61,6 +61,17 @@ export default defineConfig(async ({ mode, command }) => {
         '/api': {
           target: 'http://43.106.1.190:8001',
           changeOrigin: true
+        },
+        '/aster-kline': {
+          target: 'https://fapi.asterdex.com',
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/aster-kline/, '')
+        },
+        '/aster-ws': {
+          target: 'wss://fstream.asterdex.com',
+          ws: true,
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/aster-ws/, '/ws')
         }
       }
     },
