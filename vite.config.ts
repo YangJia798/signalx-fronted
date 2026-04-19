@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
     },
     base: env.VITE_PUBLIC_PATH_BASE,
     plugins: [
-      nodePolyfills(),
+      nodePolyfills({ include: ['buffer', 'process', 'util', 'stream', 'events'] }),
       react(),
       svgr(),
       mkcert({ source: 'coding' }),
@@ -98,6 +98,12 @@ export default defineConfig(({ mode }) => {
     esbuild: {
       keepNames: true,
     },
-    optimizeDeps: { exclude: ['node_modules/.cache'] }
+    optimizeDeps: {
+      include: [
+        'wagmi', 'viem', '@rainbow-me/rainbowkit',
+        'react', 'react-dom', 'react-router-dom',
+        '@tanstack/react-query',
+      ],
+    }
   }
 })
