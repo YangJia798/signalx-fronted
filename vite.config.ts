@@ -65,6 +65,24 @@ export default defineConfig(({ mode }) => {
       sourcemap: false,
       chunkSizeWarningLimit: 2000,
       rollupOptions: {
+        plugins: [
+          {
+            // wagmi's injected.js sets injected.type before the function declaration,
+            // relying on function hoisting. Bundlers convert function declarations to
+            // variable assignments, breaking hoisting and causing a runtime crash.
+            // Fix: move the type assignment to after the function declaration.
+            name: 'fix-wagmi-injected-order',
+            transform(code: string, id: string) {
+              if (id.includes('@wagmi/core') && id.includes('connectors/injected')) {
+                const patched = code.replace("injected.type = 'injected';\n", '')
+                if (patched !== code) {
+                  return patched + "\ninjected.type = 'injected';\n"
+                }
+              }
+              return null
+            }
+          }
+        ],
         output: {
           manualChunks: {
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],
