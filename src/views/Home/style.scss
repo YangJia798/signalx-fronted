@@ -231,7 +231,7 @@
   .marquee-track {
     display: flex;
     gap: 16px;
-    animation: marquee-scroll 120s linear infinite;
+    animation: marquee-scroll 240s linear infinite;
 
     &:hover {
       animation-play-state: paused;
