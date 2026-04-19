@@ -59,12 +59,20 @@ const asterApi = axios.create({
   },
 })
 
+const hyperStatsApi = axios.create({
+  baseURL: 'https://stats-data.hyperliquid.xyz',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+})
+
 export {
   baseCheck,
   baseURL,
   baseApi,
   hyperApi,
-  asterApi
+  asterApi,
+  hyperStatsApi
 }
 
 

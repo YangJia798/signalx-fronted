@@ -1,10 +1,8 @@
 import BN from 'bignumber.js'
 
-import { merge, defaults, formatPer } from '@/utils'
-import { baseCheck, baseApi } from '@/stores/req/helper'
+import { merge, formatPer } from '@/utils'
+import { hyperStatsApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TDiscoverRecommendStore } from '@/stores'
-
-import { formatPositionByItem, formatUPnlStatus, formatStatusClassName, timeToLocal } from '../utils'
 
 type DiscoverRecommendResult = {
   data: Record<string, any>,
@@ -19,53 +17,53 @@ export type TDiscoverRecommend = {
 export const discoverRecommend: TDiscoverRecommend = {
   async discoverRecommend(accountStore, discoverRecommendStore) {
     const result: DiscoverRecommendResult = { data: {}, error: true }
-    const { logged } = accountStore
 
     if (this.discoverRecommendBusy) return result
 
     this.discoverRecommendBusy = true
 
-    const res = await baseApi.get('/leaderboard/smart/recommend', {
-      params: {
-        lang: discoverRecommendStore.selectedLanguage,
-        pnlList: false,
-        period: 7
-      }
-    })
+    try {
+      const res = await hyperStatsApi.get('/Mainnet/leaderboard', {
+        params: { window: 'week' }
+      })
 
-    result.error = baseCheck(res, accountStore)
-    this.discoverRecommendBusy = false
+      const rows: any[] = res.data?.leaderboardRows || []
 
-    if (result.error) return result
+      const list = rows
+        .map((item: any) => {
+          const weekEntry = (item.windowPerformances || []).find(([w]: [string]) => w === 'week')
+          const weekPnl = weekEntry ? new BN(weekEntry[1]?.pnl || 0) : new BN(0)
+          const weekRoi = weekEntry ? parseFloat(weekEntry[1]?.roi || '0') : 0
 
-    // update
-    const { data } = res.data
+          return {
+            address: item.ethAddress,
+            perpValue: new BN(item.accountValue || 0).toFixed(constants.decimalPlaces.__COMMON__),
+            spotValue: '0',
+            winRate: formatPer(weekRoi),
+            accountTotalValue: new BN(item.accountValue || 0).toFixed(constants.decimalPlaces.__COMMON__),
+            marginUsed: '0',
+            marginUsedRatio: '0%',
+            note: item.displayName || '',
+            pnl: weekPnl.toFixed(constants.decimalPlaces.__uPnl__),
+            tags: [],
+            tradesCount: 0,
+            lastActionTs: '',
+            _weekPnl: weekPnl.toNumber(),
+          }
+        })
+        .sort((a, b) => b._weekPnl - a._weekPnl)
+        .slice(0, 100)
+        .map(({ _weekPnl, ...rest }) => rest)
 
-    result.data = {
-      list: (data || []).map((item: any, idx: number) => {
-        return {
-          address: item.address,
-          perpValue: new BN(item.perp).toFixed(constants.decimalPlaces.__COMMON__), // 永续合约价值
-          spotValue: new BN(item.spot).toFixed(constants.decimalPlaces.__COMMON__), // 现货价值
+      result.data = { list }
+      result.error = false
 
-          winRate: formatPer(item.winRate),
-          accountTotalValue: new BN(item.accountTotalValue || 0).toFixed(constants.decimalPlaces.__COMMON__),
-
-          marginUsed: new BN(item.marginUsage || 0).toFixed(constants.decimalPlaces.__COMMON__), // 
-          marginUsedRatio: formatPer(item.marginUsageRate || 0, true),
-
-          note: item.remark,
-          pnl: new BN(item.realizedPnL || 0).toFixed(constants.decimalPlaces.__uPnl__),
-          tags: item.labels,
-          tradesCount: item.tradesCount,
-          lastActionTs: item.lastOperationAt,
-          // "lastAssetSnapshotPosCount": 0,
-        }
-      }),
+      merge(discoverRecommendStore, result.data)
+    } catch {
+      result.error = true
+    } finally {
+      this.discoverRecommendBusy = false
     }
-
-    // update
-    merge(discoverRecommendStore, result.data)
 
     return result
   },
