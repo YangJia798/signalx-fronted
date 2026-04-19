@@ -179,7 +179,19 @@ const ModalCreateCopyTrading = () => {
     copyTradingStore.resetCopyTradingTarget()
     copyTradingStore.resetOpenPosition()
 
-    if (privateWalletStore.list.length > 0) {
+    // Pre-fill target address synchronously before any async ops
+    if (copyTradingStore.quickerOpenPositionTargetAddress) {
+      copyTradingStore.copyTradingSearchTargetAddress = copyTradingStore.quickerOpenPositionTargetAddress
+    }
+
+    // Load private wallets if not yet fetched
+    if (privateWalletStore.list.length === 0) {
+      reqStore.userPrivateWallet(accountStore, privateWalletStore).then(() => {
+        if (privateWalletStore.list.length > 0 && !copyTradingStore.openPositionWalletAddress) {
+          copyTradingStore.openPositionWalletAddress = privateWalletStore.list[0].address
+        }
+      })
+    } else {
       copyTradingStore.openPositionWalletAddress = privateWalletStore.list[0].address;
     }
 
