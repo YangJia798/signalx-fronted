@@ -86,12 +86,11 @@ const TraderDetails = () => {
   }
 
   const handleAutoRefresh = async () => {
-    // Update Tab Suffix
-    await handleHyperClearinghouseState()
-    // NOTE: 由 <TraderDetailsOpenOrdersAdditional> 维护挂单
-
-    await handlePortfolioKline()
-    await handleAccountSpotState()
+    // Critical data runs in parallel; portfolio loads separately (non-blocking)
+    await Promise.all([
+      handleHyperClearinghouseState(),
+      handleAccountSpotState(),
+    ])
   }
 
   const handleAccountSpotState = async () => {
@@ -120,14 +119,14 @@ const TraderDetails = () => {
     const asyncFunc = async () => {
       if (!(address && isAddress(address))) return
 
-      // update
       traderDetailsStore.address = address
 
-      // 目前只在初始时调整状态
       traderDetailsStore.busy = true
-      // 初始请求
       await handleAutoRefresh()
       traderDetailsStore.busy = false
+
+      // Load portfolio chart after page is visible (non-blocking)
+      handlePortfolioKline()
     }
 
     asyncFunc()

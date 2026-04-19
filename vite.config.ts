@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url'
 import mkcert from "vite-plugin-mkcert"
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import topLevelAwait from "vite-plugin-top-level-await";
+import viteCompression from 'vite-plugin-compression';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,6 +56,8 @@ export default defineConfig(({ mode }) => {
           }
         }
       }),
+      viteCompression({ algorithm: 'gzip', ext: '.gz' }),
+      viteCompression({ algorithm: 'brotliCompress', ext: '.br' }),
     ],
     resolve: {
       alias: {
@@ -91,6 +94,8 @@ export default defineConfig(({ mode }) => {
             'vendor-web3': ['wagmi', 'viem', '@rainbow-me/rainbowkit', '@okxconnect/ui'],
             'vendor-query': ['@tanstack/react-query'],
             'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+            'vendor-charts': ['lightweight-charts'],
+            'vendor-utils': ['bignumber.js', 'dayjs', 'axios'],
           }
         }
       }
