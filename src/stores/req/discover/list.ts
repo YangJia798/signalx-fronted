@@ -1,7 +1,7 @@
 import BN from 'bignumber.js'
 
 import { merge, formatPer } from '@/utils'
-import { hyperStatsApi } from '@/stores/req/helper'
+import { hyperbotApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TDiscoverStore } from '@/stores'
 
 import { formatUPnlStatus, formatStatusClassName } from '../utils'
@@ -23,6 +23,8 @@ const CYCLE_TO_WINDOW: Record<string, string> = {
   '0': 'allTime',
 }
 
+const SORT_ENDPOINTS = ['top-pnl', 'top-roi', 'top-vlm', 'top-account-value']
+
 // In-memory cache: window → { rows, ts }
 const _cache: Record<string, { rows: any[], ts: number }> = {}
 const CACHE_TTL = 5 * 60 * 1000
@@ -30,24 +32,41 @@ const CACHE_TTL = 5 * 60 * 1000
 async function fetchLeaderboard(window: string): Promise<any[]> {
   const cached = _cache[window]
   if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.rows
-  const res = await hyperStatsApi.get('/Mainnet/leaderboard', { params: { window } })
-  const rows: any[] = res.data?.leaderboardRows || []
+
+  const results = await Promise.all(
+    SORT_ENDPOINTS.map(ep =>
+      hyperbotApi.get(`/leaderboard/address/${ep}`, { params: { window, page: 1, pageSize: 10 } })
+        .then(r => r.data?.data || [])
+        .catch(() => [])
+    )
+  )
+
+  // Merge and deduplicate by ethAddress
+  const seen = new Set<string>()
+  const rows: any[] = []
+  for (const list of results) {
+    for (const item of list) {
+      if (!seen.has(item.ethAddress)) {
+        seen.add(item.ethAddress)
+        rows.push(item)
+      }
+    }
+  }
+
   _cache[window] = { rows, ts: Date.now() }
   return rows
 }
 
-function mapRow(item: any, window: string, rank: number) {
-  const perf: Record<string, any> = Object.fromEntries(item.windowPerformances || [])
-  const w = perf[window] || {}
-  const bnPnl = new BN(w.pnl || 0)
-  const roi = parseFloat(w.roi || '0')
-  const pnlStatus = formatUPnlStatus(bnPnl)
+function mapRow(item: any, rank: number) {
+  const pnl = new BN(item.pnl || 0)
+  const roi = parseFloat(item.roi || 0)
+  const pnlStatus = formatUPnlStatus(pnl)
   const { decimalPlaces } = constants
 
   return {
     address: item.ethAddress,
     winRate: formatPer(roi),
-    pnl: bnPnl.toFixed(decimalPlaces.__uPnl__),
+    pnl: pnl.toFixed(decimalPlaces.__uPnl__),
     pnlStatus,
     pnlStatusClassname: formatStatusClassName(pnlStatus),
     longWinRate: '0',
@@ -72,10 +91,10 @@ function mapRow(item: any, window: string, rank: number) {
     rank,
     pnlList: [],
     note: item.displayName || '',
-    // raw values used for sorting after mapping
     _roi: roi,
-    _pnlNum: bnPnl.toNumber(),
+    _pnlNum: pnl.toNumber(),
     _accountValue: parseFloat(item.accountValue || '0'),
+    _vlm: parseFloat(item.vlm || '0'),
   }
 }
 
@@ -84,10 +103,11 @@ const SORT_FN: Record<string, (a: any, b: any) => number> = {
   roi:               (a, b) => b._roi - a._roi,
   winRate:           (a, b) => b._roi - a._roi,
   accountTotalValue: (a, b) => b._accountValue - a._accountValue,
+  vlm:               (a, b) => b._vlm - a._vlm,
 }
 
 export const discoverList: TDiscoverList = {
-  async discoverList(accountStore, discoverStore) {
+  async discoverList(_accountStore, discoverStore) {
     const result: DiscoverListResult = { data: {}, error: true }
 
     if (this.discoverListBusy) return result
@@ -104,7 +124,7 @@ export const discoverList: TDiscoverList = {
         : rows
 
       // Map
-      const mapped = filtered.map((item: any, idx: number) => mapRow(item, window, idx + 1))
+      const mapped = filtered.map((item: any, idx: number) => mapRow(item, idx + 1))
 
       // Sort
       const sortFn = SORT_FN[discoverStore.sortByKey]
@@ -116,7 +136,7 @@ export const discoverList: TDiscoverList = {
       // Paginate
       const size = discoverStore.size
       const start = (discoverStore.current - 1) * size
-      const page = mapped.slice(start, start + size).map(({ _roi, _pnlNum, _accountValue, ...rest }) => rest)
+      const page = mapped.slice(start, start + size).map(({ _roi, _pnlNum, _accountValue, _vlm, ...rest }) => rest)
 
       result.data = {
         last: page,

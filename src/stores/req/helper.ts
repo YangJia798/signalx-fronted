@@ -68,13 +68,21 @@ const hyperStatsApi = axios.create({
   },
 })
 
+const hyperbotApi = axios.create({
+  baseURL: 'https://hyperbot.network/api',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+})
+
 export {
   baseCheck,
   baseURL,
   baseApi,
   hyperApi,
   asterApi,
-  hyperStatsApi
+  hyperStatsApi,
+  hyperbotApi
 }
 
 

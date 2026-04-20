@@ -1,7 +1,7 @@
 import BN from 'bignumber.js'
 
 import { merge, formatPer } from '@/utils'
-import { hyperStatsApi } from '@/stores/req/helper'
+import { hyperbotApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TDiscoverRecommendStore } from '@/stores'
 
 type DiscoverRecommendResult = {
@@ -15,49 +15,40 @@ export type TDiscoverRecommend = {
 }
 
 export const discoverRecommend: TDiscoverRecommend = {
-  async discoverRecommend(accountStore, discoverRecommendStore) {
+  async discoverRecommend(_accountStore, discoverRecommendStore) {
     const result: DiscoverRecommendResult = { data: {}, error: true }
 
     if (this.discoverRecommendBusy) return result
-
     this.discoverRecommendBusy = true
 
     try {
-      const res = await hyperStatsApi.get('/Mainnet/leaderboard', {
-        params: { window: 'week' }
+      const res = await hyperbotApi.get('/leaderboard/address/top-pnl', {
+        params: { window: 'week', page: 1, pageSize: 10 }
       })
 
-      const rows: any[] = res.data?.leaderboardRows || []
+      const rows: any[] = res.data?.data || []
 
-      const list = rows
-        .map((item: any) => {
-          const weekEntry = (item.windowPerformances || []).find(([w]: [string]) => w === 'week')
-          const weekPnl = weekEntry ? new BN(weekEntry[1]?.pnl || 0) : new BN(0)
-          const weekRoi = weekEntry ? parseFloat(weekEntry[1]?.roi || '0') : 0
-
-          return {
-            address: item.ethAddress,
-            perpValue: new BN(item.accountValue || 0).toFixed(constants.decimalPlaces.__COMMON__),
-            spotValue: '0',
-            winRate: formatPer(weekRoi),
-            accountTotalValue: new BN(item.accountValue || 0).toFixed(constants.decimalPlaces.__COMMON__),
-            marginUsed: '0',
-            marginUsedRatio: '0%',
-            note: item.displayName || '',
-            pnl: weekPnl.toFixed(constants.decimalPlaces.__uPnl__),
-            tags: [],
-            tradesCount: 0,
-            lastActionTs: '',
-            _weekPnl: weekPnl.toNumber(),
-          }
-        })
-        .sort((a, b) => b._weekPnl - a._weekPnl)
-        .slice(0, 100)
-        .map(({ _weekPnl, ...rest }) => rest)
+      const list = rows.map((item: any) => {
+        const pnl = new BN(item.pnl || 0)
+        const roi = parseFloat(item.roi || 0)
+        return {
+          address: item.ethAddress,
+          perpValue: new BN(item.accountValue || 0).toFixed(constants.decimalPlaces.__COMMON__),
+          spotValue: '0',
+          winRate: formatPer(roi),
+          accountTotalValue: new BN(item.accountValue || 0).toFixed(constants.decimalPlaces.__COMMON__),
+          marginUsed: '0',
+          marginUsedRatio: '0%',
+          note: item.displayName || '',
+          pnl: pnl.toFixed(constants.decimalPlaces.__uPnl__),
+          tags: [],
+          tradesCount: 0,
+          lastActionTs: '',
+        }
+      })
 
       result.data = { list }
       result.error = false
-
       merge(discoverRecommendStore, result.data)
     } catch {
       result.error = true
