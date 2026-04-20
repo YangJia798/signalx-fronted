@@ -16,6 +16,7 @@ export type TDiscoverList = {
   discoverListBusy: boolean
 }
 
+// Our cycle value → hyperbot window
 const CYCLE_TO_WINDOW: Record<string, string> = {
   '1': 'day',
   '7': 'week',
@@ -23,45 +24,47 @@ const CYCLE_TO_WINDOW: Record<string, string> = {
   '0': 'allTime',
 }
 
-const SORT_ENDPOINTS = ['top-pnl', 'top-roi', 'top-vlm', 'top-account-value']
+// Our sortByKey → hyperbot endpoint
+const SORT_TO_ENDPOINT: Record<string, string> = {
+  pnl:               '/leaderboard/address/top-pnl',
+  roi:               '/leaderboard/address/top-roi',
+  winRate:           '/leaderboard/address/top-roi',
+  vlm:               '/leaderboard/address/top-vlm',
+  accountTotalValue: '/leaderboard/address/top-account-value',
+}
+const DEFAULT_ENDPOINT = '/leaderboard/address/top-pnl'
 
-// In-memory cache: window → { rows, ts }
+// Cache: `${window}:${endpoint}` → { rows, ts }
 const _cache: Record<string, { rows: any[], ts: number }> = {}
 const CACHE_TTL = 5 * 60 * 1000
+const TAKE = 100
 
-async function fetchLeaderboard(window: string): Promise<any[]> {
-  const cached = _cache[window]
+async function fetchLeaderboard(window: string, endpoint: string): Promise<any[]> {
+  const key = `${window}:${endpoint}`
+  const cached = _cache[key]
   if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.rows
 
-  const results = await Promise.all(
-    SORT_ENDPOINTS.map(ep =>
-      hyperbotApi.get(`/leaderboard/address/${ep}`, { params: { window, page: 1, pageSize: 10 } })
-        .then(r => r.data?.data || [])
-        .catch(() => [])
-    )
-  )
-
-  // Merge and deduplicate by ethAddress
-  const seen = new Set<string>()
-  const rows: any[] = []
-  for (const list of results) {
-    for (const item of list) {
-      if (!seen.has(item.ethAddress)) {
-        seen.add(item.ethAddress)
-        rows.push(item)
-      }
-    }
-  }
-
-  _cache[window] = { rows, ts: Date.now() }
+  const res = await hyperbotApi.get(endpoint, { params: { window, take: TAKE } })
+  const rows: any[] = res.data?.data || []
+  _cache[key] = { rows, ts: Date.now() }
   return rows
 }
 
-function mapRow(item: any, rank: number) {
-  const pnl = new BN(item.pnl || 0)
-  const roi = parseFloat(item.roi || 0)
-  const pnlStatus = formatUPnlStatus(pnl)
+function mapRow(item: any, window: string, rank: number) {
   const { decimalPlaces } = constants
+
+  // top-account-value has nested windowPerformances; others have flat pnl/roi
+  let pnlRaw = item.pnl
+  let roiRaw = item.roi
+  if (item.windowPerformances) {
+    const perf = item.windowPerformances.find((p: any) => p.window === window)?.performance || {}
+    pnlRaw = perf.pnl
+    roiRaw = perf.roi
+  }
+
+  const pnl = new BN(pnlRaw ?? 0)
+  const roi = parseFloat(roiRaw ?? 0)
+  const pnlStatus = formatUPnlStatus(pnl)
 
   return {
     address: item.ethAddress,
@@ -91,19 +94,11 @@ function mapRow(item: any, rank: number) {
     rank,
     pnlList: [],
     note: item.displayName || '',
-    _roi: roi,
     _pnlNum: pnl.toNumber(),
+    _roi: roi,
     _accountValue: parseFloat(item.accountValue || '0'),
     _vlm: parseFloat(item.vlm || '0'),
   }
-}
-
-const SORT_FN: Record<string, (a: any, b: any) => number> = {
-  pnl:               (a, b) => b._pnlNum - a._pnlNum,
-  roi:               (a, b) => b._roi - a._roi,
-  winRate:           (a, b) => b._roi - a._roi,
-  accountTotalValue: (a, b) => b._accountValue - a._accountValue,
-  vlm:               (a, b) => b._vlm - a._vlm,
 }
 
 export const discoverList: TDiscoverList = {
@@ -115,7 +110,8 @@ export const discoverList: TDiscoverList = {
 
     try {
       const window = CYCLE_TO_WINDOW[discoverStore.selectedCycleValue] || 'week'
-      const rows = await fetchLeaderboard(window)
+      const endpoint = SORT_TO_ENDPOINT[discoverStore.sortByKey] || DEFAULT_ENDPOINT
+      const rows = await fetchLeaderboard(window, endpoint)
 
       // Address search filter
       const search = (discoverStore.searchAddress || '').toLowerCase().trim()
@@ -123,20 +119,12 @@ export const discoverList: TDiscoverList = {
         ? rows.filter((r: any) => (r.ethAddress || '').toLowerCase().includes(search))
         : rows
 
-      // Map
-      const mapped = filtered.map((item: any, idx: number) => mapRow(item, idx + 1))
-
-      // Sort
-      const sortFn = SORT_FN[discoverStore.sortByKey]
-      if (sortFn) mapped.sort(sortFn)
-
-      // Re-assign rank after sort
-      mapped.forEach((item, idx) => { item.rank = idx + 1 })
+      const mapped = filtered.map((item: any, idx: number) => mapRow(item, window, idx + 1))
 
       // Paginate
       const size = discoverStore.size
       const start = (discoverStore.current - 1) * size
-      const page = mapped.slice(start, start + size).map(({ _roi, _pnlNum, _accountValue, _vlm, ...rest }) => rest)
+      const page = mapped.slice(start, start + size).map(({ _pnlNum, _roi, _accountValue, _vlm, ...rest }) => rest)
 
       result.data = {
         last: page,

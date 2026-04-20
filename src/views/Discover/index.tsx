@@ -153,9 +153,17 @@ const Discover = () => {
                           <div className="d-flex align-items-center gap-2">
                             <span className="font-size-12" style={{ color: '#808080' }}>排序</span>
                             <DropdownMenu
-                              items={[{ label: '总盈亏', value: 'pnl' }, { label: '胜率', value: 'winrate' }, { label: '总资产', value: 'assets' }]}
-                              selectedValue={'pnl'}
-                              onSelect={() => { }}
+                              items={[
+                                { label: '总盈亏', value: 'pnl' },
+                                { label: '收益率', value: 'roi' },
+                                { label: '交易量', value: 'vlm' },
+                                { label: '总资产', value: 'accountTotalValue' },
+                              ]}
+                              selectedValue={discoverStore.sortByKey}
+                              onSelect={async (value: string) => {
+                                discoverStore.sortByKey = value
+                                await handleUpdateList(true)
+                              }}
                             />
                           </div>
                           

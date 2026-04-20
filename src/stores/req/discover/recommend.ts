@@ -22,13 +22,22 @@ export const discoverRecommend: TDiscoverRecommend = {
     this.discoverRecommendBusy = true
 
     try {
-      const res = await hyperbotApi.get('/leaderboard/address/top-pnl', {
-        params: { window: 'week', page: 1, pageSize: 10 }
-      })
+      // Parallel fetch top-pnl and top-roi for week, deduplicate, take top 12
+      const [pnlRes, roiRes] = await Promise.all([
+        hyperbotApi.get('/leaderboard/address/top-pnl', { params: { window: 'week', take: 10 } }),
+        hyperbotApi.get('/leaderboard/address/top-roi', { params: { window: 'week', take: 10 } }),
+      ])
 
-      const rows: any[] = res.data?.data || []
+      const seen = new Set<string>()
+      const combined: any[] = []
+      for (const item of [...(pnlRes.data?.data || []), ...(roiRes.data?.data || [])]) {
+        if (!seen.has(item.ethAddress)) {
+          seen.add(item.ethAddress)
+          combined.push(item)
+        }
+      }
 
-      const list = rows.map((item: any) => {
+      const list = combined.slice(0, 12).map((item: any) => {
         const pnl = new BN(item.pnl || 0)
         const roi = parseFloat(item.roi || 0)
         return {
