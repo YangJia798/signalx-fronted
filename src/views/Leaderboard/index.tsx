@@ -106,7 +106,7 @@ const Leaderboard = () => {
           <span className='d-flex gap-3 align-items-center justify-content-end'>
             {
               [
-                { icon: <IOutlineMonitor className='zoom-85' />, title: t('common.tradingStatistics'), onClick: () => navigate(`/trader/${item.address}`) },
+                { icon: <IOutlineMonitor className='zoom-85' />, title: t('common.tradingStatistics'), onClick: () => handleOpenTradingStatistics(item) },
                 { icon: <IOutlineChart2 className='zoom-85' />, title: t('common.trackAddress'), logged: true, onClick: () => handleOpenCreateTrackAddress(item) },
                 { icon: <IOutlineShare className='zoom-85' />, title: t('common.copyTrading'), logged: true, onClick: () => handleOpenQuickerCreateCopyTrade(item) },
               ].map((item, idx) => (
