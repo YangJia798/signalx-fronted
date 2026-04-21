@@ -15,6 +15,15 @@ declare global {
   }
 }
 
+// Suppress known antd internal findDOMNode deprecation warning (antd DomWrapper class component)
+if (import.meta.env.DEV) {
+  const _consoleError = console.error.bind(console)
+  console.error = (...args: any[]) => {
+    if (typeof args[0] === 'string' && args[0].includes('findDOMNode')) return
+    _consoleError(...args)
+  }
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   // <React.StrictMode>
     <App />
