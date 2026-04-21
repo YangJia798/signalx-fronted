@@ -22,25 +22,25 @@ export const discoverRecommend: TDiscoverRecommend = {
     this.discoverRecommendBusy = true
 
     try {
-      // Parallel fetch top-pnl and top-roi for week, deduplicate, take top 12
-      const [pnlRes, roiRes] = await Promise.all([
-        hyperbotApi.get('/leaderboard/address/top-pnl', { params: { window: 'week', take: 10 } }),
-        hyperbotApi.get('/leaderboard/address/top-roi', { params: { window: 'week', take: 10 } }),
+      // Fetch a larger pool (30) so we can filter by active positions
+      const [pnlRes, roiRes, vlmRes] = await Promise.all([
+        hyperbotApi.get('/leaderboard/address/top-pnl', { params: { window: 'week', take: 15 } }),
+        hyperbotApi.get('/leaderboard/address/top-roi', { params: { window: 'week', take: 15 } }),
+        hyperbotApi.get('/leaderboard/address/top-vlm', { params: { window: 'week', take: 15 } }),
       ])
 
       const seen = new Set<string>()
       const combined: any[] = []
-      for (const item of [...(pnlRes.data?.data || []), ...(roiRes.data?.data || [])]) {
+      for (const item of [...(pnlRes.data?.data || []), ...(roiRes.data?.data || []), ...(vlmRes.data?.data || [])]) {
         if (!seen.has(item.ethAddress)) {
           seen.add(item.ethAddress)
           combined.push(item)
         }
       }
 
-      const candidates = combined.slice(0, 12)
-
+      // Parallel position count for all candidates
       const positionCounts = await Promise.all(
-        candidates.map(item =>
+        combined.map(item =>
           hyperApi.post('/info', { type: 'clearinghouseState', user: item.ethAddress })
             .then(r => {
               const positions: any[] = r.data?.assetPositions || []
@@ -50,7 +50,13 @@ export const discoverRecommend: TDiscoverRecommend = {
         )
       )
 
-      const list = candidates.map((item: any, i: number) => {
+      // Sort by position count descending, then take top 12
+      const sorted = combined
+        .map((item, i) => ({ item, positions: positionCounts[i] }))
+        .sort((a, b) => b.positions - a.positions)
+        .slice(0, 12)
+
+      const list = sorted.map(({ item, positions }) => {
         const pnl = new BN(item.pnl || 0)
         const roi = parseFloat(item.roi || 0)
         return {
@@ -63,7 +69,7 @@ export const discoverRecommend: TDiscoverRecommend = {
           marginUsedRatio: '0%',
           note: item.displayName || '',
           pnl: pnl.toFixed(constants.decimalPlaces.__uPnl__),
-          totalPositions: positionCounts[i],
+          totalPositions: positions,
           tags: [],
           tradesCount: 0,
           lastActionTs: '',
