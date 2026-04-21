@@ -47,7 +47,7 @@ const Home = () => {
   const handleSearchByAddress = async () => {
     const address = discoverStore.searchAddressInput
 
-    if (!isAddress(address)) {
+    if (!isAddress(address, { strict: false })) {
       message.error(t('message.pleaseInputAddress'))
       return
     }
