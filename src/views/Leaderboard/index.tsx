@@ -24,6 +24,7 @@ const Leaderboard = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [memberModalOpen, setMemberModalOpen] = useState(false)
+  const [filterAccountValue, setFilterAccountValue] = useState('')
 
   const MemberBadge = () => (
     <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}>
@@ -348,10 +349,12 @@ const Leaderboard = () => {
                     <div className="d-flex flex-column gap-2">
                       <span className="font-size-12" style={{ color: '#808080' }}>账户总价值</span>
                       <div className="d-flex flex-wrap gap-4">
-                        {['小资金', '中等资金', '巨鲸'].map(label => (
-                          <label key={label} className="d-flex align-items-center gap-2 cursor-pointer font-size-12 transition-2 hover-color-primary" style={{ color: '#808080' }}>
-                            <input type="checkbox" className="premium-checkbox" /> {label}
-                          </label>
+                        {[{ label: '小资金', value: 'small' }, { label: '中等资金', value: 'medium' }, { label: '巨鲸', value: 'whale' }].map(item => (
+                          <div key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12 transition-2"
+                            style={{ color: filterAccountValue === item.value ? '#13C2C2' : '#808080' }}
+                            onClick={() => setFilterAccountValue(filterAccountValue === item.value ? '' : item.value)}>
+                            <input type="checkbox" className="premium-checkbox" readOnly checked={filterAccountValue === item.value} style={{ pointerEvents: 'none' }} /> {item.label}
+                          </div>
                         ))}
                       </div>
                     </div>
