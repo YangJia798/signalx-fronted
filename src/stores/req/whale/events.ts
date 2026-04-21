@@ -1,10 +1,10 @@
 import BN from 'bignumber.js'
 
-import { merge, defaults } from '@/utils'
-import { baseCheck, baseApi } from '@/stores/req/helper'
+import { merge } from '@/utils'
+import { officialHyperbotApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TWhaleEventsStore } from '@/stores'
 
-import { formatPositionByItem } from '../utils'
+import { formatUPnlStatus, formatStatusClassName } from '../utils'
 
 type WhaleEventsResult = {
   data: Record<string, any>,
@@ -17,52 +17,53 @@ export type TWhaleEvents = {
 }
 
 export const whaleEvents: TWhaleEvents = {
-  async whaleEvents(accountStore, whaleEventsStore) {
+  async whaleEvents(_accountStore, whaleEventsStore) {
     const result: WhaleEventsResult = { data: {}, error: true }
-    const { logged } = accountStore
 
     if (this.whaleEventsBusy) return result
-
     this.whaleEventsBusy = true
 
-    const res = await baseApi.get('/whales/latest-events', {
-      params: {
-        take: whaleEventsStore.pageSize,
-      }
-    })
-
-    result.error = baseCheck(res, accountStore)
-    this.whaleEventsBusy = false
-
-    if (result.error) return result
-
-    // update
-    const { data } = res.data
-
-    result.data = {
-      list: (data || []).map((item: any, idx: number) => {
-        const bnSize = new BN(item.positionSize)
-        const action = item.positionAction // 1：开仓；2：平仓
-        return {
-          id: item.id,
-          coin: item.symbol,
-          address: item.user,
-          liquidationPrice: new BN(item.liqPrice).toString(), // 爆仓价格
-          type: item.marginMode, // cross
-          action,
-          direction: bnSize.gt(0) ? 'long' : 'short',
-          isPositionOpened: action === 1,
-          isPositionClosed: action === 2,
-          size: bnSize.toString(), // 正数为long，负数为short
-          positionValue: new BN(item.positionValueUsd).toFixed(constants.decimalPlaces.__COMMON__), // 仓位价值
-          openPrice: new BN(item.entryPrice).toString(), // 开仓价格
-          createTs: new Date(item.createTime + 'Z').getTime()
-        }
+    try {
+      const res = await officialHyperbotApi.get('/whales/latest-events', {
+        params: { take: whaleEventsStore.pageSize },
       })
-    }
 
-    // update
-    merge(whaleEventsStore, result.data)
+      if (res.data?.code !== 0) throw new Error(res.data?.msg)
+
+      const rows = res.data.data || []
+      result.data = {
+        list: rows.map((item: any, idx: number) => {
+          const bnSize = new BN(item.positionSize ?? 0)
+          const action = item.positionAction
+          const bnPnl = new BN(0)
+          return {
+            id: item.id ?? idx,
+            coin: item.symbol,
+            address: item.user,
+            liquidationPrice: new BN(item.liqPrice ?? 0).toString(),
+            type: item.marginMode,
+            action,
+            direction: bnSize.gt(0) ? 'long' : 'short',
+            isPositionOpened: action === 1,
+            isPositionClosed: action === 2,
+            size: bnSize.toString(),
+            positionValue: new BN(item.positionValueUsd ?? 0).toFixed(constants.decimalPlaces.__COMMON__),
+            openPrice: new BN(item.entryPrice ?? 0).toString(),
+            uPnlStatus: formatUPnlStatus(bnPnl),
+            uPnlStatusClassName: formatStatusClassName(formatUPnlStatus(bnPnl)),
+            createTs: typeof item.createTime === 'string'
+              ? new Date(item.createTime + (item.createTime.endsWith('Z') ? '' : 'Z')).getTime()
+              : item.createTime,
+          }
+        }),
+      }
+      result.error = false
+      merge(whaleEventsStore, result.data)
+    } catch {
+      result.error = true
+    } finally {
+      this.whaleEventsBusy = false
+    }
 
     return result
   },
