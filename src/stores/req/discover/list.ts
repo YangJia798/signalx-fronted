@@ -47,15 +47,17 @@ async function fetchLeaderboard(window: string, endpoint: string): Promise<{ row
   return { rows, total }
 }
 
-async function fetchPortfolioStats(address: string): Promise<{ pnlList: any[], sharpe: string, maxDrawdown: string }> {
+async function fetchPortfolioStats(address: string, window: string): Promise<{ pnlList: any[], sharpe: string, maxDrawdown: string }> {
   try {
     const res = await hyperApi.post('/info', { type: 'portfolio', user: address })
     const data: any[] = res.data || []
 
-    const weekEntry = data.find((item: any) => item[0] === 'week')
-    if (!weekEntry) return { pnlList: [], sharpe: '0.00', maxDrawdown: '0.00' }
+    const targetWindow = window === 'allTime' ? 'month' : window
+    const entry = data.find((item: any) => item[0] === targetWindow)
+      || data.find((item: any) => item[0] === 'week')
+    if (!entry) return { pnlList: [], sharpe: '0.00', maxDrawdown: '0.00' }
 
-    const { accountValueHistory = [], pnlHistory = [] } = weekEntry[1]
+    const { accountValueHistory = [], pnlHistory = [] } = entry[1]
 
     const pnlList = pnlHistory.map((item: any) => ({
       time: Math.floor(item[0] / 1000),
@@ -231,7 +233,17 @@ export const discoverList: TDiscoverList = {
         ? rows.filter((r: any) => (r.ethAddress || '').toLowerCase().includes(search))
         : rows
 
-      const mapped = filtered.map((item: any, idx: number) => mapRow(item, window, idx + 1))
+      const allMapped = filtered.map((item: any, idx: number) => mapRow(item, window, idx + 1))
+
+      // Apply free-tier client-side filters
+      const { filterAccountValue } = discoverStore
+      const mapped = filterAccountValue.length > 0
+        ? allMapped.filter(item => filterAccountValue.some((f: string) =>
+            f === 'small'  ? item._accountValue < 100_000 :
+            f === 'medium' ? item._accountValue >= 100_000 && item._accountValue < 1_000_000 :
+            f === 'whale'  ? item._accountValue >= 1_000_000 : false
+          ))
+        : allMapped
 
       const size = discoverStore.size
       const start = (discoverStore.current - 1) * size
@@ -249,7 +261,7 @@ export const discoverList: TDiscoverList = {
               .catch(() => 0)
           )
         ),
-        Promise.all(pageRaw.map(item => fetchPortfolioStats(item.address))),
+        Promise.all(pageRaw.map(item => fetchPortfolioStats(item.address, window))),
         Promise.all(pageRaw.map(item => fetchFillStats(item.address, discoverStore.selectedCycleValue))),
       ])
 
