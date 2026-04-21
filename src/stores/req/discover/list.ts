@@ -34,7 +34,7 @@ const DEFAULT_ENDPOINT = '/leaderboard/address/top-pnl'
 
 const _cache: Record<string, { rows: any[], total: number, ts: number }> = {}
 const CACHE_TTL = 5 * 60 * 1000
-const TAKE = 500
+const TAKE = 99999
 
 async function fetchLeaderboard(window: string, endpoint: string): Promise<{ rows: any[], total: number }> {
   const key = `${window}:${endpoint}`
