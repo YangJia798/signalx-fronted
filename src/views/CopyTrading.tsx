@@ -424,8 +424,8 @@ const CopyTrading = () => {
                 value={currentAddress || undefined}
                 onChange={setSelectedAddress}
                 style={{ minWidth: 260 }}
-                dropdownStyle={{ background: '#1a1a2e' }}
-                bordered={false}
+                styles={{ popup: { root: { background: '#1a1a2e' } } }}
+                variant="borderless"
                 className="bg-gray-alpha-4 br-4"
                 optionLabelProp="label"
               >

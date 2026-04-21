@@ -269,9 +269,9 @@ const ModalCreateCopyTrading = () => {
                 value={copyTradingStore.openPositionWalletAddress}
                 onChange={(val) => copyTradingStore.openPositionWalletAddress = val}
                 className='w-100 font-size-15 SelectWalletDropdown'
-                dropdownStyle={{ backgroundColor: '#1e1e1e', border: '1px solid rgba(255,255,255,0.1)' }}
+                styles={{ popup: { root: { backgroundColor: '#1e1e1e', border: '1px solid rgba(255,255,255,0.1)' } } }}
                 style={{ height: '48px', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '8px' }}
-                bordered={false}
+                variant="borderless"
                 options={privateWalletStore.list.map((item) => ({
                   value: item.address,
                   label: (
