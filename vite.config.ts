@@ -57,6 +57,8 @@ export default defineConfig(async ({ mode, command }) => {
   return {
     server: {
       host: '0.0.0.0',
+      port: 3000,
+      strictPort: true,
       proxy: {
         '/api': {
           target: 'http://43.106.1.190:8001',
