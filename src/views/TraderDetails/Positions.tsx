@@ -13,7 +13,7 @@ import HyperAutoUpdatePerpMetaAndMarket from '@/components/Hyper/AutoUpdatePerpM
 import ModalTPSL from '@/components/Modal/TPSL'
 import ModalClosePosition from '@/components/Modal/ClosePosition'
 
-const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, className = '' }) => {
+const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, className = '', isOwnWallet = false }) => {
   const traderDetailsPositionsStore = useTraderDetailsPositionsStore()
   const reqStore = useReqStore()
   const tradeStore = useTradeStore()
@@ -30,8 +30,10 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
     { id: 'liquidationPrice', sort: true, sortByKey: 'liquidationPrice', label: t('common.liquidationPrice'), className: 'justify-content-end text-end col text-nowrap' },
     { id: 'margin', sort: true, sortByKey: 'marginUsed', label: t('common.margin'), className: 'justify-content-end text-end col' },
     { id: 'funding', sort: true, sortByKey: 'funding', label: t('common.fundingFee', '资金费用'), className: 'justify-content-end text-end col text-nowrap' },
-    { id: 'tpSl', label: t('common.tpSl', '止盈/止损'), className: 'justify-content-end text-end col text-nowrap' },
-    { id: 'closePosition', label: t('common.closePosition', '平仓'), className: 'justify-content-end text-end col-2 text-nowrap' },
+    ...(isOwnWallet ? [
+      { id: 'tpSl', label: t('common.tpSl', '止盈/止损'), className: 'justify-content-end text-end col text-nowrap' },
+      { id: 'closePosition', label: t('common.closePosition', '平仓'), className: 'justify-content-end text-end col-2 text-nowrap' },
+    ] : []),
   ]
 
   const renderPositionItem = (item, columnIndex) => {

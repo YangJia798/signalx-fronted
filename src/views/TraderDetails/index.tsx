@@ -50,10 +50,15 @@ const TraderDetails = () => {
   const copyTradingStore = useCopyTradingStore()
   const hyperStore = useHyperStore()
   const traderDetailsPortfolioKlineStore = useTraderDetailsPortfolioKlineStore()
+  const privateWalletStore = usePrivateWalletStore()
 
   const { sendMessage, lastMessage, readyState } = useHyperWSContext()
   const { t, i18n } = useTranslation()
   const { address } = useParams()
+
+  const isOwnWallet = !!address && privateWalletStore.addresses.some(
+    (a: string) => a.toLowerCase() === address.toLowerCase()
+  )
 
   const handleOpenTradingStatistics = (item) => {
     discoverTradingStatisticsStore.address = item.address
@@ -351,7 +356,7 @@ const TraderDetails = () => {
               onClick={(item) => traderDetailsStore.tabId = item.id} />
             {
               traderDetailsStore.tabId === 'positions' &&
-                <TraderDetailsPositions unReset unUpdate={traderDetailsStore.isAutoRefreshing} address={traderDetailsStore.address} />
+                <TraderDetailsPositions unReset unUpdate={traderDetailsStore.isAutoRefreshing} address={traderDetailsStore.address} isOwnWallet={isOwnWallet} />
             }
             <TraderDetailsOpenOrdersAdditional
               autoRefreshing={traderDetailsStore.isAutoRefreshing}
