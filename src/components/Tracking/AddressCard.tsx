@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next'
+import BN from 'bignumber.js'
+import { formatNumber } from '@/utils'
 
 import { IOutlineChart2, IOutlineMonitor, IOutlineShare } from '@/components/icon'
 import { useDiscoverTradingStatisticsStore, useCopyTradingStore, useTrackingCreateStore } from '@/stores'
@@ -199,10 +201,10 @@ const TrackingAddressCard = ({ item, variant = 'grid' }: { item: TTradersItem, v
           <div className="col-lg-2 col-md-4 border-start border-white-5">
             <div className="d-flex flex-column gap-1">
               <span className="opacity-60 font-size-11">胜率</span>
-              <span className="fw-bold font-size-18">{item.winRate || '0'} %</span>
+              <span className="fw-bold font-size-18">{item.winRate || '0'}%</span>
               <div className="d-flex flex-column gap-1 mt-1 opacity-80">
-                <div className="d-flex justify-content-between"><small className="font-size-10">做多</small><small className="font-size-10">{item.longWinRate || '0'} %</small></div>
-                <div className="d-flex justify-content-between"><small className="font-size-10">做空</small><small className="font-size-10">{item.shortWinRate || '0'} %</small></div>
+                <div className="d-flex justify-content-between"><small className="font-size-10">做多</small><small className="font-size-10">{item.longWinRate || '0'}%</small></div>
+                <div className="d-flex justify-content-between"><small className="font-size-10">做空</small><small className="font-size-10">{item.shortWinRate || '0'}%</small></div>
               </div>
             </div>
           </div>
@@ -210,23 +212,30 @@ const TrackingAddressCard = ({ item, variant = 'grid' }: { item: TTradersItem, v
           <div className="col-lg-2 col-md-4 border-start border-white-5">
             <div className="d-flex flex-column gap-1">
               <span className="opacity-60 font-size-11">账户总价值</span>
-              <span className="fw-bold font-size-18">$ {item.accountTotalValue || '0.00'}</span>
+              <span className="fw-bold font-size-18">$ {formatNumber(item.accountTotalValue || '0.00')}</span>
               <div className="d-flex flex-column gap-1 mt-1 opacity-80">
-                <div className="d-flex justify-content-between"><small className="font-size-10">永续合约</small><small className="font-size-10">$ {item.perpValue || '0.00'}</small></div>
-                <div className="d-flex justify-content-between"><small className="font-size-10">现货</small><small className="font-size-10">$ {item.spotValue || '0.00'}</small></div>
+                <div className="d-flex justify-content-between"><small className="font-size-10">永续合约</small><small className="font-size-10">$ {formatNumber(item.perpValue || '0.00')}</small></div>
+                <div className="d-flex justify-content-between"><small className="font-size-10">现货</small><small className="font-size-10">$ {formatNumber(item.spotValue || '0.00')}</small></div>
               </div>
             </div>
           </div>
 
           <div className="col-lg-2 col-md-4 border-start border-white-5">
-            <div className="d-flex flex-column gap-1">
-              <span className="opacity-60 font-size-11">净盈亏</span>
-              <PositionItemCommonPnl value={item.pnl || 0} className="fw-bold font-size-18" />
-              <div className="d-flex flex-column gap-1 mt-1 opacity-80">
-                <div className="d-flex justify-content-between"><small className="font-size-10">做多</small><PositionItemCommonPnl value={item.longPnl || 0} className="font-size-10" /></div>
-                <div className="d-flex justify-content-between"><small className="font-size-10">做空</small><PositionItemCommonPnl value={item.shortPnl || 0} className="font-size-10" /></div>
-              </div>
-            </div>
+            {(() => {
+              const lp = parseFloat(String(item.longPnl || 0))
+              const sp = parseFloat(String(item.shortPnl || 0))
+              const netPnl = (lp !== 0 || sp !== 0) ? new BN(lp).plus(sp).toFixed(2) : item.pnl
+              return (
+                <div className="d-flex flex-column gap-1">
+                  <span className="opacity-60 font-size-11">净盈亏</span>
+                  <PositionItemCommonPnl value={netPnl || 0} className="fw-bold font-size-18" />
+                  <div className="d-flex flex-column gap-1 mt-1 opacity-80">
+                    <div className="d-flex justify-content-between"><small className="font-size-10">做多</small><PositionItemCommonPnl value={item.longPnl || 0} className="font-size-10" /></div>
+                    <div className="d-flex justify-content-between"><small className="font-size-10">做空</small><PositionItemCommonPnl value={item.shortPnl || 0} className="font-size-10" /></div>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
 
           <div className="col-lg-4 col-md-12 d-flex flex-column align-items-end">

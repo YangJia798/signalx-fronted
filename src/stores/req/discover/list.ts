@@ -184,7 +184,7 @@ function mapRow(item: any, window: string, rank: number) {
 
   return {
     address: item.ethAddress,
-    winRate: formatPer(roi),
+    winRate: '0',
     pnl: pnl.toFixed(decimalPlaces.__uPnl__),
     pnlStatus,
     pnlStatusClassname: formatStatusClassName(pnlStatus),

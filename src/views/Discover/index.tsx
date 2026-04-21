@@ -192,18 +192,27 @@ const Discover = () => {
                         </div>
                       </div>
 
-                      {/* Right End: Premium Tool */}
-                      <div className="d-flex flex-column align-items-start" style={{ background: 'linear-gradient(90deg, rgba(139, 92, 246, 0.2) 0%, rgba(139, 92, 246, 0.05) 100%)', border: '1px solid rgba(139, 92, 246, 0.3)', padding: '12px 16px', borderRadius: '6px', minWidth: '320px', marginLeft: 'auto' }}>
-                        <span className="d-flex align-items-center gap-2 font-size-12 fw-bold mb-2" style={{ color: '#FAFAFA' }}><svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 0.8L13.2 7L7 13.2L0.8 7L7 0.8Z" fill="#13C2C2"/><path d="M7 3.5L10.5 7L7 10.5L3.5 7L7 3.5Z" fill="rgba(255,255,255,0.45)"/></svg>会员专享权益，限时体验</span>
-                        <div className="d-flex w-100 align-items-center gap-3">
-                          <div className="d-flex justify-content-between align-items-center px-3 py-1 flex-grow-1 cursor-pointer transition-2 hover-bg-white-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', height: '32px' }}>
-                            <span className="font-size-12" style={{ color: 'rgba(255,255,255,0.6)' }}>筛选币种</span>
-                            <span className="font-size-10" style={{ color: 'rgba(255,255,255,0.4)' }}>▼</span>
-                          </div>
-                          <div className="d-flex justify-content-center align-items-center gap-2 px-2 py-1 cursor-pointer transition-2 hover-bg-white-5" style={{ height: '32px', borderRadius: '4px' }}>
-                            <IOutlineFilter className="font-size-14" style={{ color: 'rgba(255,255,255,0.8)' }} />
-                            <span className="font-size-12" style={{ color: 'rgba(255,255,255,0.8)' }}>高级筛选</span>
-                          </div>
+                      {/* Right End: Premium Tools — matches official site compact layout */}
+                      <div className="d-flex align-items-center gap-2 ms-auto flex-wrap">
+                        {/* 会员专享权益 badge */}
+                        <div className="d-flex align-items-center gap-2 px-3 cursor-pointer transition-2 hover-bg-white-5"
+                          style={{ background: 'linear-gradient(90deg, rgba(139,92,246,0.25) 0%, rgba(139,92,246,0.08) 100%)', border: '1px solid rgba(139,92,246,0.4)', borderRadius: '6px', height: '36px' }}>
+                          <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 0.8L13.2 7L7 13.2L0.8 7L7 0.8Z" fill="#13C2C2"/><path d="M7 3.5L10.5 7L7 10.5L3.5 7L7 3.5Z" fill="rgba(255,255,255,0.45)"/></svg>
+                          <span className="font-size-12 fw-500" style={{ color: '#FAFAFA' }}>会员专享权益</span>
+                          <span className="font-size-12" style={{ color: 'rgba(255,255,255,0.4)' }}>|</span>
+                          <span className="font-size-12" style={{ color: '#13C2C2' }}>开通会员 &gt;</span>
+                        </div>
+                        {/* 筛选币种 */}
+                        <div className="d-flex align-items-center justify-content-between gap-2 px-3 cursor-pointer transition-2 hover-bg-white-5"
+                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', height: '36px', minWidth: '140px' }}>
+                          <span className="font-size-12" style={{ color: 'rgba(255,255,255,0.6)' }}>筛选币种</span>
+                          <span className="font-size-10" style={{ color: 'rgba(255,255,255,0.3)' }}>▼</span>
+                        </div>
+                        {/* 高级筛选 */}
+                        <div className="d-flex align-items-center gap-2 px-3 cursor-pointer transition-2 hover-bg-white-5"
+                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', height: '36px' }}>
+                          <IOutlineFilter className="font-size-13" style={{ color: 'rgba(255,255,255,0.7)' }} />
+                          <span className="font-size-12" style={{ color: 'rgba(255,255,255,0.7)' }}>高级筛选</span>
                         </div>
                       </div>
                     </div>
