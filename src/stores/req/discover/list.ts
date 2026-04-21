@@ -102,9 +102,9 @@ const CYCLE_TO_MS: Record<string, number> = {
 }
 
 async function fetchFillStats(address: string, cycleValue: string): Promise<{
-  longPnl: string, shortPnl: string, longWinRate: string, shortWinRate: string
+  longPnl: string, shortPnl: string, longWinRate: string, shortWinRate: string, winRate: string
 }> {
-  const zero = { longPnl: '0.00', shortPnl: '0.00', longWinRate: '0', shortWinRate: '0' }
+  const zero = { longPnl: '0.00', shortPnl: '0.00', longWinRate: '0', shortWinRate: '0', winRate: '0' }
   try {
     const periodMs = CYCLE_TO_MS[cycleValue]
     const body = periodMs
@@ -129,11 +129,14 @@ async function fetchFillStats(address: string, cycleValue: string): Promise<{
       }
     })
 
+    const totalTrades = longTotal + shortTotal
+    const totalWins = longWin + shortWin
     return {
       longPnl: longPnl.toFixed(2),
       shortPnl: shortPnl.toFixed(2),
       longWinRate: longTotal > 0 ? formatPer(longWin / longTotal) : '0',
       shortWinRate: shortTotal > 0 ? formatPer(shortWin / shortTotal) : '0',
+      winRate: totalTrades > 0 ? formatPer(totalWins / totalTrades) : '0',
     }
   } catch {
     return zero
@@ -273,6 +276,7 @@ export const discoverList: TDiscoverList = {
         item.shortPnl = fillStats[i].shortPnl
         item.longWinRate = fillStats[i].longWinRate
         item.shortWinRate = fillStats[i].shortWinRate
+        if (fillStats[i].winRate !== '0') item.winRate = fillStats[i].winRate
         item.tags = computeTags(
           item._pnlNum,
           item._accountValue,

@@ -175,7 +175,7 @@ const TrackingAddressCard = ({ item, variant = 'grid' }: { item: TTradersItem, v
         </div>
 
         <div className="row g-4 align-items-center">
-          <div className="col-lg-3 col-md-4">
+          <div className="col-lg-2 col-md-4">
             <div className="d-flex flex-column gap-2">
               <div className="d-flex flex-wrap gap-1 mb-1">
                 {(item.tags || []).map((tag: string) => {
@@ -196,7 +196,18 @@ const TrackingAddressCard = ({ item, variant = 'grid' }: { item: TTradersItem, v
             </div>
           </div>
 
-          <div className="col-lg-3 col-md-4 border-start border-white-5">
+          <div className="col-lg-2 col-md-4 border-start border-white-5">
+            <div className="d-flex flex-column gap-1">
+              <span className="opacity-60 font-size-11">胜率</span>
+              <span className="fw-bold font-size-18">{item.winRate || '0'} %</span>
+              <div className="d-flex flex-column gap-1 mt-1 opacity-80">
+                <div className="d-flex justify-content-between"><small className="font-size-10">做多</small><small className="font-size-10">{item.longWinRate || '0'} %</small></div>
+                <div className="d-flex justify-content-between"><small className="font-size-10">做空</small><small className="font-size-10">{item.shortWinRate || '0'} %</small></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-lg-2 col-md-4 border-start border-white-5">
             <div className="d-flex flex-column gap-1">
               <span className="opacity-60 font-size-11">账户总价值</span>
               <span className="fw-bold font-size-18">$ {item.accountTotalValue || '0.00'}</span>
