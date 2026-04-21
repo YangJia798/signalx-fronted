@@ -38,18 +38,20 @@ export const discoverTradingStatistics: TDiscoverTradingStatistics = {
       const fills: any[] = res.data || []
       const { decimalPlaces } = constants
 
-      // FIFO duration matching: open fills queue per coin → duration per closing fill (tid → ms)
-      const openQueues: Record<string, number[]> = {}
+      // Duration matching: open time per coin, reused for all partial closes of same position
+      const positionOpenTime: Record<string, number> = {}
       const durationByTid = new Map<number, number>()
       const sortedFills = [...fills].sort((a: any, b: any) => a.time - b.time)
       sortedFills.forEach((f: any) => {
         const coin = f.coin
-        if (!openQueues[coin]) openQueues[coin] = []
-        if ((f.dir || '').includes('Open')) {
-          openQueues[coin].push(f.time)
-        } else if ((f.dir || '').includes('Close') && parseFloat(f.closedPnl) !== 0) {
-          const openTime = openQueues[coin].shift()
+        const dir = f.dir || ''
+        if (dir.includes('Open')) {
+          // New position opened — reset open time for this coin
+          positionOpenTime[coin] = f.time
+        } else if (dir.includes('Close') && parseFloat(f.closedPnl) !== 0) {
+          const openTime = positionOpenTime[coin]
           durationByTid.set(f.tid, openTime !== undefined ? f.time - openTime : 0)
+          // Don't clear openTime — partial closes still reference the same entry
         }
       })
 
