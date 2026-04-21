@@ -146,125 +146,92 @@ const Discover = () => {
               <>
 
 
-                {/* 2 & 3. Unified Statistical & Advanced Filter Box */}
+                {/* Filter Box */}
                 {!isPopular && (
                   <div className="d-flex flex-column mb-4" style={{
                     background: 'rgba(255, 255, 255, 0.02)',
                     border: '1px solid rgba(255, 255, 255, 0.04)',
                     borderRadius: '8px'
                   }}>
-                    {/* Top Row: Statistics, Sorting, VIP Dropdown */}
+                    {/* Top Row */}
                     <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 p-3 px-4 border-bottom" style={{ borderColor: 'rgba(255, 255, 255, 0.04)' }}>
-                      <div className="d-flex align-items-center gap-4">
+                      <div className="d-flex align-items-center gap-4 flex-wrap">
                         <span className="font-size-14 fw-bold" style={{ color: '#FAFAFA' }}>已收录 {displayTotal.toLocaleString()} 个地址</span>
-
-                        <div className="d-flex align-items-center gap-4">
-                          <div className="d-flex align-items-center gap-2">
-                            <span className="font-size-12" style={{ color: '#808080' }}>排序</span>
-                            <DropdownMenu
-                              items={[
-                                { label: '胜率', value: 'winRate' },
-                                { label: '总盈亏', value: 'pnl' },
-                                { label: '收益率', value: 'roi' },
-                                { label: '交易量', value: 'vlm' },
-                                { label: '总资产', value: 'accountTotalValue' },
-                              ]}
-                              selectedValue={discoverStore.sortByKey}
-                              onSelect={async (value: string) => {
-                                discoverStore.sortByKey = value
-                                await handleUpdateList(true)
-                              }}
-                            />
-                          </div>
-                          
-                          <div className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#FAFAFA' }}>
-                            <span>降序显示</span>
-                            <IOutlineMenu1 />
-                          </div>
-
-                          <div className="d-flex align-items-center gap-2">
-                            <span className="font-size-12" style={{ color: '#808080' }}>周期</span>
-                            <DropdownMenu
-                              items={discoverStore.cycles}
-                              selectedValue={discoverStore.selectedCycleValue}
-                              onSelect={handleChangeSelectCycle}
-                            />
-                          </div>
+                        <div className="d-flex align-items-center gap-2">
+                          <span className="font-size-12" style={{ color: '#808080' }}>排序</span>
+                          <DropdownMenu
+                            items={[
+                              { label: '总盈亏', value: 'pnl' },
+                              { label: '胜率', value: 'winRate' },
+                              { label: '收益率', value: 'roi' },
+                              { label: '交易量', value: 'vlm' },
+                              { label: '总资产', value: 'accountTotalValue' },
+                              { label: '当前持仓', value: 'currentPosition' },
+                            ]}
+                            selectedValue={discoverStore.sortByKey}
+                            onSelect={async (value: string) => {
+                              discoverStore.sortByKey = value
+                              await handleUpdateList(true)
+                            }}
+                          />
+                        </div>
+                        <div className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#FAFAFA' }}>
+                          <span>降序显示</span>
+                          <IOutlineMenu1 />
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                          <span className="font-size-12" style={{ color: '#808080' }}>周期</span>
+                          <DropdownMenu
+                            items={discoverStore.cycles}
+                            selectedValue={discoverStore.selectedCycleValue}
+                            onSelect={handleChangeSelectCycle}
+                          />
                         </div>
                       </div>
-
-                      {/* Right End: Premium Tools — matches official site compact layout */}
-                      <div className="d-flex align-items-center gap-2 ms-auto flex-wrap">
-                        {/* 会员专享权益 badge */}
-                        <div className="d-flex align-items-center gap-2 px-3 cursor-pointer transition-2 hover-bg-white-5"
-                          style={{ background: 'linear-gradient(90deg, rgba(139,92,246,0.25) 0%, rgba(139,92,246,0.08) 100%)', border: '1px solid rgba(139,92,246,0.4)', borderRadius: '6px', height: '36px' }}>
-                          <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 0.8L13.2 7L7 13.2L0.8 7L7 0.8Z" fill="#13C2C2"/><path d="M7 3.5L10.5 7L7 10.5L3.5 7L7 3.5Z" fill="rgba(255,255,255,0.45)"/></svg>
-                          <span className="font-size-12 fw-500" style={{ color: '#FAFAFA' }}>会员专享权益</span>
-                          <span className="font-size-12" style={{ color: 'rgba(255,255,255,0.4)' }}>|</span>
-                          <span className="font-size-12" style={{ color: '#13C2C2' }}>开通会员 &gt;</span>
-                        </div>
-                        {/* 筛选币种 */}
-                        <div className="d-flex align-items-center justify-content-between gap-2 px-3 cursor-pointer transition-2 hover-bg-white-5"
-                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', height: '36px', minWidth: '140px' }}>
-                          <span className="font-size-12" style={{ color: 'rgba(255,255,255,0.6)' }}>筛选币种</span>
+                      {/* Right: 筛选币种 + 高级筛选 */}
+                      <div className="d-flex align-items-center gap-2 ms-auto">
+                        <div className="d-flex align-items-center justify-content-between px-3 cursor-pointer transition-2 hover-bg-white-5"
+                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', height: '36px', minWidth: '200px' }}
+                          onClick={() => setMemberModalOpen(true)}>
+                          <span className="font-size-12" style={{ color: 'rgba(255,255,255,0.5)' }}>筛选币种</span>
                           <span className="font-size-10" style={{ color: 'rgba(255,255,255,0.3)' }}>▼</span>
                         </div>
-                        {/* 高级筛选 */}
                         <div className="d-flex align-items-center gap-2 px-3 cursor-pointer transition-2 hover-bg-white-5"
-                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', height: '36px' }}>
-                          <IOutlineFilter className="font-size-13" style={{ color: 'rgba(255,255,255,0.7)' }} />
-                          <span className="font-size-12" style={{ color: 'rgba(255,255,255,0.7)' }}>高级筛选</span>
+                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', height: '36px' }}
+                          onClick={() => setMemberModalOpen(true)}>
+                          <IOutlineFilter className="font-size-13" style={{ color: 'rgba(255,255,255,0.6)' }} />
+                          <span className="font-size-12" style={{ color: 'rgba(255,255,255,0.6)' }}>高级筛选</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Bottom Row: Checkboxes */}
-                    <div className="p-4 px-4 pb-0">
-                      <div className="row g-4 mb-4">
-                        {/* Col 1: Account Value */}
+                    {/* Filter Rows */}
+                    <div className="p-4 px-4 pb-3">
+                      {/* Row 1: 账户总价值 | 盈利规模 | 方向偏好 */}
+                      <div className="row g-4 mb-3">
                         <div className="col-12 col-md-4">
-                          <div className="d-flex flex-column gap-2 mb-3">
-                            <span className="font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.accountValue')}</span>
+                          <div className="d-flex flex-column gap-2">
+                            <span className="font-size-12" style={{ color: '#808080' }}>{t('discover.accountValue')}</span>
                             <div className="d-flex flex-wrap gap-4">
                               {[
                                 { label: t('discover.smallFunds'), value: 'small' },
                                 { label: t('discover.mediumFunds'), value: 'medium' },
                                 { label: t('discover.whaleFunds'), value: 'whale' }
                               ].map(item => (
-                                <label key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12 transition-2 hover-color-primary" style={{ color: discoverStore.filterAccountValue.includes(item.value) ? '#13C2C2' : '#808080' }}>
+                                <label key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12 transition-2 hover-color-primary"
+                                  style={{ color: discoverStore.filterAccountValue.includes(item.value) ? '#13C2C2' : '#808080' }}>
                                   <input type="checkbox" className="premium-checkbox"
                                     checked={discoverStore.filterAccountValue.includes(item.value)}
-                                    onChange={(e) => {
-                                      discoverStore.filterAccountValue = e.target.checked ? [item.value] : []
-                                    }}
+                                    onChange={(e) => { discoverStore.filterAccountValue = e.target.checked ? [item.value] : [] }}
                                   /> {item.label}
                                 </label>
                               ))}
                             </div>
                           </div>
-
-                          <div className="d-flex flex-column gap-2 mt-4">
-                            <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.tradingRhythm')} <MemberBadge /></span>
-                            <div className="d-flex flex-wrap gap-4">
-                              {[
-                                { label: t('discover.longTerm'), value: 'long' },
-                                { label: t('discover.swing'), value: 'swing' },
-                                { label: t('discover.shortTerm'), value: 'short' },
-                                { label: t('discover.scalping'), value: 'scalping' }
-                              ].map(item => (
-                                <div key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }}
-                                  onClick={() => setMemberModalOpen(true)}>
-                                  <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {item.label}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
                         </div>
-
-                        {/* Col 2: Profit Scale & Status */}
                         <div className="col-12 col-md-4">
-                          <div className="d-flex flex-column gap-2 mb-3">
-                            <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.profitScale')} <MemberBadge /></span>
+                          <div className="d-flex flex-column gap-2">
+                            <span className="d-flex align-items-center gap-1 font-size-12" style={{ color: '#808080' }}>{t('discover.profitScale')} <MemberBadge /></span>
                             <div className="d-flex flex-wrap gap-4">
                               {[
                                 { label: t('discover.smallProfit'), value: 'small' },
@@ -278,28 +245,10 @@ const Discover = () => {
                               ))}
                             </div>
                           </div>
-
-                          <div className="d-flex flex-column gap-2 mt-4">
-                            <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.profitStatus')} <MemberBadge /></span>
-                            <div className="d-flex flex-wrap gap-4">
-                              {[
-                                { label: t('discover.consistentProfit'), value: 'consistent' },
-                                { label: t('discover.volatileProfit'), value: 'volatile' },
-                                { label: t('discover.breakEven'), value: 'breakeven' }
-                              ].map(item => (
-                                <div key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }}
-                                  onClick={() => setMemberModalOpen(true)}>
-                                  <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {item.label}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
                         </div>
-
-                        {/* Col 3: Side Preference */}
                         <div className="col-12 col-md-4">
-                          <div className="d-flex flex-column gap-2 mb-3">
-                            <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.sidePreference')} <MemberBadge /></span>
+                          <div className="d-flex flex-column gap-2">
+                            <span className="d-flex align-items-center gap-1 font-size-12" style={{ color: '#808080' }}>{t('discover.sidePreference')} <MemberBadge /></span>
                             <div className="d-flex flex-wrap gap-4">
                               {[
                                 { label: t('discover.bearish'), value: 'bearish' },
@@ -316,43 +265,81 @@ const Discover = () => {
                         </div>
                       </div>
 
-                      {/* Trading Style Row (Full Width) */}
-                      <div className="d-flex flex-column gap-2 pb-3 mb-1" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                         <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.tradingStyle')} <MemberBadge /></span>
-                         <div className="d-flex align-items-center justify-content-between flex-wrap gap-4">
-                            <div className="d-flex flex-wrap gap-y-3 col" style={{ maxWidth: 'calc(100% - 180px)' }}>
+                      {/* Row 2: 交易节奏 | 盈利状态 | 联系客服 */}
+                      <div className="row g-4 mb-3">
+                        <div className="col-12 col-md-4">
+                          <div className="d-flex flex-column gap-2">
+                            <span className="d-flex align-items-center gap-1 font-size-12" style={{ color: '#808080' }}>{t('discover.tradingRhythm')} <MemberBadge /></span>
+                            <div className="d-flex flex-wrap gap-4">
                               {[
-                                { label: t('discover.highFreqStable'), value: 'hfs' },
-                                { label: t('discover.highFreqAggressive'), value: 'hfa' },
-                                { label: t('discover.lowFreqStable'), value: 'lfs' },
-                                { label: t('discover.lowFreqAggressive'), value: 'lfa' },
-                                { label: t('discover.riskStable'), value: 'stable' },
-                                { label: t('discover.highRiskHighReturn'), value: 'hrhr' },
-                                { label: t('discover.asymmetricHigh'), value: 'ah' },
-                                { label: t('discover.lowDrawdown'), value: 'ld' },
-                                { label: t('discover.volatilityStrategy'), value: 'vs' }
+                                { label: t('discover.longTerm'), value: 'long' },
+                                { label: t('discover.swing'), value: 'swing' },
+                                { label: t('discover.shortTerm'), value: 'short' },
+                                { label: t('discover.scalping'), value: 'scalping' }
                               ].map(item => (
-                                <div key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ marginRight: '24px', color: '#808080' }}
+                                <div key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }}
                                   onClick={() => setMemberModalOpen(true)}>
                                   <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {item.label}
                                 </div>
                               ))}
                             </div>
-                            <Button type="primary" className="px-4 transition-3 rounded-pill teal-outline-btn d-flex align-items-center gap-2"
-                              style={{ height: '32px', borderColor: '#13C2C2', color: '#13C2C2', backgroundColor: 'transparent' }}
-                              onClick={() => handleUpdateList(true)}>
-                              <IOutlineFilter className="font-size-14" /> 筛选
-                            </Button>
-                         </div>
+                          </div>
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <div className="d-flex flex-column gap-2">
+                            <span className="d-flex align-items-center gap-1 font-size-12" style={{ color: '#808080' }}>{t('discover.profitStatus')} <MemberBadge /></span>
+                            <div className="d-flex flex-wrap gap-4">
+                              {[
+                                { label: t('discover.consistentProfit'), value: 'consistent' },
+                                { label: t('discover.volatileProfit'), value: 'volatile' },
+                                { label: t('discover.breakEven'), value: 'breakeven' }
+                              ].map(item => (
+                                <div key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }}
+                                  onClick={() => setMemberModalOpen(true)}>
+                                  <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {item.label}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="col-12 col-md-4 d-flex align-items-center">
+                          <a href={import.meta.env.VITE_OFFICIAL_TELEGRAM || 'https://t.me/addlist/I1c2HyB-cYg4NDc8'}
+                            target="_blank" rel="noopener noreferrer"
+                            className="d-flex align-items-center gap-2 px-4 py-2 transition-2 hover-bg-white-5 text-decoration-none"
+                            style={{ border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', color: 'rgba(255,255,255,0.7)', fontSize: '13px' }}>
+                            ✈ 联系客服 →
+                          </a>
+                        </div>
                       </div>
 
-                      {/* Very Bottom Bar: "平均杠杆 < 5 [移除]" ... */}
-                      <div className="d-flex align-items-center py-3">
-                         <div className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#FAFAFA' }}>
-                            <span style={{ color: '#808080' }}>平均杠杆 {'<'} 5</span>
-                            <span className="ms-1 px-1">🗑️ 移除</span>
-                         </div>
-                         <div className="ms-auto font-size-12 cursor-pointer hover-color-white" style={{ color: '#808080' }}>清除</div>
+                      {/* Row 3: 交易风格 (full width) + 筛选 button */}
+                      <div className="d-flex flex-column gap-2 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                        <span className="d-flex align-items-center gap-1 font-size-12" style={{ color: '#808080' }}>{t('discover.tradingStyle')} <MemberBadge /></span>
+                        <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                          <div className="d-flex flex-wrap gap-3 flex-grow-1">
+                            {[
+                              { label: t('discover.highFreqStable'), value: 'hfs' },
+                              { label: t('discover.highFreqAggressive'), value: 'hfa' },
+                              { label: t('discover.lowFreqStable'), value: 'lfs' },
+                              { label: t('discover.lowFreqAggressive'), value: 'lfa' },
+                              { label: t('discover.riskStable'), value: 'stable' },
+                              { label: t('discover.highRiskHighReturn'), value: 'hrhr' },
+                              { label: t('discover.asymmetricHigh'), value: 'ah' },
+                              { label: t('discover.lowDrawdown'), value: 'ld' },
+                              { label: t('discover.volatilityStrategy'), value: 'vs' }
+                            ].map(item => (
+                              <div key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }}
+                                onClick={() => setMemberModalOpen(true)}>
+                                <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {item.label}
+                              </div>
+                            ))}
+                          </div>
+                          <Button className="px-4 d-flex align-items-center gap-2 flex-shrink-0"
+                            style={{ height: '36px', borderColor: '#13C2C2', color: '#13C2C2', backgroundColor: 'transparent', borderRadius: '20px' }}
+                            onClick={() => handleUpdateList(true)}>
+                            <IOutlineFilter className="font-size-13" /> 筛选
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
