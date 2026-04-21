@@ -18,9 +18,10 @@ import PositionItemSide from '@/components/PositionItem/Side'
 interface TraderDetailsOpenOrdersAdditionalProps extends HTMLProps<HTMLDivElement> {
   address: string
   filterCoin?: string
-  autoRefreshing?: boolean // 是否自动刷新，一般会由 loop 或 ws 持续更新，但不影响第一次数据加载
-  unReset?: boolean // 组件销毁时不触发原本针对数据源的清理流程
+  autoRefreshing?: boolean
+  unReset?: boolean
   className?: string
+  isOwnWallet?: boolean
 }
 
 export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditionalProps> = ({
@@ -28,7 +29,8 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
   filterCoin = '',
   autoRefreshing = true,
   unReset = false,
-  className = ''
+  className = '',
+  isOwnWallet = false,
 }) => {
   const traderDetailsOpenOrdersAdditionalStore = useTraderDetailsOpenOrdersAdditionalStore()
   const reqStore = useReqStore()
@@ -48,7 +50,7 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
     { id: 'price', sort: true, sortByKey: 'limitPrice', label: t('common.price'), className: 'justify-content-end text-end col-6 col-md-2 text-nowrap' },
     { id: 'trigger', label: t('common.trigger'), className: 'justify-content-end text-end col-3 col-md-1 text-nowrap' },
     { id: 'status', label: t('common.status'), className: 'justify-content-end text-end col-4 col-md-1 text-nowrap' },
-    { id: 'operator', label: t('common.cancelAll'), className: 'justify-content-end text-end col-5 col-md-1 text-nowrap' },
+    ...(isOwnWallet ? [{ id: 'operator', label: t('common.cancelAll'), className: 'justify-content-end text-end col-5 col-md-1 text-nowrap' }] : []),
   ]
 
   const handleCancelOrder = async (item: any) => {

@@ -361,6 +361,7 @@ const TraderDetails = () => {
             <TraderDetailsOpenOrdersAdditional
               autoRefreshing={traderDetailsStore.isAutoRefreshing}
               address={traderDetailsStore.address}
+              isOwnWallet={isOwnWallet}
               className={`col ${traderDetailsStore.tabId === 'openOrders' ? '' : 'd-none'}`} />
             {
               traderDetailsStore.tabId === 'historicalOrders' &&
