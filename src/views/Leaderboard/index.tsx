@@ -1,9 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from 'antd'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom';
 
-import { IOutlineMonitor, IOutlineChart2, IOutlineShare, IOutlineSearchNormal1, IOutlineFilter } from '@/components/icon'
+import { IOutlineMonitor, IOutlineChart2, IOutlineShare, IOutlineFilter } from '@/components/icon'
 import { formatNumber } from '@/utils'
 import { useAccountStore, useReqStore, useCopyTradingStore, useWhalePositionsStore, useDiscoverTradingStatisticsStore, useTrackingCreateStore } from '@/stores'
 import ColumnList from '@/components/Column/List'
@@ -22,7 +22,15 @@ const Leaderboard = () => {
   const discoverTradingStatisticsStore = useDiscoverTradingStatisticsStore()
   const trackingCreateStore = useTrackingCreateStore()
   const { t } = useTranslation()
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const [memberModalOpen, setMemberModalOpen] = useState(false)
+
+  const MemberBadge = () => (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}>
+      <path d="M6.5 0.8L12.2 6.5L6.5 12.2L0.8 6.5L6.5 0.8Z" fill="#13C2C2"/>
+      <path d="M6.5 3.2L9.8 6.5L6.5 9.8L3.2 6.5L6.5 3.2Z" fill="rgba(255,255,255,0.45)"/>
+    </svg>
+  )
 
   const whalesPosition = [
     { id: 'address', label: '地址/备注', className: 'col-3 col-sm-2 col-md-2 col-lg-1 col-xl-2' },
@@ -334,80 +342,89 @@ const Leaderboard = () => {
             {/* Filter Dashboard */}
             <div className="discovery-filter-panel mb-4 transition-3 mt-1">
               <div className="d-flex flex-column gap-4 px-0 py-2">
-                {/* Row 1: 3 Groups */}
-                <div className="d-flex flex-wrap gap-4">
-                  <div className="d-flex flex-column gap-2" style={{ flex: '0 0 300px' }}>
-                    <span className="color-secondary font-size-12 opacity-60 text-nowrap">账户总价值</span>
-                    <div className="d-flex flex-wrap gap-3 mt-1">
-                      {['小资金', '中等资金', '巨鲸'].map(label => (
-                        <label key={label} className="d-flex align-items-center gap-2 cursor-pointer font-size-13 color-secondary text-nowrap">
-                          <input type="checkbox" className="custom-checkbox" /> {label}
-                        </label>
-                      ))}
+                {/* Row 1: 账户总价值 | 盈利规模 ◆ | 方向偏好 ◆ */}
+                <div className="row g-4">
+                  <div className="col-12 col-md-4">
+                    <div className="d-flex flex-column gap-2">
+                      <span className="font-size-12" style={{ color: '#808080' }}>账户总价值</span>
+                      <div className="d-flex flex-wrap gap-4">
+                        {['小资金', '中等资金', '巨鲸'].map(label => (
+                          <label key={label} className="d-flex align-items-center gap-2 cursor-pointer font-size-12 transition-2 hover-color-primary" style={{ color: '#808080' }}>
+                            <input type="checkbox" className="premium-checkbox" /> {label}
+                          </label>
+                        ))}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="d-flex flex-column gap-2" style={{ flex: '0 0 300px' }}>
-                    <span className="color-secondary font-size-12 opacity-60 text-nowrap">盈利规模</span>
-                    <div className="d-flex flex-wrap gap-3 mt-1">
-                      {['小额盈利', '中等盈利', '大额盈利'].map(label => (
-                        <label key={label} className="d-flex align-items-center gap-2 cursor-pointer font-size-13 color-secondary text-nowrap">
-                          <input type="checkbox" className="custom-checkbox" /> {label}
-                        </label>
-                      ))}
+                  <div className="col-12 col-md-4">
+                    <div className="d-flex flex-column gap-2">
+                      <span className="d-flex align-items-center gap-1 font-size-12" style={{ color: '#808080' }}>盈利规模 <MemberBadge /></span>
+                      <div className="d-flex flex-wrap gap-4">
+                        {['小额盈利', '中等盈利', '大额盈利'].map(label => (
+                          <div key={label} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }} onClick={() => setMemberModalOpen(true)}>
+                            <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {label}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="d-flex flex-column gap-2" style={{ flex: '1 1 auto' }}>
-                    <span className="color-secondary font-size-12 opacity-60 text-nowrap">方向偏好</span>
-                    <div className="d-flex flex-wrap gap-3 mt-1">
-                      {['偏空头', '中性', '偏多头'].map(label => (
-                        <label key={label} className="d-flex align-items-center gap-2 cursor-pointer font-size-13 color-secondary text-nowrap">
-                          <input type="checkbox" className="custom-checkbox" /> {label}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Row 2: 2 Groups */}
-                <div className="d-flex flex-wrap gap-4">
-                  <div className="d-flex flex-column gap-2" style={{ flex: '0 0 300px' }}>
-                    <span className="color-secondary font-size-12 opacity-60 text-nowrap">交易节奏</span>
-                    <div className="d-flex flex-wrap gap-3 mt-1">
-                      {['长线', '波段', '短线', '超短线'].map(label => (
-                        <label key={label} className="d-flex align-items-center gap-2 cursor-pointer font-size-13 color-secondary text-nowrap">
-                          <input type="checkbox" className="custom-checkbox" /> {label}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="d-flex flex-column gap-2" style={{ flex: '1 1 auto' }}>
-                    <span className="color-secondary font-size-12 opacity-60 text-nowrap">盈利状态</span>
-                    <div className="d-flex flex-wrap gap-3 mt-1">
-                      {['持续盈利', '波动盈利', '盈亏平衡'].map(label => (
-                        <label key={label} className="d-flex align-items-center gap-2 cursor-pointer font-size-13 color-secondary text-nowrap">
-                          <input type="checkbox" className="custom-checkbox" /> {label}
-                        </label>
-                      ))}
+                  <div className="col-12 col-md-4">
+                    <div className="d-flex flex-column gap-2">
+                      <span className="d-flex align-items-center gap-1 font-size-12" style={{ color: '#808080' }}>方向偏好 <MemberBadge /></span>
+                      <div className="d-flex flex-wrap gap-4">
+                        {['偏空头', '中性', '偏多头'].map(label => (
+                          <div key={label} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }} onClick={() => setMemberModalOpen(true)}>
+                            <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {label}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Row 3 - Full Width Group + Filter Button */}
-                <div className="d-flex flex-column gap-3 col-12 pt-1">
-                  <span className="color-secondary font-size-12 opacity-60 text-nowrap">交易风格</span>
-                  <div className="d-flex align-items-center justify-content-between flex-wrap gap-4">
-                    <div className="d-flex flex-wrap gap-y-3 col" style={{ maxWidth: 'calc(100% - 120px)' }}>
+                {/* Row 2: 交易节奏 ◆ | 盈利状态 ◆ */}
+                <div className="row g-4">
+                  <div className="col-12 col-md-4">
+                    <div className="d-flex flex-column gap-2">
+                      <span className="d-flex align-items-center gap-1 font-size-12" style={{ color: '#808080' }}>交易节奏 <MemberBadge /></span>
+                      <div className="d-flex flex-wrap gap-4">
+                        {['长线', '波段', '短线', '超短线'].map(label => (
+                          <div key={label} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }} onClick={() => setMemberModalOpen(true)}>
+                            <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {label}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-12 col-md-4">
+                    <div className="d-flex flex-column gap-2">
+                      <span className="d-flex align-items-center gap-1 font-size-12" style={{ color: '#808080' }}>盈利状态 <MemberBadge /></span>
+                      <div className="d-flex flex-wrap gap-4">
+                        {['持续盈利', '波动盈利', '盈亏平衡'].map(label => (
+                          <div key={label} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }} onClick={() => setMemberModalOpen(true)}>
+                            <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {label}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 3: 交易风格 ◆ + 筛选 button */}
+                <div className="d-flex flex-column gap-2 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                  <span className="d-flex align-items-center gap-1 font-size-12" style={{ color: '#808080' }}>交易风格 <MemberBadge /></span>
+                  <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div className="d-flex flex-wrap gap-3 flex-grow-1">
                       {['高频稳健', '高频激进', '低频稳健', '低频激进', '稳定盈利', '高风险高回报', '非对称高手', '低回撤', '波动策略'].map(label => (
-                        <label key={label} className="d-flex align-items-center gap-2 cursor-pointer font-size-13 color-secondary text-nowrap" style={{ marginRight: '24px' }}>
-                          <input type="checkbox" className="custom-checkbox" /> {label}
-                        </label>
+                        <div key={label} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }} onClick={() => setMemberModalOpen(true)}>
+                          <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {label}
+                        </div>
                       ))}
                     </div>
-                    <Button type="primary" ghost className="br-5 border-primary color-primary px-4 fw-bold d-flex align-items-center gap-2" style={{ height: '36px', borderColor: '#13C2C2', color: '#13C2C2', borderRadius: '24px', backgroundColor: 'transparent' }}>
-                      <IOutlineFilter className="zoom-90" /> 筛选
+                    <Button className="px-4 d-flex align-items-center gap-2 flex-shrink-0"
+                      style={{ height: '36px', borderColor: '#13C2C2', color: '#13C2C2', backgroundColor: 'transparent', borderRadius: '20px' }}
+                      onClick={() => handleWhalePositions()}>
+                      <IOutlineFilter className="font-size-13" /> 筛选
                     </Button>
                   </div>
                 </div>
@@ -415,7 +432,7 @@ const Leaderboard = () => {
             </div>
 
             <style>{`
-              .custom-checkbox {
+              .premium-checkbox {
                 appearance: none;
                 width: 14px;
                 height: 14px;
@@ -425,11 +442,11 @@ const Leaderboard = () => {
                 cursor: pointer;
                 position: relative;
               }
-              .custom-checkbox:checked {
+              .premium-checkbox:checked {
                 background: #13C2C2;
                 border-color: #13C2C2;
               }
-              .custom-checkbox:checked::after {
+              .premium-checkbox:checked::after {
                 content: '✓';
                 position: absolute;
                 top: 50%;
@@ -479,6 +496,28 @@ const Leaderboard = () => {
       <ModalTradingStatistics />
       <TrackingCreateTrack />
       <ModalCreateCopyTrading />
+
+      {memberModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)' }}
+          onClick={() => setMemberModalOpen(false)}>
+          <div style={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '28px 32px', minWidth: '320px', maxWidth: '400px', position: 'relative' }}
+            onClick={e => e.stopPropagation()}>
+            <button onClick={() => setMemberModalOpen(false)}
+              style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 18, cursor: 'pointer', lineHeight: 1 }}>×</button>
+            <div className="d-flex align-items-center gap-2 mb-3">
+              <svg width="18" height="18" viewBox="0 0 14 14" fill="none"><path d="M7 0.8L13.2 7L7 13.2L0.8 7L7 0.8Z" fill="#13C2C2"/><path d="M7 3.5L10.5 7L7 10.5L3.5 7L7 3.5Z" fill="rgba(255,255,255,0.45)"/></svg>
+              <span className="fw-bold font-size-16" style={{ color: '#FAFAFA' }}>会员专享权益</span>
+            </div>
+            <p className="font-size-13 mb-2" style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
+              需要会员才可以继续搜索，非会员只可以使用以下标签：
+            </p>
+            <p className="font-size-13 mb-4" style={{ color: '#13C2C2' }}>小资金，中等资金，巨鲸</p>
+            <button style={{ width: '100%', padding: '10px 0', borderRadius: '8px', border: 'none', background: 'linear-gradient(90deg, #7C3AED, #06B6D4)', color: '#fff', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+              开通会员
+            </button>
+          </div>
+        </div>
+      )}
     </>
   )
 }
