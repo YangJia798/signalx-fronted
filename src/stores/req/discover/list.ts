@@ -16,7 +16,6 @@ export type TDiscoverList = {
   discoverListBusy: boolean
 }
 
-// Our cycle value → hyperbot window
 const CYCLE_TO_WINDOW: Record<string, string> = {
   '1': 'day',
   '7': 'week',
@@ -24,7 +23,6 @@ const CYCLE_TO_WINDOW: Record<string, string> = {
   '0': 'allTime',
 }
 
-// Our sortByKey → hyperbot endpoint
 const SORT_TO_ENDPOINT: Record<string, string> = {
   pnl:               '/leaderboard/address/top-pnl',
   roi:               '/leaderboard/address/top-roi',
@@ -34,7 +32,6 @@ const SORT_TO_ENDPOINT: Record<string, string> = {
 }
 const DEFAULT_ENDPOINT = '/leaderboard/address/top-pnl'
 
-// Cache: `${window}:${endpoint}` → { rows, ts }
 const _cache: Record<string, { rows: any[], ts: number }> = {}
 const CACHE_TTL = 5 * 60 * 1000
 const TAKE = 100
@@ -43,17 +40,62 @@ async function fetchLeaderboard(window: string, endpoint: string): Promise<any[]
   const key = `${window}:${endpoint}`
   const cached = _cache[key]
   if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.rows
-
   const res = await hyperbotApi.get(endpoint, { params: { window, take: TAKE } })
   const rows: any[] = res.data?.data || []
   _cache[key] = { rows, ts: Date.now() }
   return rows
 }
 
+async function fetchPortfolioStats(address: string): Promise<{ pnlList: any[], sharpe: string, maxDrawdown: string }> {
+  try {
+    const res = await hyperApi.post('/info', { type: 'portfolio', user: address })
+    const data: any[] = res.data || []
+
+    const weekEntry = data.find((item: any) => item[0] === 'week')
+    if (!weekEntry) return { pnlList: [], sharpe: '0.00', maxDrawdown: '0.00' }
+
+    const { accountValueHistory = [], pnlHistory = [] } = weekEntry[1]
+
+    const pnlList = pnlHistory.map((item: any) => ({
+      time: Math.floor(item[0] / 1000),
+      value: parseFloat(item[1]),
+    }))
+
+    const values: number[] = accountValueHistory.map((item: any) => parseFloat(item[1]))
+
+    // Annualized Sharpe from daily returns
+    const returns: number[] = []
+    for (let i = 1; i < values.length; i++) {
+      if (values[i - 1] > 0) returns.push((values[i] - values[i - 1]) / values[i - 1])
+    }
+    let sharpe = '0.00'
+    if (returns.length > 1) {
+      const mean = returns.reduce((s, r) => s + r, 0) / returns.length
+      const variance = returns.reduce((s, r) => s + (r - mean) ** 2, 0) / returns.length
+      const std = Math.sqrt(variance)
+      if (std > 0) sharpe = (mean / std * Math.sqrt(252)).toFixed(2)
+    }
+
+    // Max Drawdown
+    let maxDD = 0
+    let peak = values[0] || 0
+    for (const v of values) {
+      if (v > peak) peak = v
+      if (peak > 0) {
+        const dd = (peak - v) / peak
+        if (dd > maxDD) maxDD = dd
+      }
+    }
+
+    return { pnlList, sharpe, maxDrawdown: (maxDD * 100).toFixed(2) }
+  } catch {
+    return { pnlList: [], sharpe: '0.00', maxDrawdown: '0.00' }
+  }
+}
+
 function mapRow(item: any, window: string, rank: number) {
   const { decimalPlaces } = constants
 
-  // top-account-value has nested windowPerformances; others have flat pnl/roi
   let pnlRaw = item.pnl
   let roiRaw = item.roi
   if (item.windowPerformances) {
@@ -113,7 +155,6 @@ export const discoverList: TDiscoverList = {
       const endpoint = SORT_TO_ENDPOINT[discoverStore.sortByKey] || DEFAULT_ENDPOINT
       const rows = await fetchLeaderboard(window, endpoint)
 
-      // Address search filter
       const search = (discoverStore.searchAddress || '').toLowerCase().trim()
       const filtered = search
         ? rows.filter((r: any) => (r.ethAddress || '').toLowerCase().includes(search))
@@ -121,23 +162,31 @@ export const discoverList: TDiscoverList = {
 
       const mapped = filtered.map((item: any, idx: number) => mapRow(item, window, idx + 1))
 
-      // Paginate
       const size = discoverStore.size
       const start = (discoverStore.current - 1) * size
       const pageRaw = mapped.slice(start, start + size)
 
-      // Fetch current positions in parallel for visible addresses
-      const positionCounts = await Promise.all(
-        pageRaw.map(item =>
-          hyperApi.post('/info', { type: 'clearinghouseState', user: item.address })
-            .then(r => {
-              const positions: any[] = r.data?.assetPositions || []
-              return positions.filter(p => parseFloat(p.position?.szi || '0') !== 0).length
-            })
-            .catch(() => 0)
-        )
-      )
-      pageRaw.forEach((item, i) => { item.totalPositions = positionCounts[i] })
+      // Parallel fetch per-address data for visible page items
+      const [positionCounts, portfolioStats] = await Promise.all([
+        Promise.all(
+          pageRaw.map(item =>
+            hyperApi.post('/info', { type: 'clearinghouseState', user: item.address })
+              .then(r => {
+                const positions: any[] = r.data?.assetPositions || []
+                return positions.filter(p => parseFloat(p.position?.szi || '0') !== 0).length
+              })
+              .catch(() => 0)
+          )
+        ),
+        Promise.all(pageRaw.map(item => fetchPortfolioStats(item.address))),
+      ])
+
+      pageRaw.forEach((item, i) => {
+        item.totalPositions = positionCounts[i]
+        item.pnlList = portfolioStats[i].pnlList as any[]
+        item.sharpe = portfolioStats[i].sharpe
+        item.maxDrawdown = portfolioStats[i].maxDrawdown
+      })
 
       const page = pageRaw.map(({ _pnlNum, _roi, _accountValue, _vlm, ...rest }) => rest)
 

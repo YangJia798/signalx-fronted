@@ -56,7 +56,39 @@ export const discoverRecommend: TDiscoverRecommend = {
         .sort((a, b) => b.positions - a.positions)
         .slice(0, 12)
 
-      const list = sorted.map(({ item, positions }) => {
+      // Fetch portfolio stats for visible 12
+      const portfolioStats = await Promise.all(
+        sorted.map(({ item }) =>
+          hyperApi.post('/info', { type: 'portfolio', user: item.ethAddress })
+            .then(res => {
+              const data: any[] = res.data || []
+              const weekEntry = data.find((d: any) => d[0] === 'week')
+              if (!weekEntry) return { pnlList: [] as any[], sharpe: '0.00', maxDrawdown: '0.00' }
+              const { accountValueHistory = [], pnlHistory = [] } = weekEntry[1]
+              const pnlList = pnlHistory.map((d: any) => ({ time: Math.floor(d[0] / 1000), value: parseFloat(d[1]) }))
+              const values: number[] = accountValueHistory.map((d: any) => parseFloat(d[1]))
+              const returns: number[] = []
+              for (let i = 1; i < values.length; i++) {
+                if (values[i - 1] > 0) returns.push((values[i] - values[i - 1]) / values[i - 1])
+              }
+              let sharpe = '0.00'
+              if (returns.length > 1) {
+                const mean = returns.reduce((s, r) => s + r, 0) / returns.length
+                const std = Math.sqrt(returns.reduce((s, r) => s + (r - mean) ** 2, 0) / returns.length)
+                if (std > 0) sharpe = (mean / std * Math.sqrt(252)).toFixed(2)
+              }
+              let maxDD = 0, peak = values[0] || 0
+              for (const v of values) {
+                if (v > peak) peak = v
+                if (peak > 0) { const dd = (peak - v) / peak; if (dd > maxDD) maxDD = dd }
+              }
+              return { pnlList, sharpe, maxDrawdown: (maxDD * 100).toFixed(2) }
+            })
+            .catch(() => ({ pnlList: [] as any[], sharpe: '0.00', maxDrawdown: '0.00' }))
+        )
+      )
+
+      const list = sorted.map(({ item, positions }, i) => {
         const pnl = new BN(item.pnl || 0)
         const roi = parseFloat(item.roi || 0)
         return {
@@ -70,6 +102,9 @@ export const discoverRecommend: TDiscoverRecommend = {
           note: item.displayName || '',
           pnl: pnl.toFixed(constants.decimalPlaces.__uPnl__),
           totalPositions: positions,
+          pnlList: portfolioStats[i].pnlList,
+          sharpe: portfolioStats[i].sharpe,
+          maxDrawdown: portfolioStats[i].maxDrawdown,
           tags: [],
           tradesCount: 0,
           lastActionTs: '',
