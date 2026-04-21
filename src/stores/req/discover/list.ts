@@ -32,18 +32,19 @@ const SORT_TO_ENDPOINT: Record<string, string> = {
 }
 const DEFAULT_ENDPOINT = '/leaderboard/address/top-pnl'
 
-const _cache: Record<string, { rows: any[], ts: number }> = {}
+const _cache: Record<string, { rows: any[], total: number, ts: number }> = {}
 const CACHE_TTL = 5 * 60 * 1000
-const TAKE = 100
+const TAKE = 500
 
-async function fetchLeaderboard(window: string, endpoint: string): Promise<any[]> {
+async function fetchLeaderboard(window: string, endpoint: string): Promise<{ rows: any[], total: number }> {
   const key = `${window}:${endpoint}`
   const cached = _cache[key]
-  if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.rows
+  if (cached && Date.now() - cached.ts < CACHE_TTL) return { rows: cached.rows, total: cached.total }
   const res = await hyperbotApi.get(endpoint, { params: { window, take: TAKE } })
   const rows: any[] = res.data?.data || []
-  _cache[key] = { rows, ts: Date.now() }
-  return rows
+  const total: number = res.data?.total || res.data?.count || rows.length
+  _cache[key] = { rows, total, ts: Date.now() }
+  return { rows, total }
 }
 
 async function fetchPortfolioStats(address: string): Promise<{ pnlList: any[], sharpe: string, maxDrawdown: string }> {
@@ -179,7 +180,7 @@ function mapRow(item: any, window: string, rank: number) {
     sharpe: '0.00',
     maxDrawdown: '0.00',
     rank,
-    pnlList: [],
+    pnlList: [] as any[],
     note: item.displayName || '',
     _pnlNum: pnl.toNumber(),
     _roi: roi,
@@ -198,7 +199,7 @@ export const discoverList: TDiscoverList = {
     try {
       const window = CYCLE_TO_WINDOW[discoverStore.selectedCycleValue] || 'week'
       const endpoint = SORT_TO_ENDPOINT[discoverStore.sortByKey] || DEFAULT_ENDPOINT
-      const rows = await fetchLeaderboard(window, endpoint)
+      const { rows, total: apiTotal } = await fetchLeaderboard(window, endpoint)
 
       const search = (discoverStore.searchAddress || '').toLowerCase().trim()
       const filtered = search
@@ -243,7 +244,7 @@ export const discoverList: TDiscoverList = {
       result.data = {
         last: page,
         isEnd: start + size >= mapped.length,
-        total: mapped.length,
+        total: apiTotal > mapped.length ? apiTotal : mapped.length,
       }
       result.error = false
       merge(discoverStore, result.data)

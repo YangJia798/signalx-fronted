@@ -27,6 +27,13 @@ const Discover = () => {
 
   const [memberModalOpen, setMemberModalOpen] = useState(false)
 
+  const MemberBadge = () => (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}>
+      <path d="M6.5 0.8L12.2 6.5L6.5 12.2L0.8 6.5L6.5 0.8Z" fill="#13C2C2"/>
+      <path d="M6.5 3.2L9.8 6.5L6.5 9.8L3.2 6.5L6.5 3.2Z" fill="rgba(255,255,255,0.45)"/>
+    </svg>
+  )
+
   const handleChangeSelectCycle = async (value: string) => {
     discoverStore.selectedCycleValue = value
     await handleUpdateList(true)
@@ -187,7 +194,7 @@ const Discover = () => {
 
                       {/* Right End: Premium Tool */}
                       <div className="d-flex flex-column align-items-start" style={{ background: 'linear-gradient(90deg, rgba(139, 92, 246, 0.2) 0%, rgba(139, 92, 246, 0.05) 100%)', border: '1px solid rgba(139, 92, 246, 0.3)', padding: '12px 16px', borderRadius: '6px', minWidth: '320px', marginLeft: 'auto' }}>
-                        <span className="font-size-12 fw-bold mb-2" style={{ color: '#FAFAFA' }}>会员专享权益，限时体验</span>
+                        <span className="d-flex align-items-center gap-2 font-size-12 fw-bold mb-2" style={{ color: '#FAFAFA' }}><svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 0.8L13.2 7L7 13.2L0.8 7L7 0.8Z" fill="#13C2C2"/><path d="M7 3.5L10.5 7L7 10.5L3.5 7L7 3.5Z" fill="rgba(255,255,255,0.45)"/></svg>会员专享权益，限时体验</span>
                         <div className="d-flex w-100 align-items-center gap-3">
                           <div className="d-flex justify-content-between align-items-center px-3 py-1 flex-grow-1 cursor-pointer transition-2 hover-bg-white-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', height: '32px' }}>
                             <span className="font-size-12" style={{ color: 'rgba(255,255,255,0.6)' }}>筛选币种</span>
@@ -218,17 +225,16 @@ const Discover = () => {
                                   <input type="checkbox" className="premium-checkbox"
                                     checked={discoverStore.filterAccountValue.includes(item.value)}
                                     onChange={(e) => {
-                                      if (e.target.checked) discoverStore.filterAccountValue.push(item.value)
-                                      else discoverStore.filterAccountValue = discoverStore.filterAccountValue.filter(v => v !== item.value)
+                                      discoverStore.filterAccountValue = e.target.checked ? [item.value] : []
                                     }}
                                   /> {item.label}
                                 </label>
                               ))}
                             </div>
                           </div>
-                          
+
                           <div className="d-flex flex-column gap-2 mt-4">
-                            <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.tradingRhythm')} <span style={{ color: '#7C3AED', fontSize: 10 }}>◆</span></span>
+                            <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.tradingRhythm')} <MemberBadge /></span>
                             <div className="d-flex flex-wrap gap-4">
                               {[
                                 { label: t('discover.longTerm'), value: 'long' },
@@ -236,10 +242,10 @@ const Discover = () => {
                                 { label: t('discover.shortTerm'), value: 'short' },
                                 { label: t('discover.scalping'), value: 'scalping' }
                               ].map(item => (
-                                <label key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12 transition-2 hover-color-primary" style={{ color: '#808080' }}
-                                  onClick={(e) => { e.preventDefault(); setMemberModalOpen(true) }}>
-                                  <input type="checkbox" className="premium-checkbox" readOnly checked={false} /> {item.label}
-                                </label>
+                                <div key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }}
+                                  onClick={() => setMemberModalOpen(true)}>
+                                  <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {item.label}
+                                </div>
                               ))}
                             </div>
                           </div>
@@ -248,33 +254,33 @@ const Discover = () => {
                         {/* Col 2: Profit Scale & Status */}
                         <div className="col-12 col-md-4">
                           <div className="d-flex flex-column gap-2 mb-3">
-                            <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.profitScale')} <span style={{ color: '#7C3AED', fontSize: 10 }}>◆</span></span>
+                            <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.profitScale')} <MemberBadge /></span>
                             <div className="d-flex flex-wrap gap-4">
                               {[
                                 { label: t('discover.smallProfit'), value: 'small' },
                                 { label: t('discover.mediumProfit'), value: 'medium' },
                                 { label: t('discover.largeProfit'), value: 'large' }
                               ].map(item => (
-                                <label key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12 transition-2 hover-color-primary" style={{ color: '#808080' }}
-                                  onClick={(e) => { e.preventDefault(); setMemberModalOpen(true) }}>
-                                  <input type="checkbox" className="premium-checkbox" readOnly checked={false} /> {item.label}
-                                </label>
+                                <div key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }}
+                                  onClick={() => setMemberModalOpen(true)}>
+                                  <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {item.label}
+                                </div>
                               ))}
                             </div>
                           </div>
 
                           <div className="d-flex flex-column gap-2 mt-4">
-                            <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.profitStatus')} <span style={{ color: '#7C3AED', fontSize: 10 }}>◆</span></span>
+                            <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.profitStatus')} <MemberBadge /></span>
                             <div className="d-flex flex-wrap gap-4">
                               {[
                                 { label: t('discover.consistentProfit'), value: 'consistent' },
                                 { label: t('discover.volatileProfit'), value: 'volatile' },
                                 { label: t('discover.breakEven'), value: 'breakeven' }
                               ].map(item => (
-                                <label key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12 transition-2 hover-color-primary" style={{ color: '#808080' }}
-                                  onClick={(e) => { e.preventDefault(); setMemberModalOpen(true) }}>
-                                  <input type="checkbox" className="premium-checkbox" readOnly checked={false} /> {item.label}
-                                </label>
+                                <div key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }}
+                                  onClick={() => setMemberModalOpen(true)}>
+                                  <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {item.label}
+                                </div>
                               ))}
                             </div>
                           </div>
@@ -283,17 +289,17 @@ const Discover = () => {
                         {/* Col 3: Side Preference */}
                         <div className="col-12 col-md-4">
                           <div className="d-flex flex-column gap-2 mb-3">
-                            <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.sidePreference')} <span style={{ color: '#7C3AED', fontSize: 10 }}>◆</span></span>
+                            <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.sidePreference')} <MemberBadge /></span>
                             <div className="d-flex flex-wrap gap-4">
                               {[
                                 { label: t('discover.bearish'), value: 'bearish' },
                                 { label: t('discover.neutral'), value: 'neutral' },
                                 { label: t('discover.bullish'), value: 'bullish' }
                               ].map(item => (
-                                <label key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12 transition-2 hover-color-primary" style={{ color: '#808080' }}
-                                  onClick={(e) => { e.preventDefault(); setMemberModalOpen(true) }}>
-                                  <input type="checkbox" className="premium-checkbox" readOnly checked={false} /> {item.label}
-                                </label>
+                                <div key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ color: '#808080' }}
+                                  onClick={() => setMemberModalOpen(true)}>
+                                  <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {item.label}
+                                </div>
                               ))}
                             </div>
                           </div>
@@ -302,7 +308,7 @@ const Discover = () => {
 
                       {/* Trading Style Row (Full Width) */}
                       <div className="d-flex flex-column gap-2 pb-3 mb-1" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                         <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.tradingStyle')} <span style={{ color: '#7C3AED', fontSize: 10 }}>◆</span></span>
+                         <span className="d-flex align-items-center gap-1 font-size-12 mb-1" style={{ color: '#808080' }}>{t('discover.tradingStyle')} <MemberBadge /></span>
                          <div className="d-flex align-items-center justify-content-between flex-wrap gap-4">
                             <div className="d-flex flex-wrap gap-y-3 col" style={{ maxWidth: 'calc(100% - 180px)' }}>
                               {[
@@ -316,10 +322,10 @@ const Discover = () => {
                                 { label: t('discover.lowDrawdown'), value: 'ld' },
                                 { label: t('discover.volatilityStrategy'), value: 'vs' }
                               ].map(item => (
-                                <label key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12 transition-2 hover-color-primary" style={{ marginRight: '24px', color: '#808080' }}
-                                  onClick={(e) => { e.preventDefault(); setMemberModalOpen(true) }}>
-                                  <input type="checkbox" className="premium-checkbox" readOnly checked={false} /> {item.label}
-                                </label>
+                                <div key={item.value} className="d-flex align-items-center gap-2 cursor-pointer font-size-12" style={{ marginRight: '24px', color: '#808080' }}
+                                  onClick={() => setMemberModalOpen(true)}>
+                                  <input type="checkbox" className="premium-checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} /> {item.label}
+                                </div>
                               ))}
                             </div>
                             <Button type="primary" className="px-4 transition-3 rounded-pill teal-outline-btn d-flex align-items-center gap-2"
@@ -405,7 +411,7 @@ const Discover = () => {
               style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 18, cursor: 'pointer', lineHeight: 1 }}
             >×</button>
             <div className="d-flex align-items-center gap-2 mb-3">
-              <span style={{ color: '#7C3AED', fontSize: 16 }}>◆</span>
+              <svg width="18" height="18" viewBox="0 0 14 14" fill="none"><path d="M7 0.8L13.2 7L7 13.2L0.8 7L7 0.8Z" fill="#13C2C2"/><path d="M7 3.5L10.5 7L7 10.5L3.5 7L7 3.5Z" fill="rgba(255,255,255,0.45)"/></svg>
               <span className="fw-bold font-size-16" style={{ color: '#FAFAFA' }}>会员专享权益</span>
             </div>
             <p className="font-size-13 mb-2" style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
