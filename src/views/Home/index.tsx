@@ -51,7 +51,6 @@ const Home = () => {
       message.error(t('message.pleaseInputAddress'))
       return
     }
-    discoverStore.resetSearch()
     navigate(`/trader/${address}`)
   }
 
