@@ -52,8 +52,7 @@ async function fetchPortfolioStats(address: string, window: string): Promise<{ p
     const res = await hyperApi.post('/info', { type: 'portfolio', user: address })
     const data: any[] = res.data || []
 
-    const targetWindow = window === 'allTime' ? 'month' : window
-    const entry = data.find((item: any) => item[0] === targetWindow)
+    const entry = data.find((item: any) => item[0] === window)
       || data.find((item: any) => item[0] === 'week')
     if (!entry) return { pnlList: [], sharpe: '0.00', maxDrawdown: '0.00' }
 
