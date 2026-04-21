@@ -1,7 +1,7 @@
 import BN from 'bignumber.js'
 
 import { merge, formatPer } from '@/utils'
-import { hyperbotApi, hyperApi } from '@/stores/req/helper'
+import { officialHyperbotApi, hyperApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TDiscoverRecommendStore } from '@/stores'
 
 type DiscoverRecommendResult = {
@@ -24,9 +24,9 @@ export const discoverRecommend: TDiscoverRecommend = {
     try {
       // Fetch a larger pool (30) so we can filter by active positions
       const [pnlRes, roiRes, vlmRes] = await Promise.all([
-        hyperbotApi.get('/leaderboard/address/top-pnl', { params: { window: 'week', take: 15 } }),
-        hyperbotApi.get('/leaderboard/address/top-roi', { params: { window: 'week', take: 15 } }),
-        hyperbotApi.get('/leaderboard/address/top-vlm', { params: { window: 'week', take: 15 } }),
+        officialHyperbotApi.get('/leaderboard/address/top-pnl', { params: { window: 'week', take: 15 } }),
+        officialHyperbotApi.get('/leaderboard/address/top-roi', { params: { window: 'week', take: 15 } }),
+        officialHyperbotApi.get('/leaderboard/address/top-vlm', { params: { window: 'week', take: 15 } }),
       ])
 
       const seen = new Set<string>()
@@ -50,10 +50,18 @@ export const discoverRecommend: TDiscoverRecommend = {
         )
       )
 
-      // Sort by position count descending, then take top 12
+      // Prioritize active positions first, then higher ROI.
       const sorted = combined
         .map((item, i) => ({ item, positions: positionCounts[i] }))
-        .sort((a, b) => b.positions - a.positions)
+        .sort((a, b) => {
+          const activeDiff = Number(b.positions > 0) - Number(a.positions > 0)
+          if (activeDiff !== 0) return activeDiff
+
+          const roiDiff = parseFloat(String(b.item.roi || 0)) - parseFloat(String(a.item.roi || 0))
+          if (roiDiff !== 0) return roiDiff
+
+          return b.positions - a.positions
+        })
         .slice(0, 12)
 
       // Fetch portfolio stats for visible 12

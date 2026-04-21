@@ -70,6 +70,7 @@ const TrackingAddressPosition = ({ item }) => {
   // 快捷跟单
   const handleOpenQuickerCreateCopyTrade = (item?: any) => {
     copyTradingStore.quickerOpenPositionTargetAddress = item.address
+    copyTradingStore.copyTradingSearchTargetAddress = item.address
 
     // NOTE: 同步完，最后打开弹窗
     copyTradingStore.openCopyTradingTarget = true

@@ -205,6 +205,7 @@ const ModalCreateCopyTrading = () => {
         const cctAddress = queryParams.get(constants.paramKey.copyTradingTargetAddress);
 
         if (cctAddress && isAddress(cctAddress)) {
+          copyTradingStore.copyTradingSearchTargetAddress = cctAddress
           copyTradingStore.openCopyTradingTarget = true
           await sleep(300)
           copyTradingStore.quickerOpenPositionTargetAddress = cctAddress

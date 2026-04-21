@@ -114,6 +114,7 @@ const Leaderboard = () => {
 
   const handleOpenQuickerCreateCopyTrade = (item: any) => {
     copyTradingStore.quickerOpenPositionTargetAddress = item.address
+    copyTradingStore.copyTradingSearchTargetAddress = item.address
     copyTradingStore.openCopyTradingTarget = true
   }
 

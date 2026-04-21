@@ -74,6 +74,7 @@ const DiscoverKOL = () => {
 
   const handleOpenQuickerCreateCopyTrade = (item?: any) => {
     copyTradingStore.quickerOpenPositionTargetAddress = item.address
+    copyTradingStore.copyTradingSearchTargetAddress = item.address
 
     // NOTE: 同步完，最后打开弹窗
     copyTradingStore.openCopyTradingTarget = true
@@ -97,6 +98,8 @@ const DiscoverKOL = () => {
   }
 
   const handleVote = async (item: any, trust: boolean) => {
+    if (item.voteReadonly) return
+
     merge(discoverKolStore, {
       voteId: item.id,
       voteType: trust ? 1 : -1
@@ -229,7 +232,7 @@ const DiscoverKOL = () => {
 
                             <span className="d-flex flex-column color-secondary gap-2 pt-2 mt-auto">
                               {
-                                item.voted || item.id <= 6 // Mock items are voted
+                                item.voteReadonly || item.voted || item.id <= 6 // Mock items and readonly API data are display-only
                                   ? <div className='d-flex justify-content-between pt-1'>
                                     <ColumnTooltip title={t('discover.numChoseTrust', { num: item.trustCount })}>
                                       <span className='d-flex gap-2 py-1 color-buy font-size-12'>

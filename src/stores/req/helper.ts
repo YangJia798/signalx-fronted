@@ -21,6 +21,7 @@ const baseCheck = (res: { data: any }, accountStore) => {
 }
 
 const baseURL = constants.app.API_BASE
+const OFFICIAL_HYPERBOT_API_URL = 'https://hyperbot.network/api'
 
 const baseApi = axios.create({
   baseURL,
@@ -67,7 +68,14 @@ const hyperStatsApi = axios.create({
 })
 
 const hyperbotApi = axios.create({
-  baseURL: import.meta.env.VITE_HYPERBOT_API_URL || 'https://hyperbot.network/api',
+  baseURL: import.meta.env.VITE_HYPERBOT_API_URL || OFFICIAL_HYPERBOT_API_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  },
+})
+
+const officialHyperbotApi = axios.create({
+  baseURL: OFFICIAL_HYPERBOT_API_URL,
   headers: {
     'Content-Type': 'application/json'
   },
@@ -80,7 +88,8 @@ export {
   hyperApi,
   asterApi,
   hyperStatsApi,
-  hyperbotApi
+  hyperbotApi,
+  officialHyperbotApi
 }
 
 

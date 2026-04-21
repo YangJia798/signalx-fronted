@@ -3,6 +3,18 @@ import useWebSocket, { ReadyState } from 'react-use-websocket'
 
 export { ReadyState }
 
+const OFFICIAL_HYPERLIQUID_WS_URL = 'wss://api.hyperliquid.xyz/ws'
+
+const resolveHyperWsUrl = () => {
+  const configured = String(import.meta.env.VITE_HL_WS_URL || '').trim()
+
+  if (!configured || /hyperbot\.network\/ws/i.test(configured)) {
+    return OFFICIAL_HYPERLIQUID_WS_URL
+  }
+
+  return configured
+}
+
 // 定义WebSocket上下文类型
 interface WebSocketContextType {
   sendMessage: (message: string | object) => void;
@@ -18,7 +30,7 @@ interface HyperWSProviderProps {
 }
 
 export const HyperWSProvider: React.FC<HyperWSProviderProps> = ({ children }) => {
-  const { sendMessage, lastMessage, readyState } = useWebSocket(import.meta.env.VITE_HL_WS_URL || 'wss://api.hyperliquid.xyz/ws', {
+  const { sendMessage, lastMessage, readyState } = useWebSocket(resolveHyperWsUrl(), {
     share: true,
     reconnectAttempts: 10,
     reconnectInterval: 3000,

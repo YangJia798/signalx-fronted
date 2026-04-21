@@ -83,7 +83,7 @@ const Discover = () => {
     return realFeatured.length > 0 ? realFeatured : DISCOVER_MOCK_RECOMMEND
   })()
 
-  const displayTotal = isPopular ? (discoverRecommendStore.list.length || DISCOVER_MOCK_POPULAR.length) : (discoverStore.total || finalItems.length)
+  const displayTotal = discoverStore.total
 
   return (
     <>
@@ -163,6 +163,7 @@ const Discover = () => {
                             <span className="font-size-12" style={{ color: '#808080' }}>排序</span>
                             <DropdownMenu
                               items={[
+                                { label: '胜率', value: 'winRate' },
                                 { label: '总盈亏', value: 'pnl' },
                                 { label: '收益率', value: 'roi' },
                                 { label: '交易量', value: 'vlm' },

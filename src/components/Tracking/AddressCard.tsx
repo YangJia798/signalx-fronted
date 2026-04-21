@@ -38,6 +38,7 @@ const TrackingAddressCard = ({ item, variant = 'grid' }: { item: TTradersItem, v
 
   const handleOpenQuickerCreateCopyTrade = (itemAddress: string) => {
     copyTradingStore.quickerOpenPositionTargetAddress = itemAddress
+    copyTradingStore.copyTradingSearchTargetAddress = itemAddress
     copyTradingStore.openCopyTradingTarget = true
   }
 

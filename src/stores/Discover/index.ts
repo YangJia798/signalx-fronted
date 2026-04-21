@@ -116,7 +116,7 @@ const DEFAULT_SEARCH = {
 const DEFAULT_LIST = {
   list: [],
   _last: [],
-  size: 12,
+  size: 20,
   current: 1,
   total: 0,
   isEnd: false,
@@ -124,7 +124,7 @@ const DEFAULT_LIST = {
 
 const DEFAULT = {
   mainTypeValue: 'all',
-  sortByKey: SORT_KEYS.pnl.id,
+  sortByKey: SORT_KEYS.winRate.id,
   selectedCycleValue: CYCLE_KEYS.week.value,
   openTradingStatistics: false,
   ...DEFAULT_LIST,

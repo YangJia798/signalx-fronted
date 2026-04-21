@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 
 import { constants } from '@/stores/constants'
+import { HyperWSProvider } from '@/components/Hyper/WSContext'
 
 import ErrorView from '@/views/ErrorView'
 import LayoutRootStarlight from '@/components/Layout/RootStarlight'
@@ -43,7 +44,7 @@ const router = createBrowserRouter([
       {
         path: 'copy-trading',
         index: true,
-        element: <LazyPage><CopyTrading /></LazyPage>
+        element: <LazyPage><HyperWSProvider><CopyTrading /></HyperWSProvider></LazyPage>
       },
       {
         path: 'rewards',
@@ -68,7 +69,7 @@ const router = createBrowserRouter([
       {
         path: 'trader/:address',
         index: true,
-        element: <LazyPage><TraderDetails /></LazyPage>
+        element: <LazyPage><HyperWSProvider><TraderDetails /></HyperWSProvider></LazyPage>
       }
     ]
   },
@@ -80,7 +81,7 @@ const router = createBrowserRouter([
       {
         path: 'trade/:coin?',
         index: true,
-        element: <LazyPage><Trade /></LazyPage>
+        element: <LazyPage><HyperWSProvider><Trade /></HyperWSProvider></LazyPage>
       }
     ]
   }

@@ -30,6 +30,7 @@ interface TDiscoverKolItem {
 
   busy?: boolean
   voted: boolean
+  voteReadonly?: boolean
 }
 interface TIdentityItem {
   value: string

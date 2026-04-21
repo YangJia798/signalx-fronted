@@ -23,7 +23,6 @@ import { merge } from '@/utils'
 import { appInfo, customAvatar, useAuthentication } from '@/utils/RainbowKitConfig'
 import { luminous } from '@/themes'
 import { muiTheme } from '@/themes/mui'
-import { HyperWSProvider } from '@/components/Hyper/WSContext'
 
 const queryClient = new QueryClient()
 
@@ -69,11 +68,9 @@ const App = () => {
             <ThemeProvider theme={muiTheme}>
               <ConfigProvider theme={luminous.theme} locale={antdLocale}>
                 <StyleProvider hashPriority="high">
-                  <HyperWSProvider>
-                    <NotificationProvider>
+                  <NotificationProvider>
                     <RouterProvider router={router} />
-                    </NotificationProvider>
-                  </HyperWSProvider>
+                  </NotificationProvider>
                 </StyleProvider>
               </ConfigProvider>
             </ThemeProvider>

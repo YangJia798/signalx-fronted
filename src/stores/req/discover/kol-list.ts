@@ -1,7 +1,7 @@
 import BN from 'bignumber.js'
 
 import { merge, defaults, formatPer } from '@/utils'
-import { baseCheck, baseApi } from '@/stores/req/helper'
+import { baseCheck, officialHyperbotApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TDiscoverStore, TDiscoverKolStore } from '@/stores'
 
 import { formatPositionByItem, formatUPnlStatus, formatStatusClassName, timeToLocal } from '../utils'
@@ -34,7 +34,7 @@ export const discoverKolList: TDiscoverKolList = {
     if (discoverKolStore.searchKol) {
       params.username = discoverKolStore.searchKol
     }
-    const res = await baseApi.get('/leaderboard/kol', {
+    const res = await officialHyperbotApi.get('/leaderboard/kol', {
       params
     })
 
@@ -72,7 +72,8 @@ export const discoverKolList: TDiscoverKolList = {
           tradesCount: +item.positionCount,
           createTs: item.createTime,
 
-          voted: item.isVote
+          voted: item.isVote,
+          voteReadonly: true
         }
       }),
       total: total,
