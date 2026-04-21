@@ -1,9 +1,7 @@
 
-import { merge, defaults } from '@/utils'
-import { baseCheck, baseApi } from '@/stores/req/helper'
-import { constants, TAccountStore, TNewsLatestStore } from '@/stores'
-
-import { formatPositionByItem } from '../utils'
+import { merge } from '@/utils'
+import { officialHyperbotApi } from '@/stores/req/helper'
+import { TAccountStore, TNewsLatestStore } from '@/stores'
 
 type NewsLatestResult = {
   data: Record<string, any>,
@@ -17,20 +15,26 @@ export type TNewsLatest = {
 }
 
 export const newsLatest: TNewsLatest = {
-  async newsLatest(accountStore, newsLatestStore) {
+  async newsLatest(_accountStore: TAccountStore, newsLatestStore) {
     const result: NewsLatestResult = { data: {}, error: true }
-    const { logged } = accountStore
 
     if (this.newsLatestBusy) return result
 
     this.newsLatestBusy = true
 
-    const res = await baseApi.get('/news/latest', {
-      params: {
-        lang: newsLatestStore.selectedLanguage,
-        take: newsLatestStore.pageSize,
-      }
-    })
+    let res: any
+    try {
+      res = await officialHyperbotApi.get('/news/latest', {
+        params: {
+          lang: newsLatestStore.selectedLanguage,
+          take: newsLatestStore.pageSize,
+        }
+      })
+    } catch(e) {
+      this.newsLatestBusy = false
+      this.newsLatestInit = false
+      return result
+    }
     // #TEST
     // const res = {
     //   data: {
@@ -96,24 +100,23 @@ export const newsLatest: TNewsLatest = {
     //   }
     // }
 
-    result.error = baseCheck(res, accountStore)
     this.newsLatestBusy = false
     this.newsLatestInit = false
 
-    if (result.error) return result
+    if (res.data?.code !== 0) return result
 
     // update
     const { data } = res.data
 
+    result.error = false
     result.data = {
-      list: (data || []).map((item: any, idx: number) => {
+      list: (data || []).map((item: any) => {
         return {
           id: item.id,
           title: item.title,
           content: item.content,
           columnistName: item.columnistName,
-          // XXX: 手动补上时区
-          createTs: new Date(item.createTime +'Z').getTime()
+          createTs: new Date(item.createTime + 'Z').getTime()
         }
       })
     }
