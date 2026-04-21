@@ -124,7 +124,7 @@ const DEFAULT_LIST = {
 
 const DEFAULT = {
   mainTypeValue: 'all',
-  sortByKey: SORT_KEYS.winRate.id,
+  sortByKey: SORT_KEYS.pnl.id,
   selectedCycleValue: CYCLE_KEYS.week.value,
   openTradingStatistics: false,
   ...DEFAULT_LIST,

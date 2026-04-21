@@ -161,7 +161,7 @@ const Discover = () => {
                           <span className="font-size-12" style={{ color: '#808080' }}>排序</span>
                           <DropdownMenu
                             items={[
-                              { label: '总盈亏', value: 'pnl' },
+                              { label: '净盈亏', value: 'pnl' },
                               { label: '胜率', value: 'winRate' },
                               { label: '收益率', value: 'roi' },
                               { label: '交易量', value: 'vlm' },
