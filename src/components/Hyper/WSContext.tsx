@@ -18,7 +18,7 @@ interface HyperWSProviderProps {
 }
 
 export const HyperWSProvider: React.FC<HyperWSProviderProps> = ({ children }) => {
-  const { sendMessage, lastMessage, readyState } = useWebSocket('wss://api.hyperliquid.xyz/ws', {
+  const { sendMessage, lastMessage, readyState } = useWebSocket(import.meta.env.VITE_HL_WS_URL || 'wss://api.hyperliquid.xyz/ws', {
     share: true,
     reconnectAttempts: 10,
     reconnectInterval: 3000,

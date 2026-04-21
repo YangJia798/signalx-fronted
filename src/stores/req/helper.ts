@@ -46,30 +46,28 @@ baseApi.interceptors.request.use(
 )
 
 const hyperApi = axios.create({
-  baseURL: 'https://api.hyperliquid.xyz',
+  baseURL: import.meta.env.VITE_HL_API_URL || 'https://api.hyperliquid.xyz',
   headers: {
     'Content-Type': 'application/json'
   },
 })
 
-const asterBaseURL = import.meta.env.VITE_ASTER_API_PATH || 'https://fapi.asterdex.com'
-
 const asterApi = axios.create({
-  baseURL: asterBaseURL,
+  baseURL: import.meta.env.VITE_ASTER_API_PATH || 'https://fapi.asterdex.com',
   headers: {
     'Content-Type': 'application/json'
   },
 })
 
 const hyperStatsApi = axios.create({
-  baseURL: 'https://stats-data.hyperliquid.xyz',
+  baseURL: import.meta.env.VITE_HL_STATS_URL || 'https://stats-data.hyperliquid.xyz',
   headers: {
     'Content-Type': 'application/json'
   },
 })
 
 const hyperbotApi = axios.create({
-  baseURL: 'https://hyperbot.network/api',
+  baseURL: import.meta.env.VITE_HYPERBOT_API_URL || 'https://hyperbot.network/api',
   headers: {
     'Content-Type': 'application/json'
   },

@@ -31,7 +31,7 @@ const WebSocket = () => {
 
   return (
     <>
-    <WebSocketConnection url="wss://api.hyperliquid.xyz/ws" connectionRef={wsRef} onMessage={handleMessage} onOpen={handleOpen} pingInterval={50000} showStatus={true} />
+    <WebSocketConnection url={import.meta.env.VITE_HL_WS_URL || 'wss://api.hyperliquid.xyz/ws'} connectionRef={wsRef} onMessage={handleMessage} onOpen={handleOpen} pingInterval={50000} showStatus={true} />
           <button onClick={handleSendMessage}>发送消息</button>
 
     </>
