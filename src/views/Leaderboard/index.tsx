@@ -25,6 +25,7 @@ const Leaderboard = () => {
   const navigate = useNavigate()
   const [memberModalOpen, setMemberModalOpen] = useState(false)
   const [filterAccountValue, setFilterAccountValue] = useState('')
+  const [liveStats, setLiveStats] = useState({ longCount: 0, shortCount: 0 })
 
   const MemberBadge = () => (
     <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}>
@@ -141,6 +142,11 @@ const Leaderboard = () => {
     return await reqStore.whalePositions(accountStore, whalePositionsStore)
   }
 
+  const handleWhaleStats = async () => {
+    const res = await reqStore.whaleStats(accountStore, whalePositionsStore)
+    if (!res.error) setLiveStats({ longCount: res.data.longCount, shortCount: res.data.shortCount })
+  }
+
   const handleWhalesPositionChangeSort = async (columnId: string) => {
     whalePositionsStore.sortColumnId = columnId
     await handleWhalePositions()
@@ -148,15 +154,17 @@ const Leaderboard = () => {
 
   useEffect(() => {
     handleWhalePositions()
+    handleWhaleStats()
   }, [])
 
-  // Compute stats from whale positions
-  const totalPositionValue = whalePositionsStore.list.reduce((sum, item) => sum + parseFloat(item.positionValue || '0'), 0)
-  const longCount = whalePositionsStore.list.filter(item => item.direction === 'long').length
-  const shortCount = whalePositionsStore.list.filter(item => item.direction === 'short').length
+  // Real stats from API
+  const longCount = liveStats.longCount
+  const shortCount = liveStats.shortCount
   const totalCount = longCount + shortCount
   const longPercent = totalCount > 0 ? ((longCount / totalCount) * 100).toFixed(1) : '0'
   const shortPercent = totalCount > 0 ? ((shortCount / totalCount) * 100).toFixed(1) : '0'
+  // Position values from positions list (filtered by selected coin)
+  const totalPositionValue = whalePositionsStore.list.reduce((sum, item) => sum + parseFloat(item.positionValue || '0'), 0)
   const longValue = whalePositionsStore.list.filter(i => i.direction === 'long').reduce((s, i) => s + parseFloat(i.positionValue || '0'), 0)
   const shortValue = whalePositionsStore.list.filter(i => i.direction === 'short').reduce((s, i) => s + parseFloat(i.positionValue || '0'), 0)
 
@@ -194,6 +202,7 @@ const Leaderboard = () => {
                         onSelect={(val: string) => {
                           whalePositionsStore.selectedCoin = val;
                           handleWhalePositions();
+                          handleWhaleStats();
                         }}
                       />
                       <DropdownMenu buttonSize='small'
