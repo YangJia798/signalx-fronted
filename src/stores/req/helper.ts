@@ -21,7 +21,7 @@ const baseCheck = (res: { data: any }, accountStore) => {
 }
 
 const baseURL = constants.app.API_BASE
-const OFFICIAL_HYPERBOT_API_URL = 'https://hyperbot.network/api'
+const OFFICIAL_HYPERBOT_API_URL = import.meta.env.VITE_OFFICIAL_HYPERBOT_API_URL || 'https://hyperbot.network/api'
 
 const baseApi = axios.create({
   baseURL,

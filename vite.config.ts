@@ -72,6 +72,11 @@ export default defineConfig(async ({ mode, command }) => {
           ws: true,
           changeOrigin: true,
           rewrite: (path: string) => path.replace(/^\/aster-ws/, '/ws')
+        },
+        '/hyperbot-proxy': {
+          target: 'https://hyperbot.network',
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/hyperbot-proxy/, '')
         }
       }
     },
