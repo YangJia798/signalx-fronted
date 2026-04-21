@@ -17,7 +17,7 @@ export type TDiscoverTradingStatistics = {
 }
 
 export const discoverTradingStatistics: TDiscoverTradingStatistics = {
-  async discoverTradingStatistics(accountStore, discoverTradingStatisticsStore) {
+  async discoverTradingStatistics(_accountStore, discoverTradingStatisticsStore) {
     const result: DiscoverTradingStatisticsResult = { data: {}, error: true }
 
     if (this.discoverTradingStatisticsBusy) return result
@@ -37,6 +37,21 @@ export const discoverTradingStatistics: TDiscoverTradingStatistics = {
 
       const fills: any[] = res.data || []
       const { decimalPlaces } = constants
+
+      // FIFO duration matching: open fills queue per coin → duration per closing fill (tid → ms)
+      const openQueues: Record<string, number[]> = {}
+      const durationByTid = new Map<number, number>()
+      const sortedFills = [...fills].sort((a: any, b: any) => a.time - b.time)
+      sortedFills.forEach((f: any) => {
+        const coin = f.coin
+        if (!openQueues[coin]) openQueues[coin] = []
+        if ((f.dir || '').includes('Open')) {
+          openQueues[coin].push(f.time)
+        } else if ((f.dir || '').includes('Close') && parseFloat(f.closedPnl) !== 0) {
+          const openTime = openQueues[coin].shift()
+          durationByTid.set(f.tid, openTime !== undefined ? f.time - openTime : 0)
+        }
+      })
 
       // Closing fills have non-zero closedPnl
       const closingFills = fills.filter(f => parseFloat(f.closedPnl) !== 0)
@@ -77,6 +92,15 @@ export const discoverTradingStatistics: TDiscoverTradingStatistics = {
       const winRate = total > 0 ? winning / total : 0
       const pnlStatus = formatUPnlStatus(totalPnl)
 
+      // Duration stats (seconds)
+      const allDurationsMs = closingFills.map(f => durationByTid.get(f.tid) ?? 0)
+      const positiveDurations = allDurationsMs.filter(d => d > 0)
+      const tradeDuration = positiveDurations.length > 0
+        ? Math.round(positiveDurations.reduce((s, d) => s + d, 0) / positiveDurations.length / 1000)
+        : 0
+      const minDuration = positiveDurations.length > 0 ? Math.round(Math.min(...positiveDurations) / 1000) : 0
+      const maxDuration = positiveDurations.length > 0 ? Math.round(Math.max(...positiveDurations) / 1000) : 0
+
       const bestTrades = [...closingFills]
         .sort((a: any, b: any) => parseFloat(b.closedPnl) - parseFloat(a.closedPnl))
         .slice(0, 10)
@@ -87,7 +111,7 @@ export const discoverTradingStatistics: TDiscoverTradingStatistics = {
             coin: f.coin,
             createTs: f.time,
             direction: (f.dir || '').toLowerCase().includes('long') ? 'long' : 'short',
-            duration: 0,
+            duration: Math.round((durationByTid.get(f.tid) ?? 0) / 1000),
             pnl: bnPnl.toFixed(decimalPlaces.__uPnl__),
             pnlStatus: ps,
             pnlStatusClassname: formatStatusClassName(ps),
@@ -130,9 +154,9 @@ export const discoverTradingStatistics: TDiscoverTradingStatistics = {
         shortWinRate: '0',
         lossRate: winRate === 0 ? '0' : formatPer(1 - winRate),
         fees: totalFees.toFixed(decimalPlaces.__COMMON__),
-        tradeDuration: 0,
-        minDuration: 0,
-        maxDuration: 0,
+        tradeDuration,
+        minDuration,
+        maxDuration,
         bestTrades,
         performanceAssets,
       }
