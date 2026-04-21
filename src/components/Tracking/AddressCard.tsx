@@ -178,9 +178,15 @@ const TrackingAddressCard = ({ item, variant = 'grid' }: { item: TTradersItem, v
           <div className="col-lg-3 col-md-4">
             <div className="d-flex flex-column gap-2">
               <div className="d-flex flex-wrap gap-1 mb-1">
-                <span className="px-1 py-0.5 br-1 font-size-10 fw-500 bg-buy-alpha-2 color-buy border-buy-alpha-2">偏多头</span>
-                <span className="px-1 py-0.5 br-1 font-size-10 fw-500 bg-primary-alpha-2 color-primary border-primary-alpha-2">小额盈利</span>
-                <span className="px-1 py-0.5 br-1 font-size-10 fw-500 bg-purple-alpha-2 color-purple border-purple-alpha-2">大波段</span>
+                {(item.tags || []).map((tag: string) => {
+                  const cls =
+                    tag === '偏多头' ? 'bg-buy-alpha-2 color-buy border-buy-alpha-2' :
+                    tag === '偏空头' ? 'bg-sell-alpha-2 color-sell border-sell-alpha-2' :
+                    ['大额盈利','中等盈利','小额盈利'].includes(tag) ? 'bg-primary-alpha-2 color-primary border-primary-alpha-2' :
+                    ['巨鲸','中等资金','小资金'].includes(tag) ? 'bg-orange-alpha-2 color-orange border-orange-alpha-2' :
+                    'bg-purple-alpha-2 color-purple border-purple-alpha-2'
+                  return <span key={tag} className={`px-1 py-0.5 br-1 font-size-10 fw-500 ${cls}`}>{tag}</span>
+                })}
               </div>
               <div className="d-flex flex-column gap-1">
                 <div className="d-flex justify-content-between"><span className="opacity-60 font-size-11">盈亏比</span><span className="fw-bold font-size-12">{item.sharpe || '-'}</span></div>

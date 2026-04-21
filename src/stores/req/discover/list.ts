@@ -139,6 +139,30 @@ async function fetchFillStats(address: string, cycleValue: string): Promise<{
   }
 }
 
+function computeTags(pnlNum: number, accountValue: number, longPnlNum: number, shortPnlNum: number): string[] {
+  const tags: string[] = []
+
+  // Account size
+  if (accountValue >= 1_000_000) tags.push('巨鲸')
+  else if (accountValue >= 100_000) tags.push('中等资金')
+  else tags.push('小资金')
+
+  // Direction preference (only when fill data available)
+  if (longPnlNum !== 0 || shortPnlNum !== 0) {
+    if (longPnlNum > shortPnlNum * 1.5) tags.push('偏多头')
+    else if (shortPnlNum < 0 && Math.abs(shortPnlNum) > Math.abs(longPnlNum) * 1.5) tags.push('偏空头')
+    else tags.push('中性')
+  }
+
+  // Profit scale
+  const absPnl = Math.abs(pnlNum)
+  if (absPnl >= 100_000) tags.push('大额盈利')
+  else if (absPnl >= 10_000) tags.push('中等盈利')
+  else tags.push('小额盈利')
+
+  return tags
+}
+
 function mapRow(item: any, window: string, rank: number) {
   const { decimalPlaces } = constants
 
@@ -181,6 +205,7 @@ function mapRow(item: any, window: string, rank: number) {
     maxDrawdown: '0.00',
     rank,
     pnlList: [] as any[],
+    tags: [] as string[],
     note: item.displayName || '',
     _pnlNum: pnl.toNumber(),
     _roi: roi,
@@ -237,6 +262,12 @@ export const discoverList: TDiscoverList = {
         item.shortPnl = fillStats[i].shortPnl
         item.longWinRate = fillStats[i].longWinRate
         item.shortWinRate = fillStats[i].shortWinRate
+        item.tags = computeTags(
+          item._pnlNum,
+          item._accountValue,
+          parseFloat(item.longPnl),
+          parseFloat(item.shortPnl),
+        )
       })
 
       const page = pageRaw.map(({ _pnlNum, _roi, _accountValue, _vlm, ...rest }) => rest)
