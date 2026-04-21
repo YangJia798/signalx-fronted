@@ -93,6 +93,51 @@ async function fetchPortfolioStats(address: string): Promise<{ pnlList: any[], s
   }
 }
 
+const CYCLE_TO_MS: Record<string, number> = {
+  '1':  1  * 24 * 60 * 60 * 1000,
+  '7':  7  * 24 * 60 * 60 * 1000,
+  '30': 30 * 24 * 60 * 60 * 1000,
+}
+
+async function fetchFillStats(address: string, cycleValue: string): Promise<{
+  longPnl: string, shortPnl: string, longWinRate: string, shortWinRate: string
+}> {
+  const zero = { longPnl: '0.00', shortPnl: '0.00', longWinRate: '0', shortWinRate: '0' }
+  try {
+    const periodMs = CYCLE_TO_MS[cycleValue]
+    const body = periodMs
+      ? { type: 'userFillsByTime', user: address, startTime: Date.now() - periodMs }
+      : { type: 'userFills', user: address }
+    const res = await hyperApi.post('/info', body)
+    const fills: any[] = res.data || []
+    const closing = fills.filter(f => parseFloat(f.closedPnl) !== 0)
+
+    let longPnl = new BN(0), shortPnl = new BN(0)
+    let longWin = 0, longTotal = 0, shortWin = 0, shortTotal = 0
+
+    closing.forEach(f => {
+      const pnl = new BN(f.closedPnl)
+      const dir: string = f.dir || ''
+      if (dir.includes('Long')) {
+        longPnl = longPnl.plus(pnl); longTotal++
+        if (pnl.gt(0)) longWin++
+      } else if (dir.includes('Short')) {
+        shortPnl = shortPnl.plus(pnl); shortTotal++
+        if (pnl.gt(0)) shortWin++
+      }
+    })
+
+    return {
+      longPnl: longPnl.toFixed(2),
+      shortPnl: shortPnl.toFixed(2),
+      longWinRate: longTotal > 0 ? formatPer(longWin / longTotal) : '0',
+      shortWinRate: shortTotal > 0 ? formatPer(shortWin / shortTotal) : '0',
+    }
+  } catch {
+    return zero
+  }
+}
+
 function mapRow(item: any, window: string, rank: number) {
   const { decimalPlaces } = constants
 
@@ -167,7 +212,7 @@ export const discoverList: TDiscoverList = {
       const pageRaw = mapped.slice(start, start + size)
 
       // Parallel fetch per-address data for visible page items
-      const [positionCounts, portfolioStats] = await Promise.all([
+      const [positionCounts, portfolioStats, fillStats] = await Promise.all([
         Promise.all(
           pageRaw.map(item =>
             hyperApi.post('/info', { type: 'clearinghouseState', user: item.address })
@@ -179,6 +224,7 @@ export const discoverList: TDiscoverList = {
           )
         ),
         Promise.all(pageRaw.map(item => fetchPortfolioStats(item.address))),
+        Promise.all(pageRaw.map(item => fetchFillStats(item.address, discoverStore.selectedCycleValue))),
       ])
 
       pageRaw.forEach((item, i) => {
@@ -186,6 +232,10 @@ export const discoverList: TDiscoverList = {
         item.pnlList = portfolioStats[i].pnlList as any[]
         item.sharpe = portfolioStats[i].sharpe
         item.maxDrawdown = portfolioStats[i].maxDrawdown
+        item.longPnl = fillStats[i].longPnl
+        item.shortPnl = fillStats[i].shortPnl
+        item.longWinRate = fillStats[i].longWinRate
+        item.shortWinRate = fillStats[i].shortWinRate
       })
 
       const page = pageRaw.map(({ _pnlNum, _roi, _accountValue, _vlm, ...rest }) => rest)
