@@ -50,8 +50,8 @@ const ToolbarAutoRefreshButton: React.FC<ToolbarAutoRefreshButtonProps> = ({
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
-    // sync
-    onSyncStatus(isAutoRefreshing)
+    // sync — defer to avoid setState-during-render warning
+    setTimeout(() => onSyncStatus(isAutoRefreshing), 0)
 
     // 已开启自动
     if (isAutoRefreshing) {
