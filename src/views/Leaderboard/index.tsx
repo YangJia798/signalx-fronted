@@ -110,7 +110,7 @@ const Leaderboard = () => {
                 { icon: <IOutlineChart2 className='zoom-85' />, title: t('common.trackAddress'), logged: true, onClick: () => handleOpenCreateTrackAddress(item) },
                 { icon: <IOutlineShare className='zoom-85' />, title: t('common.copyTrading'), logged: true, onClick: () => handleOpenQuickerCreateCopyTrade(item) },
               ].map((item, idx) => (
-                <button key={idx} className="bg-transparent border-0 p-1 color-secondary hover-primary" style={{ transition: 'all 0.2s' }} onClick={item.onClick}>
+                <button key={idx} className="bg-transparent border-0 p-1 color-secondary hover-primary" style={{ transition: 'all 0.2s' }} onClick={e => { e.stopPropagation(); item.onClick(); }}>
                   {item.icon}
                 </button>
               ))
