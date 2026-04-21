@@ -1,7 +1,7 @@
 import BN from 'bignumber.js'
 
 import { merge, formatPer } from '@/utils'
-import { hyperbotApi } from '@/stores/req/helper'
+import { hyperbotApi, hyperApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TDiscoverRecommendStore } from '@/stores'
 
 type DiscoverRecommendResult = {
@@ -37,7 +37,20 @@ export const discoverRecommend: TDiscoverRecommend = {
         }
       }
 
-      const list = combined.slice(0, 12).map((item: any) => {
+      const candidates = combined.slice(0, 12)
+
+      const positionCounts = await Promise.all(
+        candidates.map(item =>
+          hyperApi.post('/info', { type: 'clearinghouseState', user: item.ethAddress })
+            .then(r => {
+              const positions: any[] = r.data?.assetPositions || []
+              return positions.filter(p => parseFloat(p.position?.szi || '0') !== 0).length
+            })
+            .catch(() => 0)
+        )
+      )
+
+      const list = candidates.map((item: any, i: number) => {
         const pnl = new BN(item.pnl || 0)
         const roi = parseFloat(item.roi || 0)
         return {
@@ -50,6 +63,7 @@ export const discoverRecommend: TDiscoverRecommend = {
           marginUsedRatio: '0%',
           note: item.displayName || '',
           pnl: pnl.toFixed(constants.decimalPlaces.__uPnl__),
+          totalPositions: positionCounts[i],
           tags: [],
           tradesCount: 0,
           lastActionTs: '',

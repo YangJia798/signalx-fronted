@@ -1,7 +1,7 @@
 import BN from 'bignumber.js'
 
 import { merge, formatPer } from '@/utils'
-import { hyperbotApi } from '@/stores/req/helper'
+import { hyperbotApi, hyperApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TDiscoverStore } from '@/stores'
 
 import { formatUPnlStatus, formatStatusClassName } from '../utils'
@@ -124,7 +124,22 @@ export const discoverList: TDiscoverList = {
       // Paginate
       const size = discoverStore.size
       const start = (discoverStore.current - 1) * size
-      const page = mapped.slice(start, start + size).map(({ _pnlNum, _roi, _accountValue, _vlm, ...rest }) => rest)
+      const pageRaw = mapped.slice(start, start + size)
+
+      // Fetch current positions in parallel for visible addresses
+      const positionCounts = await Promise.all(
+        pageRaw.map(item =>
+          hyperApi.post('/info', { type: 'clearinghouseState', user: item.address })
+            .then(r => {
+              const positions: any[] = r.data?.assetPositions || []
+              return positions.filter(p => parseFloat(p.position?.szi || '0') !== 0).length
+            })
+            .catch(() => 0)
+        )
+      )
+      pageRaw.forEach((item, i) => { item.totalPositions = positionCounts[i] })
+
+      const page = pageRaw.map(({ _pnlNum, _roi, _accountValue, _vlm, ...rest }) => rest)
 
       result.data = {
         last: page,
