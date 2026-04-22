@@ -57,7 +57,8 @@ const ModalExportPrivateKey = () => {
   const [decrypting, setDecrypting] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const fundPasswordOk = privateWalletStore.fundPasswordSet
+  const currentWallet = privateWalletStore.list[privateWalletStore.operaWalletIdx]
+  const fundPasswordOk = currentWallet?.hasFundPassword ?? privateWalletStore.fundPasswordSet
   const emailOk = !!accountStore.email
   const prereqsMet = fundPasswordOk && emailOk
 

@@ -80,7 +80,8 @@ export const userPrivateWallet: TUserPrivateWallet = {
           uPnlStatusClassName: formatStatusClassName(uPnlStatus),
           address: item.wallet ?? item.address ?? '',
           withdrawable: new BN(item.withdrawable ?? item.withdrawable_amount ?? 0).toFixed(decimalPlaces.__COMMON__),
-          importWallet: item.importWallet ?? item.import_wallet ?? 0
+          importWallet: item.importWallet ?? item.import_wallet ?? 0,
+          hasFundPassword: !!(item.hasFundPassword ?? item.has_fund_password ?? item.fundPasswordSet ?? item.hasPw ?? item.passwdPrompt ?? false)
         }
       })
     }

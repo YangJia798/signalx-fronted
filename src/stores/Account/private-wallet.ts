@@ -35,6 +35,7 @@ export type TPrivateWalletStore = {
     address: string // 钱包地址
     withdrawable: string // 可提现余额
     importWallet: number // 0=创建的钱包 1=导入的钱包
+    hasFundPassword: boolean // 是否已设置资金密码
   }>
 
   // create

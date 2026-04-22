@@ -25,6 +25,8 @@ export const userSetFundPassword: TUserSetFundPassword = {
     if (result.error) return result
 
     privateWalletStore.fundPasswordSet = true
+    const wallet = privateWalletStore.list[privateWalletStore.operaWalletIdx]
+    if (wallet) wallet.hasFundPassword = true
     privateWalletStore.openSetFundPassword = false
 
     return result
