@@ -27,7 +27,11 @@ const Leaderboard = () => {
   const [memberModalOpen, setMemberModalOpen] = useState(false)
   const [filterAccountValue, setFilterAccountValue] = useState('')
   const [liveStats, setLiveStats] = useState({ longCount: 0, shortCount: 0 })
+  const [chartData, setChartData] = useState<Array<{ time: number; value: number; longRatio: number; positionValueDiff: number }>>([])
   const chartContainerRef = useRef<HTMLDivElement>(null)
+  const chartRef = useRef<any>(null)
+  const ratioSeriesRef = useRef<any>(null)
+  const diffSeriesRef = useRef<any>(null)
 
   const MemberBadge = () => (
     <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}>
@@ -150,7 +154,10 @@ const Leaderboard = () => {
   }
 
   const handleWhaleLongShortHistory = async () => {
-    await reqStore.whaleLongShortHistory(accountStore, whalePositionsStore)
+    const res = await reqStore.whaleLongShortHistory(accountStore, whalePositionsStore)
+    if (!res.error && res.data.longShortRatioHistory) {
+      setChartData([...res.data.longShortRatioHistory])
+    }
   }
 
   const handleWhalesPositionChangeSort = async (columnId: string) => {
@@ -164,16 +171,15 @@ const Leaderboard = () => {
     handleWhaleLongShortHistory()
   }, [])
 
-  // Chart: rebuild when data or interval changes
+  // Init chart once
   useEffect(() => {
-    const data = whalePositionsStore.longShortRatioHistory
-    if (!chartContainerRef.current || data.length === 0) return
+    if (!chartContainerRef.current) return
 
     const chart = createChart(chartContainerRef.current, {
       layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: 'rgba(255,255,255,0.5)' },
       grid: { vertLines: { color: 'rgba(255,255,255,0.05)' }, horzLines: { color: 'rgba(255,255,255,0.05)' } },
       width: chartContainerRef.current.clientWidth,
-      height: chartContainerRef.current.clientHeight || 280,
+      height: 280,
       rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.1)' },
       leftPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.1)' },
       timeScale: { borderColor: 'rgba(255,255,255,0.1)', timeVisible: true },
@@ -185,19 +191,27 @@ const Leaderboard = () => {
       priceScaleId: 'right',
       title: '多空比',
     })
-    ratioSeries.setData(data.map(d => ({ time: d.time as any, value: d.longRatio })))
 
-    if (data.some(d => d.longValue || d.shortValue)) {
-      const diffSeries = chart.addSeries(LineSeries, {
-        color: '#f7b500',
-        lineWidth: 2,
-        priceScaleId: 'left',
-        title: '价值差异',
-      })
-      diffSeries.setData(data.map(d => ({ time: d.time as any, value: d.longValue - d.shortValue })))
-    }
+    const diffSeries = chart.addSeries(LineSeries, {
+      color: '#f7b500',
+      lineWidth: 2,
+      priceScaleId: 'left',
+      title: '价值差异',
+      priceFormat: {
+        type: 'custom' as const,
+        formatter: (val: number) => {
+          const abs = Math.abs(val)
+          if (abs >= 1e9) return (val / 1e9).toFixed(2) + 'B'
+          if (abs >= 1e6) return (val / 1e6).toFixed(2) + 'M'
+          if (abs >= 1e3) return (val / 1e3).toFixed(2) + 'K'
+          return val.toFixed(2)
+        },
+      },
+    })
 
-    chart.timeScale().fitContent()
+    chartRef.current = chart
+    ratioSeriesRef.current = ratioSeries
+    diffSeriesRef.current = diffSeries
 
     const handleResize = () => {
       if (chartContainerRef.current) {
@@ -210,7 +224,15 @@ const Leaderboard = () => {
       window.removeEventListener('resize', handleResize)
       chart.remove()
     }
-  }, [whalePositionsStore.longShortRatioHistory])
+  }, [])
+
+  // Update data when chartData changes
+  useEffect(() => {
+    if (!ratioSeriesRef.current || !diffSeriesRef.current || chartData.length === 0) return
+    ratioSeriesRef.current.setData(chartData.map((d: any) => ({ time: d.time as any, value: d.longRatio })))
+    diffSeriesRef.current.setData(chartData.map((d: any) => ({ time: d.time as any, value: d.positionValueDiff })))
+    chartRef.current?.timeScale().fitContent()
+  }, [chartData])
 
   // Real stats from API
   const longCount = liveStats.longCount
@@ -330,7 +352,7 @@ const Leaderboard = () => {
                          </span>
                       </div>
                       <DropdownMenu buttonSize='small' className="bg-gray-alpha-4 border-1 border-gray-alpha-2"
-                        items={whalePositionsStore.selectPeriod}
+                        items={whalePositionsStore.selectPeriod.filter(p => ['1h', '4h', '1d'].includes(p.value))}
                         selectedValue={whalePositionsStore.selectedPeriodChart}
                         onSelect={(val: string) => {
                           whalePositionsStore.selectedPeriodChart = val

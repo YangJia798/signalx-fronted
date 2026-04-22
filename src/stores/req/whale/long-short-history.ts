@@ -32,12 +32,10 @@ export const whaleLongShortHistory: TWhaleLongShortHistory = {
       result.data = {
         longShortRatioHistory: raw
           .map(s => ({
-            time: s.time > 1e12 ? Math.floor(s.time / 1000) : s.time,
+            time: Math.floor(s.time / 1000),
             value: Number(s.longRatio),
             longRatio: Number(s.longRatio),
-            shortRatio: Number(s.shortRatio ?? (1 - s.longRatio)),
-            longValue: s.longValue ?? 0,
-            shortValue: s.shortValue ?? 0,
+            positionValueDiff: Number(s.positionValueDiff ?? 0),
           }))
           .sort((a, b) => a.time - b.time),
       }

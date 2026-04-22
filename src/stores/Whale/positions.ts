@@ -32,9 +32,7 @@ export type TWhalePositionsStore = {
     time: number
     value: number
     longRatio: number
-    shortRatio: number
-    longValue: number
-    shortValue: number
+    positionValueDiff: number
   }>
 
   pageSize: number,
