@@ -13,10 +13,10 @@ export const userSetFundPassword: TUserSetFundPassword = {
 
     this.userSetFundPasswordBusy = true
 
-    const res = await baseApi.post('/account/set-fund-pwd', {
-      password: privateWalletStore.fundPw,
-      confirmPassword: privateWalletStore.fundPwRepeat,
-      hint: privateWalletStore.fundPwPrompt
+    const walletId = privateWalletStore.list[privateWalletStore.operaWalletIdx]?.walletId ?? ''
+    const res = await baseApi.put('/api/wallet/fund-password', {
+      id: walletId,
+      fund_password: privateWalletStore.fundPw
     })
 
     result.error = baseCheck(res, accountStore)

@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import { Input, message } from 'antd'
-import { useTranslation } from 'react-i18next'
 import { useAccountStore, usePrivateWalletStore, useReqStore } from '@/stores'
 import { maskingAddress } from '@/utils'
 import BaseModal from './Base'
@@ -9,7 +8,6 @@ const ModalSetFundPassword = () => {
   const privateWalletStore = usePrivateWalletStore()
   const accountStore = useAccountStore()
   const reqStore = useReqStore()
-  const { t } = useTranslation()
 
   const walletAddress = privateWalletStore.list[privateWalletStore.operaWalletIdx]?.address ?? ''
 
@@ -73,17 +71,7 @@ const ModalSetFundPassword = () => {
           />
         </div>
 
-        <div className='d-flex flex-column gap-1'>
-          <span className='color-secondary font-size-13'>密码提示</span>
-          <Input
-            value={privateWalletStore.fundPwPrompt}
-            onChange={e => privateWalletStore.fundPwPrompt = e.target.value}
-            placeholder='（可选）'
-            className='br-2'
-            style={{ height: '48px' }}
-          />
-        </div>
-      </div>
+</div>
     </BaseModal>
   )
 }
