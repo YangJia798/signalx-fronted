@@ -1,7 +1,7 @@
 import BN from 'bignumber.js'
 
 import { merge, formatPer } from '@/utils'
-import { officialHyperbotApi } from '@/stores/req/helper'
+import { hyperbotApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TDiscoverTradingStatisticsStore } from '@/stores'
 
 import { formatUPnlStatus, formatStatusClassName } from '../utils'
@@ -28,7 +28,7 @@ export const discoverTradingStatistics: TDiscoverTradingStatistics = {
       const address = discoverTradingStatisticsStore.address
       const period = +discoverTradingStatisticsStore.selectedCycleValue
 
-      const res = await officialHyperbotApi.get('/leaderboard/smart/detailed-trading-statistics', {
+      const res = await hyperbotApi.get('/leaderboard/smart/detailed-trading-statistics', {
         params: { address, period }
       })
 
