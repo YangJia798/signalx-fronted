@@ -1,7 +1,7 @@
 
-import { merge, defaults } from '@/utils'
+import { merge } from '@/utils'
 import { baseCheck, baseApi } from '@/stores/req/helper'
-import { constants, TAccountStore, TPrivateWalletStore } from '@/stores'
+import { TAccountStore, TPrivateWalletStore } from '@/stores'
 
 type UserExportPrivateKeyResult = {
   data: Record<string, any>,
@@ -23,10 +23,9 @@ export const userExportPrivateKey: TUserExportPrivateKey = {
 
     this.userExportPrivateKeyBusy = true
 
-    const res = await baseApi.get('/account/pri-key', {
-      params: {
-        passwd: privateWalletStore.exportPrivateKeyPW
-      }
+    const res = await baseApi.post('/account/pri-key', {
+      fund_password: privateWalletStore.exportFundPw,
+      email_code: privateWalletStore.exportEmailCode
     })
 
     result.error = baseCheck(res, accountStore)
