@@ -1,5 +1,6 @@
 import { baseCheck, baseApi } from '@/stores/req/helper'
-import { TAccountStore } from '@/stores'
+import { TAccountStore, constants } from '@/stores'
+import { localStorage } from '@/utils'
 
 export type TUserBindEmail = {
   userSendBindEmailCode: (accountStore: TAccountStore, email: string) => Promise<{ error: boolean }>
@@ -29,6 +30,8 @@ export const userBindEmail: TUserBindEmail = {
     this.userVerifyBindEmailBusy = false
     if (result.error) return result
     accountStore.email = email
+    const saved = localStorage.get(constants.storageKey.ACCOUNT) || {}
+    localStorage.set(constants.storageKey.ACCOUNT, { ...saved, email })
     return result
   },
   userVerifyBindEmailBusy: false

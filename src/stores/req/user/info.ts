@@ -38,7 +38,8 @@ export const userInfo: TUserInfo = {
       id: data.userId,
       tgHeadIco: data.userPhoto || '',
       boundOfficialReferralCode: data.isBound ?? false,
-      evmAddress: data.address ?? ''
+      evmAddress: data.address ?? '',
+      email: data.email ?? data.bindEmail ?? data.bind_email ?? ''
     }
     result.data = {
       ...accountInfo
