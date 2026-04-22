@@ -48,7 +48,6 @@ const ModalExportPrivateKey = () => {
   const reqStore = useReqStore()
   const accountStore = useAccountStore()
   const { t } = useTranslation()
-  const [phase, setPhase] = useState<'prereq' | 'export'>('prereq')
   const [sendLoading, setSendLoading] = useState(false)
   const [countdown, setCountdown] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -92,23 +91,19 @@ const ModalExportPrivateKey = () => {
     if (!privateWalletStore.openExportPrivateKey) return
     privateWalletStore.resetExportPrivateKey()
     setCountdown(0)
-    // 前置条件已满足则直接进入导出页
-    setPhase(fundPasswordOk && emailOk ? 'export' : 'prereq')
   }, [privateWalletStore.openExportPrivateKey])
 
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [])
 
-  // Prereq view
-  if (phase === 'prereq') {
+  // Prereq view — 直接用 prereqsMet 判断，满足条件自动进入导出
+  if (!prereqsMet) {
     return (
       <BaseModal
         title={t('common.exportPrivateKey', '导出私钥')}
         open={privateWalletStore.openExportPrivateKey}
         onClose={handleClose}
-        onSubmit={prereqsMet ? () => setPhase('export') : null}
-        submitText='继续'
       >
         <div className='d-flex align-items-center justify-content-center p-3 mb-3 text-center font-size-13'
           style={{ background: 'rgba(255, 168, 0, 0.08)', border: '1px solid rgba(255, 168, 0, 0.3)', borderRadius: '8px', color: '#ffa800', lineHeight: '1.6' }}>
@@ -154,7 +149,7 @@ const ModalExportPrivateKey = () => {
     )
   }
 
-  // Export view (图二)
+  // Export view (图二) — prereqsMet 为 true 时直接到这里
   return (
     <BaseModal
       title={t('common.exportPrivateKey', '导出私钥')}
