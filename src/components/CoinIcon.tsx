@@ -2,8 +2,10 @@ import React, { HTMLProps, useState, useEffect } from 'react'
 import { TAvatarSize } from '@/stores'
 import './CoinIcon.scss'
 
-const handleIconPath = (id) => {
-  return `/coin/32@2x/color/${id.toLowerCase()}@2x.png`
+const parseCoinId = (id: string) => id.includes(':') ? id.split(':')[1] : id
+
+const handleIconPath = (id: string) => {
+  return `/coin/32@2x/color/${parseCoinId(id).toLowerCase()}@2x.png`
 }
 
 type TCoinId = string
@@ -25,7 +27,7 @@ const CoinIcon: React.FC<TCoinIconProps> = ({
   const [error, setError] = useState<boolean>(false)
 
   // 处理图片加载错误
-  const handleError = (e) => {
+  const handleError = () => {
     // console.warn(`Coin icon not found: ${id}`)
     setError(true)
   }
@@ -39,7 +41,7 @@ const CoinIcon: React.FC<TCoinIconProps> = ({
     <span className={`d-flex avatar flex-shrink-0 ${size} ${className}`} {...rest}>
       { !error
           ? <img src={iconSrc} alt={id} onError={handleError} />
-          : fallback || <div className="coin-icon-fallback">{id.slice(0, 3).toUpperCase()}</div>
+          : fallback || <div className="coin-icon-fallback">{parseCoinId(id).slice(0, 3).toUpperCase()}</div>
       }
     </span>
   )
