@@ -24,7 +24,12 @@ const ModalSetFundPassword = () => {
       message.warning('两次输入的密码不一致')
       return
     }
-    await reqStore.userSetFundPassword(accountStore, privateWalletStore)
+    const { error } = await reqStore.userSetFundPassword(accountStore, privateWalletStore)
+    if (error) return
+    // 钱包登录（未绑定邮箱）时，资金密码设置完继续提示绑定邮箱
+    if (!accountStore.email) {
+      privateWalletStore.openBindEmail = true
+    }
   }
 
   useEffect(() => {

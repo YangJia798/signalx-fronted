@@ -16,15 +16,24 @@ const ModalCreatePrivateWallet = () => {
   };
 
   const handleSubmit = async () => {
-    // Note: Since this is turnkey integrated, we no longer send a password or hint
-    // We just ensure nickname is sent appropriately.
-    const { error } = await reqStore.userCreatePrivateWallet(accountStore, privateWalletStore);
+    const { error, data } = await reqStore.userCreatePrivateWallet(accountStore, privateWalletStore);
 
     if (error) return
 
     handleClose()
-    // update
     await reqStore.userPrivateWallet(accountStore, privateWalletStore)
+
+    // 设置 operaWalletIdx 到刚创建的钱包
+    const newWalletId = data.walletId ?? data.id
+    if (newWalletId) {
+      const idx = privateWalletStore.list.findIndex(w => w.walletId == newWalletId)
+      privateWalletStore.operaWalletIdx = idx >= 0 ? idx : 0
+    } else {
+      privateWalletStore.operaWalletIdx = 0
+    }
+
+    // 创建完成后提示设置资金密码
+    privateWalletStore.openSetFundPassword = true
   };
 
   // init

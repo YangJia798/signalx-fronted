@@ -64,7 +64,7 @@ const ModalExportPrivateKey = () => {
   const handleSendCode = async () => {
     setSendLoading(true)
     try {
-      await baseApi.post('/wallet/export-email-code/send', { email: accountStore.email })
+      await baseApi.post('/wallet/export/send-code', {})
       message.success('验证码已发送，请查收邮件')
       setCountdown(COUNTDOWN)
       timerRef.current = setInterval(() => {
