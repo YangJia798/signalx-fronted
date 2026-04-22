@@ -117,8 +117,9 @@ const Discover = () => {
                 {/* Template Selector placed directly under Tabs to align width perfectly */}
                 {discoverStore.mainTypeValue === 'all' && (
                   <div className="d-flex align-items-center gap-2">
-                    <div className="flex-grow-1 d-flex justify-content-between align-items-center px-3 cursor-pointer transition-2 hover-bg-white-5" 
-                         style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '4px', height: '40px' }}>
+                    <div className="flex-grow-1 d-flex justify-content-between align-items-center px-3 cursor-pointer transition-2 hover-bg-white-5"
+                         style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '4px', height: '40px' }}
+                         onClick={() => setMemberModalOpen(true)}>
                       <span className="font-size-14" style={{ color: '#808080' }}>选择筛选模版</span>
                       <span className="font-size-12" style={{ color: '#808080' }}>▼</span>
                     </div>
