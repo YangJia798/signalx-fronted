@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import BN from 'bignumber.js'
+import { message } from 'antd'
+import { isAddress } from 'viem'
 import { formatNumber } from '@/utils'
 
 import { IOutlineChart2, IOutlineMonitor, IOutlineShare } from '@/components/icon'
@@ -36,18 +38,29 @@ const TrackingAddressCard = ({ item, variant = 'grid' }: { item: TTradersItem, v
   const discoverTradingStatisticsStore = useDiscoverTradingStatisticsStore()
   const { t } = useTranslation()
 
+  const checkAddress = (itemAddress: string): boolean => {
+    if (!isAddress(itemAddress, { strict: false })) {
+      message.warning(t('message.dataLoading', '数据加载中，请稍后'))
+      return false
+    }
+    return true
+  }
+
   const handleOpenQuickerCreateCopyTrade = (itemAddress: string) => {
+    if (!checkAddress(itemAddress)) return
     copyTradingStore.quickerOpenPositionTargetAddress = itemAddress
     copyTradingStore.copyTradingSearchTargetAddress = itemAddress
     copyTradingStore.openCopyTradingTarget = true
   }
 
   const handleOpenTradingStatistics = (itemAddress: string) => {
+    if (!checkAddress(itemAddress)) return
     discoverTradingStatisticsStore.address = itemAddress
     discoverTradingStatisticsStore.openModal = true
   }
 
   const handleOpenCreateTrackAddress = async (itemAddress: string) => {
+    if (!checkAddress(itemAddress)) return
     trackingCreateStore.quickCreateTrackAddress = itemAddress
     trackingCreateStore.openCreateTracking = true
   }
