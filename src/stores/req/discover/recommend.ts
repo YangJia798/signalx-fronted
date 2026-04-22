@@ -1,7 +1,7 @@
 import BN from 'bignumber.js'
 
 import { merge, formatPer } from '@/utils'
-import { officialHyperbotApi, hyperApi } from '@/stores/req/helper'
+import { hyperbotApi, hyperApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TDiscoverRecommendStore } from '@/stores'
 
 type DiscoverRecommendResult = {
@@ -24,9 +24,9 @@ export const discoverRecommend: TDiscoverRecommend = {
     try {
       // Fetch a larger pool (30) so we can filter by active positions
       const [pnlRes, roiRes, vlmRes] = await Promise.all([
-        officialHyperbotApi.get('/leaderboard/address/top-pnl', { params: { window: 'week', take: 15 } }),
-        officialHyperbotApi.get('/leaderboard/address/top-roi', { params: { window: 'week', take: 15 } }),
-        officialHyperbotApi.get('/leaderboard/address/top-vlm', { params: { window: 'week', take: 15 } }),
+        hyperbotApi.get('/leaderboard/address/top-pnl', { params: { window: 'week', take: 15 } }),
+        hyperbotApi.get('/leaderboard/address/top-roi', { params: { window: 'week', take: 15 } }),
+        hyperbotApi.get('/leaderboard/address/top-vlm', { params: { window: 'week', take: 15 } }),
       ])
 
       const seen = new Set<string>()
