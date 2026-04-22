@@ -119,7 +119,7 @@ const CopyTrading = () => {
             )}
             <Dropdown placement="bottomRight"
               menu={{ items: [
-                { content: <div onClick={(e) => { e.stopPropagation(); merge(privateWalletStore, { openExportPrivateKey: true, operaWalletIdx: item.idx}) }}>{ t('common.exportPrivateKey') }</div> },
+                ...( item.importWallet === 0 ? [{ content: <div onClick={(e) => { e.stopPropagation(); merge(privateWalletStore, { openExportPrivateKey: true, operaWalletIdx: item.idx}) }}>{ t('common.exportPrivateKey') }</div> }] : []),
                 { danger: true, content: <div onClick={(e) => { e.stopPropagation(); merge(privateWalletStore, { openRemove: true, operaWalletIdx: item.idx}) }}>{ t('common.removeWallet') }</div> },
               ].map((menuItem, idx) => ({ key: idx, label: menuItem.content, danger: menuItem.danger }))}}
             >
