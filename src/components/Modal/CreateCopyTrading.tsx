@@ -87,7 +87,7 @@ const ModalCreateCopyTrading = () => {
   const handleSearchTargetAddress = async () => {
     copyTradingStore.resetCopyTradingTargetInfo()
 
-    if (!isAddress(copyTradingStore.copyTradingSearchTargetAddress)) {
+    if (!isAddress(copyTradingStore.copyTradingSearchTargetAddress, { strict: false })) {
       message.error(t('message.pleaseInputAddress'))
       return
     }
@@ -176,13 +176,14 @@ const ModalCreateCopyTrading = () => {
 
     if (!copyTradingStore.openCopyTradingTarget || !accountStore.logged) return
 
-    copyTradingStore.resetCopyTradingTarget()
-    copyTradingStore.resetOpenPosition()
-
-    // Pre-fill target address synchronously before any async ops
     if (copyTradingStore.quickerOpenPositionTargetAddress) {
+      // Quick mode: preserve the pre-filled address, only reset position info
+      copyTradingStore.resetCopyTradingTargetInfo()
       copyTradingStore.copyTradingSearchTargetAddress = copyTradingStore.quickerOpenPositionTargetAddress
+    } else {
+      copyTradingStore.resetCopyTradingTarget()
     }
+    copyTradingStore.resetOpenPosition()
 
     // Load private wallets if not yet fetched
     if (privateWalletStore.list.length === 0) {
@@ -204,7 +205,7 @@ const ModalCreateCopyTrading = () => {
         const queryParams = new URLSearchParams(location.search);
         const cctAddress = queryParams.get(constants.paramKey.copyTradingTargetAddress);
 
-        if (cctAddress && isAddress(cctAddress)) {
+        if (cctAddress && isAddress(cctAddress, { strict: false })) {
           copyTradingStore.copyTradingSearchTargetAddress = cctAddress
           copyTradingStore.openCopyTradingTarget = true
           await sleep(300)
