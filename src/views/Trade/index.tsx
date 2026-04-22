@@ -97,6 +97,7 @@ const Trade = () => {
               onClick={(item) => tradeStore.recordTabId = item.id} />
             <TraderDetailsPositions
               address={tradeStore.address}
+              isOwnWallet
               className={`col ${tradeStore.recordTabId === 'positions' ? '' : 'd-none'}`} />
             <TraderDetailsOpenOrdersAdditional
               address={tradeStore.address}
