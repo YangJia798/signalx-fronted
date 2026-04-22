@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button, message } from 'antd'
 import { useAccountStore, usePrivateWalletStore, useReqStore } from '@/stores'
-import { baseApi } from '@/stores/req/helper'
 import BaseModal from './Base'
 
 const ModalBindEmail = () => {
@@ -38,16 +37,12 @@ const ModalBindEmail = () => {
     const email = privateWalletStore.bindEmailAddress.trim()
     if (!email) return
     setSendLoading(true)
-    try {
-      await baseApi.post('/user/bind-email/sendCode', { email })
-      message.success('验证码已发送，请查收邮件')
-      setStep('verify')
-      setTimeout(() => inputRefs.current[0]?.focus(), 100)
-    } catch {
-      message.error('发送失败，请稍后重试')
-    } finally {
-      setSendLoading(false)
-    }
+    const { error } = await reqStore.userSendBindEmailCode(accountStore, email)
+    setSendLoading(false)
+    if (error) return
+    message.success('验证码已发送，请查收邮件')
+    setStep('verify')
+    setTimeout(() => inputRefs.current[0]?.focus(), 100)
   }
 
   const handleVerify = async () => {
