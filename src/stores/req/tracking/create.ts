@@ -33,7 +33,7 @@ export const trackingCreate: TTrackingCreate = {
         ]
 
     for (const item of items) {
-      const res = await baseApi.post('/api/track-wallet/create', item)
+      const res = await baseApi.post('/track-wallet/create', item)
       result.error = baseCheck(res, accountStore)
       if (result.error) break
     }

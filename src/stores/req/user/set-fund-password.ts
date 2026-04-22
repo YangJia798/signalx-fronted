@@ -14,7 +14,7 @@ export const userSetFundPassword: TUserSetFundPassword = {
     this.userSetFundPasswordBusy = true
 
     const walletId = privateWalletStore.list[privateWalletStore.operaWalletIdx]?.walletId ?? ''
-    const res = await baseApi.put('/api/wallet/fund-password', {
+    const res = await baseApi.put('/wallet/fund-password', {
       id: walletId,
       fund_password: privateWalletStore.fundPw
     })

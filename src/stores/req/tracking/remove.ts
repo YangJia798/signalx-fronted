@@ -20,7 +20,7 @@ export const trackingRemove: TTrackingRemove = {
 
     this.trackingRemoveBusy = true
 
-    const res = await baseApi.post('/api/track-wallet/remove', {
+    const res = await baseApi.post('/track-wallet/remove', {
       wallet: trackingAddressPositionStore.removeTrackAddress
     })
 

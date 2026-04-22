@@ -25,7 +25,7 @@ export const trackingAddressPosition: TTrackingAddressPosition = {
 
     this.trackingAddressPositionBusy = true
 
-    const res = await baseApi.get('/api/track-wallet/list')
+    const res = await baseApi.get('/track-wallet/list')
 
     result.error = baseCheck(res, accountStore)
     this.trackingAddressPositionBusy = false

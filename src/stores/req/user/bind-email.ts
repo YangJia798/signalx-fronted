@@ -13,7 +13,7 @@ export const userBindEmail: TUserBindEmail = {
     const result = { error: true }
     if (this.userSendBindEmailCodeBusy || !accountStore.logged) return result
     this.userSendBindEmailCodeBusy = true
-    const res = await baseApi.post('/api/wallet/bind-email/send-code', { email })
+    const res = await baseApi.post('/wallet/bind-email/send-code', { email })
     result.error = baseCheck(res, accountStore)
     this.userSendBindEmailCodeBusy = false
     return result
@@ -24,7 +24,7 @@ export const userBindEmail: TUserBindEmail = {
     const result = { error: true }
     if (this.userVerifyBindEmailBusy || !accountStore.logged) return result
     this.userVerifyBindEmailBusy = true
-    const res = await baseApi.post('/api/wallet/bind-email', { email, code })
+    const res = await baseApi.post('/wallet/bind-email', { email, code })
     result.error = baseCheck(res, accountStore)
     this.userVerifyBindEmailBusy = false
     if (result.error) return result
