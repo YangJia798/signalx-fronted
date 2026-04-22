@@ -1,10 +1,5 @@
-import BN from 'bignumber.js'
-
-import { merge, defaults } from '@/utils'
 import { baseCheck, baseApi } from '@/stores/req/helper'
-import { constants, TAccountStore, TTrackingAddressPositionStore } from '@/stores'
-
-import { formatPositionByItem, formatUPnlStatus, formatStatusClassName } from '../utils'
+import { TAccountStore, TTrackingAddressPositionStore } from '@/stores'
 
 type TrackingRemoveResult = {
   data: Record<string, any>,
@@ -25,19 +20,12 @@ export const trackingRemove: TTrackingRemove = {
 
     this.trackingRemoveBusy = true
 
-    const res = await baseApi.post('/copy-trading/del-track-wallet', {
+    const res = await baseApi.post('/api/track-wallet/remove', {
       wallet: trackingAddressPositionStore.removeTrackAddress
     })
 
     result.error = baseCheck(res, accountStore)
     this.trackingRemoveBusy = false
-
-    if (result.error) return result
-
-    // update
-    const { data } = res.data
-
-    result.data = {}
 
     return result
   },

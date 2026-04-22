@@ -1,10 +1,5 @@
-import BN from 'bignumber.js'
-
-import { merge, defaults } from '@/utils'
 import { baseCheck, baseApi } from '@/stores/req/helper'
-import { constants, TAccountStore, TTrackingCreateStore, TTrackingAddressPositionStore } from '@/stores'
-
-import { formatPositionByItem, formatUPnlStatus, formatStatusClassName } from '../utils'
+import { TAccountStore, TTrackingCreateStore, TTrackingAddressPositionStore } from '@/stores'
 
 type TrackingCreateResult = {
   data: Record<string, any>,
@@ -25,31 +20,25 @@ export const trackingCreate: TTrackingCreate = {
 
     this.trackingCreateBusy = true
 
-    const res = await baseApi.post('/copy-trading/create-track-wallet', {
-      recodes: trackingAddressPositionStore.batchImportAddresses.length
-        ? trackingAddressPositionStore.batchImportAddresses
-        : [
-            {
-              wallet: trackingCreateStore.createTrackAddress,
-              remark: trackingCreateStore.createTrackNote,
-              enableNotify: trackingCreateStore.notificationOn ? 1 : 0,
-              notifyAction: trackingCreateStore.notificationSelectedEventTypes.join(','),
-              lang: trackingCreateStore.notificationSelectedLanguage
-            }
-          ]
-    })
+    const items = trackingAddressPositionStore.batchImportAddresses.length
+      ? trackingAddressPositionStore.batchImportAddresses
+      : [
+          {
+            wallet: trackingCreateStore.createTrackAddress,
+            remark: trackingCreateStore.createTrackNote,
+            enableNotify: trackingCreateStore.notificationOn ? 1 : 0,
+            notifyAction: trackingCreateStore.notificationSelectedEventTypes.join(','),
+            lang: trackingCreateStore.notificationSelectedLanguage
+          }
+        ]
 
-    result.error = baseCheck(res, accountStore)
-    this.trackingCreateBusy = false
-
-    if (result.error) return result
-
-    // update
-    const { data } = res.data
-
-    result.data = {
-      // data 返回成功几个，但用户已存在的address也会表示成功
+    for (const item of items) {
+      const res = await baseApi.post('/api/track-wallet/create', item)
+      result.error = baseCheck(res, accountStore)
+      if (result.error) break
     }
+
+    this.trackingCreateBusy = false
 
     return result
   },
