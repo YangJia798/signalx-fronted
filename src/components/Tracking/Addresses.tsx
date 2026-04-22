@@ -41,9 +41,9 @@ const TrackingAddresses = () => {
           }
         </h4>
         <div className='d-flex gap-3'>
-          <ButtonIcon logged icon={<IOutlineImport1 />} onClick={() => trackingAddressPositionStore.openBatchImportTracking = true}>{t('track.batchImport')}</ButtonIcon>
-          <ButtonIcon logged disabled={!trackingAddressPositionStore.list.length} icon={<IOutlineExport1 />} onClick={() => trackingAddressPositionStore.openBatchExportTracking = true}>{t('track.batchExport')}</ButtonIcon>
-          <ButtonIcon type='primary' icon={<IOutlineAdd />} logged className='gap-1 fw-bold px-3 br-4'
+          {/* <ButtonIcon logged icon={<IOutlineImport1 />} onClick={() => trackingAddressPositionStore.openBatchImportTracking = true}>{t('track.batchImport')}</ButtonIcon> */}
+          {/* <ButtonIcon logged disabled={!trackingAddressPositionStore.list.length} icon={<IOutlineExport1 />} onClick={() => trackingAddressPositionStore.openBatchExportTracking = true}>{t('track.batchExport')}</ButtonIcon> */}
+<ButtonIcon type='primary' icon={<IOutlineAdd />} logged className='gap-1 fw-bold px-3 br-4'
             onClick={() => trackingCreateStore.openCreateTracking = true }>
             <span className='d-none d-sm-block'>{t('common.createTrack')}</span>
           </ButtonIcon>
