@@ -92,11 +92,14 @@ const Leaderboard = () => {
           </div>
         )
       case 'uPnl':
-        const isProfit = parseFloat(item.uPnl) >= 0;
+        const isProfit = parseFloat(item.uPnl) >= 0
+        const hasUPnlRatio = item.uPnlRatio !== undefined && item.uPnlRatio !== null && item.uPnlRatio !== ''
         return (
           <div className="d-flex flex-column align-items-end">
             <span className={`fw-bold h6 m-0 ${isProfit ? 'color-success' : 'color-danger'}`}>{isProfit ? '+' : ''}$ {formatNumber(item.uPnl)}</span>
-            <span className={`font-size-11 ${isProfit ? 'color-success' : 'color-danger'}`}>{isProfit ? '+' : ''}0.11%</span>
+            {hasUPnlRatio && (
+              <span className={`font-size-11 ${isProfit ? 'color-success' : 'color-danger'}`}>{isProfit ? '+' : ''}{item.uPnlRatio}%</span>
+            )}
           </div>
         )
       case 'openingPrice':
