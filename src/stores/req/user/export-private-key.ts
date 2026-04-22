@@ -1,3 +1,4 @@
+import { generateP256KeyPair, decryptExportBundle } from '@turnkey/crypto'
 
 import { merge } from '@/utils'
 import { baseCheck, baseApi } from '@/stores/req/helper'
@@ -13,35 +14,84 @@ export type TUserExportPrivateKey = {
   userExportPrivateKeyBusy: boolean
 }
 
-// 导出私钥
+function extractExportBundle(data: any): string {
+  const candidates = [
+    data?.exportBundle,
+    data?.export_bundle,
+    data?.data?.exportBundle,
+    data?.data?.export_bundle,
+    data?.result?.exportBundle,
+    data?.result?.exportPrivateKeyResult?.exportBundle,
+    data?.activity?.result?.exportPrivateKeyResult?.exportBundle,
+  ]
+  for (const c of candidates) {
+    if (c && typeof c === 'string' && c.trim()) return c.trim()
+  }
+  return ''
+}
+
+function extractOrganizationId(data: any): string {
+  return (
+    data?.organizationId ??
+    data?.organization_id ??
+    data?.data?.organizationId ??
+    data?.data?.organization_id ??
+    ''
+  )
+}
+
 export const userExportPrivateKey: TUserExportPrivateKey = {
   async userExportPrivateKey(accountStore, privateWalletStore) {
     const result: UserExportPrivateKeyResult = { data: {}, error: true }
-    const { logged } = accountStore
-
-    if (this.userExportPrivateKeyBusy || !logged) return result
+    if (this.userExportPrivateKeyBusy || !accountStore.logged) return result
 
     this.userExportPrivateKeyBusy = true
 
-    const res = await baseApi.post('/account/pri-key', {
-      fund_password: privateWalletStore.exportFundPw,
-      email_code: privateWalletStore.exportEmailCode
-    })
+    try {
+      // 1. 生成本地 P-256 临时密钥对
+      const keypair = generateP256KeyPair()
 
-    result.error = baseCheck(res, accountStore)
-    this.userExportPrivateKeyBusy = false
+      const walletId = privateWalletStore.list[privateWalletStore.operaWalletIdx]?.walletId ?? ''
 
-    if (result.error) return result
+      // 2. 提交导出请求
+      const res = await baseApi.post('/wallet/export', {
+        id: walletId,
+        fund_password: privateWalletStore.exportFundPw,
+        email_code: privateWalletStore.exportEmailCode,
+        target_public_key: keypair.publicKeyUncompressed,
+      })
 
-    // update
-    const { data } = res.data
+      result.error = baseCheck(res, accountStore)
+      if (result.error) return result
 
-    result.data = {
-      exportPrivateKeyContent: data.priKey
+      const resData = res.data?.data ?? res.data
+
+      // 3. 从响应中取出 exportBundle 和 organizationId
+      const exportBundle = extractExportBundle(res.data)
+      const organizationId = extractOrganizationId(res.data)
+
+      if (!exportBundle) {
+        result.error = true
+        return result
+      }
+
+      // 4. 本地解密
+      const privateKeyHex = await decryptExportBundle({
+        exportBundle,
+        embeddedKey: keypair.privateKey,
+        organizationId,
+        returnMnemonic: false,
+      })
+
+      const privateKey = privateKeyHex.startsWith('0x') ? privateKeyHex : `0x${privateKeyHex}`
+
+      result.data = { exportPrivateKeyContent: privateKey }
+      merge(privateWalletStore, result.data)
+    } catch (e: any) {
+      result.error = true
+    } finally {
+      this.userExportPrivateKeyBusy = false
     }
-
-    // update
-    merge(privateWalletStore, result.data)
 
     return result
   },
