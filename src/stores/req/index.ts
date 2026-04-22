@@ -11,6 +11,8 @@ import { userCreatePrivateWallet, TUserCreatePrivateWallet } from './user/create
 import { userDeletePrivateWallet, TUserDeletePrivateWallet } from './user/delete-private-wallet'
 import { userEvmLogin, TUserEvmLogin } from './user/evm-login'
 import { userEvmSignMessage, TUserEvmSignMessage } from './user/evm-sign-message'
+import { userSetFundPassword, TUserSetFundPassword } from './user/set-fund-password'
+import { userBindEmail, TUserBindEmail } from './user/bind-email'
 
 import { rewardUserLv, TRewardUserLv } from './reward/user-lv'
 import { rewardUserInfo, TRewardUserInfo} from './reward/user-info'
@@ -69,7 +71,7 @@ import { asterOrderLimitSell, TAsterOrderLimitSell } from './aster/order-limit-s
 export * from './utils'
 
 export type TReqStore =
-  TUserTgLogin & TUserInfo & TUserTgCode & TUserExportPrivateKey & TUserImportPrivateWallet & TUserPrivateWallet & TUserWalletDeposit & TUserCreatePrivateWallet & TUserDeletePrivateWallet & TUserEvmLogin & TUserEvmSignMessage &
+  TUserTgLogin & TUserInfo & TUserTgCode & TUserExportPrivateKey & TUserImportPrivateWallet & TUserPrivateWallet & TUserWalletDeposit & TUserCreatePrivateWallet & TUserDeletePrivateWallet & TUserEvmLogin & TUserEvmSignMessage & TUserSetFundPassword & TUserBindEmail &
   TRewardUserLv & TRewardUserInfo & TRewardDetailedList &
   TCopyTryTradingClosePosition & TCopyTradingCreateCopyTrading & TCopyTradingUpdateCopyTrading & TCopyTradingMyCopyTrading & TCopyTradingMyPosition & TCopyTradingTargetPosition & TCopyTradingRemoveMyCopyTrading & TCopyTradingFindByAddress &
   TLeaderboardProfitList & TLeaderboardCoinList & TLeaderboardSearchProfit & TLeaderboardPointOverallList & TLeaderboardPointReferralList &
@@ -84,6 +86,7 @@ const reqStore = {
   ...userTgLogin, ...userInfo, ...userTgCode, ...userExportPrivateKey, ...userImportPrivateWallet, ...userPrivateWallet, ...userWalletDeposit,
   ...userCreatePrivateWallet, ...userDeletePrivateWallet,
   ...userEvmLogin, ...userEvmSignMessage,
+  ...userSetFundPassword, ...userBindEmail,
   // Reward
   ...rewardUserLv, ...rewardUserInfo, ...rewardDetailedList,
   // Copy Trading

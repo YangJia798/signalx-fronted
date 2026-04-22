@@ -1,7 +1,6 @@
 import { createStore } from '@/stores/helpers'
 
 import { merge } from '@/utils'
-import { constants } from '@/stores'
 
 export type TPrivateWalletStore = {
   MIN_PW_LENGTH: number
@@ -10,10 +9,14 @@ export type TPrivateWalletStore = {
   openCreatePrivateWallet: boolean
   openImportPrivateWallet: boolean
   openExportPrivateKey: boolean
+  openSetFundPassword: boolean
+  openBindEmail: boolean
   openDeposit: boolean
   openWithdraw: boolean
   openRemove: boolean
   operaWalletIdx: number
+
+  fundPasswordSet: boolean
 
   addresses: Array<string>
 
@@ -54,6 +57,16 @@ export type TPrivateWalletStore = {
   exportPrivateKeyContent: string
   resetExportPrivateKey(): void
 
+  // SetFundPassword
+  fundPw: string
+  fundPwRepeat: string
+  fundPwPrompt: string
+  resetFundPassword(): void
+
+  // BindEmail
+  bindEmailAddress: string
+  resetBindEmail(): void
+
   // deposit
   depositNumber: string
   resetDeposit: () => void
@@ -84,6 +97,16 @@ const DEFAULT_EXPORT_PRIVATE_KEY = {
   exportPrivateKeyContent: ''
 }
 
+const DEFAULT_FUND_PASSWORD = {
+  fundPw: '',
+  fundPwRepeat: '',
+  fundPwPrompt: ''
+}
+
+const DEFAULT_BIND_EMAIL = {
+  bindEmailAddress: ''
+}
+
 const DEFAULT_DEPOSIT = {
   depositNumber: ''
 }
@@ -99,6 +122,8 @@ const DEFAULT = {
   ...DEFAULT_CREATE,
   ...DEFAULT_IMPORT,
   ...DEFAULT_EXPORT_PRIVATE_KEY,
+  ...DEFAULT_FUND_PASSWORD,
+  ...DEFAULT_BIND_EMAIL,
   ...DEFAULT_DEPOSIT,
   ...DEFAULT_REMOVE
 }
@@ -110,9 +135,13 @@ const privateWalletStore: TPrivateWalletStore = {
   openCreatePrivateWallet: false,
   openImportPrivateWallet: false,
   openExportPrivateKey: false,
+  openSetFundPassword: false,
+  openBindEmail: false,
   openDeposit: false,
   openWithdraw: false,
   openRemove: false,
+
+  fundPasswordSet: false,
 
   ...DEFAULT,
 
@@ -126,6 +155,14 @@ const privateWalletStore: TPrivateWalletStore = {
 
   resetExportPrivateKey() {
     merge(this, DEFAULT_EXPORT_PRIVATE_KEY)
+  },
+
+  resetFundPassword() {
+    merge(this, DEFAULT_FUND_PASSWORD)
+  },
+
+  resetBindEmail() {
+    merge(this, DEFAULT_BIND_EMAIL)
   },
 
   resetDeposit() {
@@ -142,4 +179,3 @@ const privateWalletStore: TPrivateWalletStore = {
 }
 
 export const usePrivateWalletStore = createStore<TPrivateWalletStore>(privateWalletStore)
-
