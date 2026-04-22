@@ -117,8 +117,9 @@ const ModalCreateCopyTrading = () => {
   }
 
   const handleQuickerOpenPosition = async () => {
-    copyTradingStore.copyTradingSearchTargetAddress = copyTradingStore.quickerOpenPositionTargetAddress
-    handleSearchTargetAddress()
+    const targetAddress = copyTradingStore.quickerOpenPositionTargetAddress
+    copyTradingStore.copyTradingSearchTargetAddress = targetAddress
+    await handleSearchTargetAddress()
     copyTradingStore.resetQuickerOpenPosition()
 
     await reqStore.copyTradingFindByAddress(accountStore, copyTradingStore)
@@ -138,6 +139,9 @@ const ModalCreateCopyTrading = () => {
         openPositionCopyRatio: copyRatio ?? '100',
         openPositionHighMarginProtect: highMarginProtect ?? '70',
       })
+    } else {
+      // Ensure the address stays in the search input after all async ops
+      copyTradingStore.copyTradingSearchTargetAddress = targetAddress
     }
   }
 
