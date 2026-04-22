@@ -108,13 +108,13 @@ const CopyTrading = () => {
                 >
                   {t('common.deposit') || '存款'}
                 </button>
-                <button
+                {/* <button
                   className="border-0 cursor-pointer fw-500 font-size-12 transition-2 d-none d-md-block"
                   style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '24px', padding: '6px 16px', color: '#00d1b2', whiteSpace: 'nowrap', flexShrink: 0 }}
-                  onClick={(e) => { e.stopPropagation() /* TODO Withdraw action */ }}
+                  onClick={(e) => { e.stopPropagation() }}
                 >
                   {t('common.withdraw')}
-                </button>
+                </button> */}
               </>
             )}
             <Dropdown placement="bottomRight"
