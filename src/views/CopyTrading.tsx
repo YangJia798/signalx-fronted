@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Popconfirm, Dropdown, Select, Switch } from 'antd'
+import { Popconfirm, Dropdown, Select, Switch, message } from 'antd'
 import { useTranslation } from 'react-i18next'
 import BN from 'bignumber.js'
 
@@ -36,6 +36,7 @@ const CopyTrading = () => {
   const [activeListTab, setActiveListTab] = useState('targets')
   const [selectedAddress, setSelectedAddress] = useState<string>('')
   const [targetStats, setTargetStats] = useState<Record<string, any>>({})
+  const [authorizingWalletId, setAuthorizingWalletId] = useState<string>('')
 
   const currentAddress = selectedAddress || privateWalletStore.addresses[0] || ''
 
@@ -97,10 +98,32 @@ const CopyTrading = () => {
           </div>
         )
       case 'operator':
+        const hasBalance = new BN(item.balance || 0).gt(0)
+        const isAuthorizing = authorizingWalletId === String(item.walletId)
         return (
           <div className="d-flex align-items-center justify-content-end gap-2 w-100">
             {item.importWallet !== 1 && (
               <>
+                <button
+                  className="border-0 fw-500 font-size-12 transition-2 d-none d-md-block"
+                  disabled={!hasBalance || isAuthorizing}
+                  style={{
+                    background: 'rgba(255,255,255,0.06)',
+                    borderRadius: '24px',
+                    padding: '6px 16px',
+                    color: !hasBalance ? 'rgba(255,255,255,0.35)' : '#00d1b2',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    cursor: !hasBalance || isAuthorizing ? 'not-allowed' : 'pointer',
+                    opacity: isAuthorizing ? 0.75 : 1,
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleAuthorizeWallet(item)
+                  }}
+                >
+                  {isAuthorizing ? '授权中...' : '授权'}
+                </button>
                 <button
                   className="border-0 cursor-pointer fw-500 font-size-12 transition-2 d-none d-md-block"
                   style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '24px', padding: '6px 16px', color: '#00d1b2', whiteSpace: 'nowrap', flexShrink: 0 }}
@@ -260,6 +283,33 @@ const CopyTrading = () => {
     await reqStore.copyTradingMyCopyTrading(accountStore, copyTradingStore)
   }
 
+  const handleAuthorizeWallet = async (item: any) => {
+    if (!new BN(item.balance || 0).gt(0)) return
+
+    setAuthorizingWalletId(String(item.walletId))
+
+    try {
+      const result = item.platform === 'aster'
+        ? await reqStore.userAsterAgentAuthorize(accountStore, {
+            wallet_id: String(item.walletId),
+            can_spot_trade: false,
+            can_perp_trade: true,
+            can_withdraw: false,
+            force: true,
+          })
+        : await reqStore.userHyperliquidAgentAuthorize(accountStore, {
+            wallet_id: String(item.walletId),
+            force: true,
+          })
+
+      if (result.error) return
+
+      message.success(`${item.platform === 'aster' ? 'Aster' : 'Hyperliquid'} 授权成功`)
+    } finally {
+      setAuthorizingWalletId('')
+    }
+  }
+
   // init
   useEffect(() => {
     const asyncFunc = async () => {
@@ -278,6 +328,16 @@ const CopyTrading = () => {
       privateWalletStore.reset()
       copyTradingStore.reset()
     }
+  }, [accountStore.logged])
+
+  useEffect(() => {
+    if (!accountStore.logged) return
+
+    const timer = window.setInterval(() => {
+      reqStore.userPrivateWallet(accountStore, privateWalletStore)
+    }, 120000)
+
+    return () => window.clearInterval(timer)
   }, [accountStore.logged])
 
   useEffect(() => {

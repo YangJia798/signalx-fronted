@@ -11,89 +11,23 @@ const ModalCreatePrivateWallet = () => {
   const accountStore = useAccountStore();
   const { t } = useTranslation()
 
-  const extractWalletId = (data: Record<string, any>) =>
-    data.walletId ??
-    data.wallet_id ??
-    data.id ??
-    data.wallet?.walletId ??
-    data.wallet?.wallet_id ??
-    data.wallet?.id
-
-  const extractWalletAddress = (data: Record<string, any>) =>
-    data.address ??
-    data.wallet ??
-    data.walletAddress ??
-    data.wallet_address ??
-    data.wallet?.address ??
-    data.wallet?.wallet
-
-  const findCreatedWallet = (platform: string, nickname: string, walletId?: string, walletAddress?: string) => {
-    const candidates = privateWalletStore.list.filter(item => {
-      if (item.platform !== platform) return false
-      if (walletId && String(item.walletId) === String(walletId)) return true
-      if (walletAddress && item.address === walletAddress) return true
-      if (nickname && item.nickname === nickname) return true
-      return !walletId && !walletAddress && !nickname
-    })
-
-    if (candidates.length > 0) {
-      return [...candidates].sort((a, b) => Number(b.createTs || 0) - Number(a.createTs || 0))[0]
-    }
-
-    const samePlatformWallets = privateWalletStore.list.filter(item => item.platform === platform)
-    if (samePlatformWallets.length > 0) {
-      return [...samePlatformWallets].sort((a, b) => Number(b.createTs || 0) - Number(a.createTs || 0))[0]
-    }
-
-    return null
-  }
-
   const handleClose = () => {
     privateWalletStore.openCreatePrivateWallet = false;
   };
 
   const handleSubmit = async () => {
-    const createPlatform = privateWalletStore.createPlatform
-    const createNickname = privateWalletStore.createNickname
     const { error, data } = await reqStore.userCreatePrivateWallet(accountStore, privateWalletStore);
 
     if (error) return
 
     await reqStore.userPrivateWallet(accountStore, privateWalletStore)
 
-    let newWalletId = extractWalletId(data)
-    const newWalletAddress = extractWalletAddress(data)
-    const createdWallet = findCreatedWallet(createPlatform, createNickname, newWalletId, newWalletAddress)
-
-    if (!newWalletId && createdWallet?.walletId) {
-      newWalletId = createdWallet.walletId
-    }
-
-    if (newWalletId) {
-      if (createPlatform === 'hyperliquid') {
-        await reqStore.userHyperliquidAgentAuthorize(accountStore, {
-          wallet_id: String(newWalletId),
-          force: true,
-        })
-      } else if (createPlatform === 'aster') {
-        await reqStore.userAsterAgentAuthorize(accountStore, {
-          wallet_id: String(newWalletId),
-          can_spot_trade: false,
-          can_perp_trade: true,
-          can_withdraw: false,
-          force: true,
-        })
-      }
-    }
-
     handleClose()
 
     // 设置 operaWalletIdx 到刚创建的钱包
+    const newWalletId = data.walletId ?? data.wallet_id ?? data.id
     if (newWalletId) {
       const idx = privateWalletStore.list.findIndex(w => w.walletId == newWalletId)
-      privateWalletStore.operaWalletIdx = idx >= 0 ? idx : 0
-    } else if (createdWallet?.walletId) {
-      const idx = privateWalletStore.list.findIndex(w => w.walletId == createdWallet.walletId)
       privateWalletStore.operaWalletIdx = idx >= 0 ? idx : 0
     } else {
       privateWalletStore.operaWalletIdx = 0
