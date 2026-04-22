@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Input, Button, message } from 'antd';
 import { useTranslation } from 'react-i18next'
+import { decryptExportBundle } from '@turnkey/crypto'
 
 import { useAccountStore, usePrivateWalletStore, useReqStore } from '@/stores';
 import { baseApi } from '@/stores/req/helper';
@@ -43,6 +44,8 @@ const ROW_STYLE: React.CSSProperties = {
 
 const COUNTDOWN = 60
 
+type Phase = 'form' | 'paste' | 'reveal'
+
 const ModalExportPrivateKey = () => {
   const privateWalletStore = usePrivateWalletStore()
   const reqStore = useReqStore()
@@ -50,6 +53,8 @@ const ModalExportPrivateKey = () => {
   const { t } = useTranslation()
   const [sendLoading, setSendLoading] = useState(false)
   const [countdown, setCountdown] = useState(0)
+  const [phase, setPhase] = useState<Phase>('form')
+  const [decrypting, setDecrypting] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const fundPasswordOk = privateWalletStore.fundPasswordSet
@@ -85,11 +90,37 @@ const ModalExportPrivateKey = () => {
   const handleSubmit = async () => {
     const { error } = await reqStore.userExportPrivateKey(accountStore, privateWalletStore)
     if (error) return
+    setPhase('paste')
+  }
+
+  const handleReveal = async () => {
+    const bundle = privateWalletStore.exportBundleInput.trim()
+    if (!bundle) {
+      message.warning('请粘贴加密私钥')
+      return
+    }
+    setDecrypting(true)
+    try {
+      const privateKeyHex = await decryptExportBundle({
+        exportBundle: bundle,
+        embeddedKey: privateWalletStore.exportKeypairPrivateKey,
+        organizationId: privateWalletStore.exportOrganizationId,
+        returnMnemonic: false,
+      })
+      const privateKey = privateKeyHex.startsWith('0x') ? privateKeyHex : `0x${privateKeyHex}`
+      privateWalletStore.exportPrivateKeyContent = privateKey
+      setPhase('reveal')
+    } catch {
+      message.error('解密失败，请确认粘贴的内容正确')
+    } finally {
+      setDecrypting(false)
+    }
   }
 
   useEffect(() => {
     if (!privateWalletStore.openExportPrivateKey) return
     privateWalletStore.resetExportPrivateKey()
+    setPhase('form')
     setCountdown(0)
   }, [privateWalletStore.openExportPrivateKey])
 
@@ -97,7 +128,7 @@ const ModalExportPrivateKey = () => {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [])
 
-  // Prereq view — 直接用 prereqsMet 判断，满足条件自动进入导出
+  // Prereq view
   if (!prereqsMet) {
     return (
       <BaseModal
@@ -149,13 +180,82 @@ const ModalExportPrivateKey = () => {
     )
   }
 
-  // Export view (图二) — prereqsMet 为 true 时直接到这里
+  // Paste bundle view (图1)
+  if (phase === 'paste') {
+    return (
+      <BaseModal
+        title={t('common.exportPrivateKey', '导出私钥')}
+        open={privateWalletStore.openExportPrivateKey}
+        onClose={handleClose}
+        onSubmit={handleReveal}
+        submitText='显示私钥'
+        submitDisabled={!privateWalletStore.exportBundleInput.trim()}
+        submitLoading={decrypting}
+      >
+        <div className='d-flex flex-column gap-3'>
+          <div className='p-3 font-size-13 text-center'
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.7' }}>
+            加密恢复私钥已发送至 <span className='color-white fw-500'>{accountStore.email}</span>，请粘贴到下方解密，从而获取钱包私钥。
+          </div>
+
+          <div className='d-flex flex-column gap-1'>
+            <span className='color-secondary font-size-13'>加密私钥</span>
+            <Input.TextArea
+              value={privateWalletStore.exportBundleInput}
+              onChange={e => privateWalletStore.exportBundleInput = e.target.value}
+              placeholder='请粘贴邮件中的加密私钥'
+              className='br-2'
+              autoSize={{ minRows: 4 }}
+            />
+          </div>
+
+          <div className='d-flex flex-column gap-1 font-size-12'
+            style={{ color: 'rgba(255,255,255,0.4)', lineHeight: '1.6' }}>
+            <div>• 请勿在公共场所或不安全设备上操作</div>
+            <div>• 私钥一旦泄露，资产将面临风险</div>
+            <div>• 解密过程在本地完成，不会上传至服务器</div>
+          </div>
+        </div>
+      </BaseModal>
+    )
+  }
+
+  // Reveal view (图2)
+  if (phase === 'reveal') {
+    return (
+      <BaseModal
+        title={t('common.exportPrivateKey', '导出私钥')}
+        open={privateWalletStore.openExportPrivateKey}
+        onClose={handleClose}
+        onSubmit={handleClose}
+        submitText='完成'
+      >
+        <div className='d-flex flex-column gap-3'>
+          <div className='p-3 font-size-13 text-center'
+            style={{ background: 'rgba(255, 168, 0, 0.08)', border: '1px solid rgba(255, 168, 0, 0.3)', borderRadius: '8px', color: '#ffa800', lineHeight: '1.6' }}>
+            你的私钥是你钱包的钥匙。将其保存在安全的地方。
+          </div>
+
+          <div className='d-flex flex-column gap-2 bg-gray-alpha-4 p-3 br-1'>
+            <span className='color-secondary font-size-13'>Wallet Private Key</span>
+            <Input.TextArea value={privateWalletStore.exportPrivateKeyContent} className='br-2' readOnly autoSize />
+            <Button size='small' ghost onClick={() => {
+              navigator.clipboard.writeText(privateWalletStore.exportPrivateKeyContent)
+              message.success(t('message.privateKeyCopied', '私钥已复制'))
+            }}>复制私钥</Button>
+          </div>
+        </div>
+      </BaseModal>
+    )
+  }
+
+  // Form view (default)
   return (
     <BaseModal
       title={t('common.exportPrivateKey', '导出私钥')}
       open={privateWalletStore.openExportPrivateKey}
       onClose={handleClose}
-      onSubmit={privateWalletStore.exportPrivateKeyContent ? undefined : handleSubmit}
+      onSubmit={handleSubmit}
       submitText='提交验证'
       submitDisabled={
         privateWalletStore.exportFundPw.length < privateWalletStore.MIN_PW_LENGTH ||
@@ -163,51 +263,40 @@ const ModalExportPrivateKey = () => {
       }
       submitLoading={reqStore.userExportPrivateKeyBusy}
     >
-      {privateWalletStore.exportPrivateKeyContent ? (
-        <div className='d-flex flex-column gap-2 bg-gray-alpha-4 p-3 br-1'>
-          <span className='color-secondary font-size-13'>Wallet Private Key</span>
-          <Input.TextArea value={privateWalletStore.exportPrivateKeyContent} className='br-2' readOnly autoSize />
-          <Button size='small' ghost onClick={() => {
-            navigator.clipboard.writeText(privateWalletStore.exportPrivateKeyContent)
-            message.success(t('message.privateKeyCopied', '私钥已复制'))
-          }}>Copy Private Key</Button>
+      <div className='d-flex flex-column gap-3 mt-1'>
+        <div className='d-flex flex-column gap-1'>
+          <span className='color-secondary font-size-13'>资金密码</span>
+          <Input.Password
+            value={privateWalletStore.exportFundPw}
+            onChange={e => privateWalletStore.exportFundPw = e.target.value}
+            className='br-2'
+            style={{ height: '48px' }}
+          />
         </div>
-      ) : (
-        <div className='d-flex flex-column gap-3 mt-1'>
-          <div className='d-flex flex-column gap-1'>
-            <span className='color-secondary font-size-13'>资金密码</span>
-            <Input.Password
-              value={privateWalletStore.exportFundPw}
-              onChange={e => privateWalletStore.exportFundPw = e.target.value}
-              className='br-2'
-              style={{ height: '48px' }}
-            />
-          </div>
 
-          <div className='d-flex flex-column gap-1'>
-            <span className='color-secondary font-size-13'>邮箱验证码</span>
-            <Input
-              value={privateWalletStore.exportEmailCode}
-              onChange={e => privateWalletStore.exportEmailCode = e.target.value}
-              className='br-2'
-              style={{ height: '48px' }}
-              suffix={
-                <Button
-                  type='link'
-                  size='small'
-                  loading={sendLoading}
-                  disabled={countdown > 0}
-                  onClick={handleSendCode}
-                  className='p-0 fw-500'
-                  style={{ color: countdown > 0 ? 'rgba(255,255,255,0.3)' : '#00e5ff', fontSize: '13px' }}
-                >
-                  {countdown > 0 ? `${countdown}s 后重发` : '发送验证码'}
-                </Button>
-              }
-            />
-          </div>
+        <div className='d-flex flex-column gap-1'>
+          <span className='color-secondary font-size-13'>邮箱验证码</span>
+          <Input
+            value={privateWalletStore.exportEmailCode}
+            onChange={e => privateWalletStore.exportEmailCode = e.target.value}
+            className='br-2'
+            style={{ height: '48px' }}
+            suffix={
+              <Button
+                type='link'
+                size='small'
+                loading={sendLoading}
+                disabled={countdown > 0}
+                onClick={handleSendCode}
+                className='p-0 fw-500'
+                style={{ color: countdown > 0 ? 'rgba(255,255,255,0.3)' : '#00e5ff', fontSize: '13px' }}
+              >
+                {countdown > 0 ? `${countdown}s 后重发` : '发送验证码'}
+              </Button>
+            }
+          />
         </div>
-      )}
+      </div>
     </BaseModal>
   )
 }

@@ -14,21 +14,6 @@ export type TUserExportPrivateKey = {
   userExportPrivateKeyBusy: boolean
 }
 
-function extractExportBundle(data: any): string {
-  const candidates = [
-    data?.exportBundle,
-    data?.export_bundle,
-    data?.data?.exportBundle,
-    data?.data?.export_bundle,
-    data?.result?.exportBundle,
-    data?.result?.exportPrivateKeyResult?.exportBundle,
-    data?.activity?.result?.exportPrivateKeyResult?.exportBundle,
-  ]
-  for (const c of candidates) {
-    if (c && typeof c === 'string' && c.trim()) return c.trim()
-  }
-  return ''
-}
 
 function extractOrganizationId(data: any): string {
   return (
@@ -64,29 +49,15 @@ export const userExportPrivateKey: TUserExportPrivateKey = {
       result.error = baseCheck(res, accountStore)
       if (result.error) return result
 
-      const resData = res.data?.data ?? res.data
-
-      // 3. 从响应中取出 exportBundle 和 organizationId
-      const exportBundle = extractExportBundle(res.data)
+      // 3. 从响应中取出 organizationId，存储 keypair.privateKey 供后续解密
       const organizationId = extractOrganizationId(res.data)
 
-      if (!exportBundle) {
-        result.error = true
-        return result
-      }
-
-      // 4. 本地解密
-      const privateKeyHex = await decryptExportBundle({
-        exportBundle,
-        embeddedKey: keypair.privateKey,
-        organizationId,
-        returnMnemonic: false,
+      merge(privateWalletStore, {
+        exportKeypairPrivateKey: keypair.privateKey,
+        exportOrganizationId: organizationId,
       })
 
-      const privateKey = privateKeyHex.startsWith('0x') ? privateKeyHex : `0x${privateKeyHex}`
-
-      result.data = { exportPrivateKeyContent: privateKey }
-      merge(privateWalletStore, result.data)
+      result.data = { phase: 'paste' }
     } catch (e: any) {
       result.error = true
     } finally {

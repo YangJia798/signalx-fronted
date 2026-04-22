@@ -57,6 +57,9 @@ export type TPrivateWalletStore = {
   exportPrivateKeyContent: string
   exportFundPw: string
   exportEmailCode: string
+  exportBundleInput: string
+  exportKeypairPrivateKey: string
+  exportOrganizationId: string
   resetExportPrivateKey(): void
 
   // SetFundPassword
@@ -98,7 +101,10 @@ const DEFAULT_EXPORT_PRIVATE_KEY = {
   exportPrivateKeyPW: '',
   exportPrivateKeyContent: '',
   exportFundPw: '',
-  exportEmailCode: ''
+  exportEmailCode: '',
+  exportBundleInput: '',
+  exportKeypairPrivateKey: '',
+  exportOrganizationId: ''
 }
 
 const DEFAULT_FUND_PASSWORD = {
