@@ -1,4 +1,4 @@
-import { officialHyperbotApi } from '@/stores/req/helper'
+import { hyperbotApi } from '@/stores/req/helper'
 import { TAccountStore, TWhalePositionsStore } from '@/stores'
 
 type WhaleStatsResult = {
@@ -19,7 +19,7 @@ export const whaleStats: TWhaleStats = {
     this.whaleStatsBusy = true
 
     try {
-      const res = await officialHyperbotApi.get('/whales/long-short', {
+      const res = await hyperbotApi.get('/whales/long-short', {
         params: { coin: whalePositionsStore.selectedCoin },
       })
 

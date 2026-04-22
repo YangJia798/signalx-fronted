@@ -1,7 +1,7 @@
 import BN from 'bignumber.js'
 
 import { merge, getDecimalLength } from '@/utils'
-import { officialHyperbotApi } from '@/stores/req/helper'
+import { hyperbotApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TWhalePositionsStore } from '@/stores'
 
 import { formatUPnlStatus, formatStatusClassName } from '../utils'
@@ -30,7 +30,7 @@ export const whalePositions: TWhalePositions = {
     }
 
     try {
-      const res = await officialHyperbotApi.get('/whales/open-positions', {
+      const res = await hyperbotApi.get('/whales/open-positions', {
         params: {
           take: whalePositionsStore.pageSize,
           coin: whalePositionsStore.selectedCoin,

@@ -36,6 +36,7 @@ import { leaderboardPointReferralList, TLeaderboardPointReferralList } from './l
 import { whalePositions, TWhalePositions } from './whale/positions'
 import { whaleEvents, TWhaleEvents } from './whale/events'
 import { whaleStats, TWhaleStats } from './whale/stats'
+import { whaleLongShortHistory, TWhaleLongShortHistory } from './whale/long-short-history'
 
 import { newsLatest, TNewsLatest } from './news/latest'
 
@@ -75,7 +76,7 @@ export type TReqStore =
   TRewardUserLv & TRewardUserInfo & TRewardDetailedList &
   TCopyTryTradingClosePosition & TCopyTradingCreateCopyTrading & TCopyTradingUpdateCopyTrading & TCopyTradingMyCopyTrading & TCopyTradingMyPosition & TCopyTradingTargetPosition & TCopyTradingRemoveMyCopyTrading & TCopyTradingFindByAddress &
   TLeaderboardProfitList & TLeaderboardCoinList & TLeaderboardSearchProfit & TLeaderboardPointOverallList & TLeaderboardPointReferralList &
-  TWhalePositions & TWhaleEvents & TWhaleStats &
+  TWhalePositions & TWhaleEvents & TWhaleStats & TWhaleLongShortHistory &
   TNewsLatest &
   TTrackingAddressPosition & TTrackingRemove & TTrackingCreate &
   TDiscoverList & TDiscoverTradingStatistics & TDiscoverKolList & TDiscoverKolTagging & TDiscoverKolVote &
@@ -96,7 +97,7 @@ const reqStore = {
   // Leaderboard
   ...leaderboardProfitList, ...leaderboardCoinList, ...leaderboardSearchProfit, ...leaderboardPointOverallList, ...leaderboardPointReferralList,
 
-  ...whalePositions, ...whaleEvents, ...whaleStats,
+  ...whalePositions, ...whaleEvents, ...whaleStats, ...whaleLongShortHistory,
 
   ...newsLatest,
 

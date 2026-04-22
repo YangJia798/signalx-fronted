@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from 'antd'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom';
+import { createChart, LineSeries, ColorType } from 'lightweight-charts'
 
 import { IOutlineMonitor, IOutlineChart2, IOutlineShare, IOutlineFilter } from '@/components/icon'
 import { formatNumber } from '@/utils'
@@ -26,6 +27,7 @@ const Leaderboard = () => {
   const [memberModalOpen, setMemberModalOpen] = useState(false)
   const [filterAccountValue, setFilterAccountValue] = useState('')
   const [liveStats, setLiveStats] = useState({ longCount: 0, shortCount: 0 })
+  const chartContainerRef = useRef<HTMLDivElement>(null)
 
   const MemberBadge = () => (
     <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}>
@@ -147,6 +149,10 @@ const Leaderboard = () => {
     if (!res.error) setLiveStats({ longCount: res.data.longCount, shortCount: res.data.shortCount })
   }
 
+  const handleWhaleLongShortHistory = async () => {
+    await reqStore.whaleLongShortHistory(accountStore, whalePositionsStore)
+  }
+
   const handleWhalesPositionChangeSort = async (columnId: string) => {
     whalePositionsStore.sortColumnId = columnId
     await handleWhalePositions()
@@ -155,7 +161,56 @@ const Leaderboard = () => {
   useEffect(() => {
     handleWhalePositions()
     handleWhaleStats()
+    handleWhaleLongShortHistory()
   }, [])
+
+  // Chart: rebuild when data or interval changes
+  useEffect(() => {
+    const data = whalePositionsStore.longShortRatioHistory
+    if (!chartContainerRef.current || data.length === 0) return
+
+    const chart = createChart(chartContainerRef.current, {
+      layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: 'rgba(255,255,255,0.5)' },
+      grid: { vertLines: { color: 'rgba(255,255,255,0.05)' }, horzLines: { color: 'rgba(255,255,255,0.05)' } },
+      width: chartContainerRef.current.clientWidth,
+      height: chartContainerRef.current.clientHeight || 280,
+      rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.1)' },
+      leftPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.1)' },
+      timeScale: { borderColor: 'rgba(255,255,255,0.1)', timeVisible: true },
+    })
+
+    const ratioSeries = chart.addSeries(LineSeries, {
+      color: '#2962ff',
+      lineWidth: 2,
+      priceScaleId: 'right',
+      title: '多空比',
+    })
+    ratioSeries.setData(data.map(d => ({ time: d.time as any, value: d.longRatio })))
+
+    if (data.some(d => d.longValue || d.shortValue)) {
+      const diffSeries = chart.addSeries(LineSeries, {
+        color: '#f7b500',
+        lineWidth: 2,
+        priceScaleId: 'left',
+        title: '价值差异',
+      })
+      diffSeries.setData(data.map(d => ({ time: d.time as any, value: d.longValue - d.shortValue })))
+    }
+
+    chart.timeScale().fitContent()
+
+    const handleResize = () => {
+      if (chartContainerRef.current) {
+        chart.applyOptions({ width: chartContainerRef.current.clientWidth })
+      }
+    }
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      chart.remove()
+    }
+  }, [whalePositionsStore.longShortRatioHistory])
 
   // Real stats from API
   const longCount = liveStats.longCount
@@ -278,23 +333,20 @@ const Leaderboard = () => {
                         items={whalePositionsStore.selectPeriod}
                         selectedValue={whalePositionsStore.selectedPeriodChart}
                         onSelect={(val: string) => {
-                          whalePositionsStore.selectedPeriodChart = val;
+                          whalePositionsStore.selectedPeriodChart = val
+                          handleWhaleLongShortHistory()
                         }}
                       />
                     </div>
                   </div>
                   
                   <div className="flex-grow-1 position-relative mt-2" style={{ minHeight: '280px' }}>
-                    {/* Simplified Chart Mockup for Parity */}
-                    <svg width="100%" height="100%" viewBox="0 0 800 280" preserveAspectRatio="none">
-                      <path d="M0,140 Q100,100 200,150 T400,130 T600,160 T800,120" fill="none" stroke="#2962ff" strokeWidth="2" />
-                      <path d="M0,200 Q150,180 300,220 T500,210 T700,240 T800,220" fill="none" stroke="#f7b500" strokeWidth="2" strokeDasharray="4 2" />
-                      {/* Grid Lines */}
-                      {[0, 1, 2, 3].map(i => <line key={i} x1="0" y1={70*i} x2="800" y2={70*i} stroke="rgba(255,255,255,0.05)" />)}
-                    </svg>
-                    <div className="position-absolute d-flex flex-column align-items-center justify-content-center w-100 h-100" style={{ top: 0, left: 0 }}>
-                      <span className="color-secondary font-size-12 opacity-50">实时数据加载中...</span>
-                    </div>
+                    <div ref={chartContainerRef} style={{ width: '100%', height: '280px' }} />
+                    {whalePositionsStore.longShortRatioHistory.length === 0 && (
+                      <div className="position-absolute d-flex align-items-center justify-content-center w-100 h-100" style={{ top: 0, left: 0, pointerEvents: 'none' }}>
+                        <span className="color-secondary font-size-12 opacity-50">数据加载中...</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

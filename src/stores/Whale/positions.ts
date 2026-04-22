@@ -28,6 +28,15 @@ export type TWhalePositionsStore = {
   selectFundingFee: Array<TSelectItem>
   selectedFundingFee: string,
 
+  longShortRatioHistory: Array<{
+    time: number
+    value: number
+    longRatio: number
+    shortRatio: number
+    longValue: number
+    shortValue: number
+  }>
+
   pageSize: number,
   sortColumnId: string
   list: Array<{
@@ -109,6 +118,8 @@ const DEFAULT = {
   ],
   selectedPeriodAnalysis: '1d',
   selectedPeriodChart: '4h',
+
+  longShortRatioHistory: [],
 
   pageSize: 20,
   sortColumnId: 'createTs',
