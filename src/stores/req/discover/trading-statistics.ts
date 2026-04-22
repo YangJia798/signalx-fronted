@@ -32,53 +32,43 @@ export const discoverTradingStatistics: TDiscoverTradingStatistics = {
         params: { address, period }
       })
 
-      const d = res.data?.data ?? res.data ?? {}
+      const i = res.data?.data ?? res.data ?? {}
       const { decimalPlaces } = constants
 
-      const pnl = new BN(d.netPnl ?? d.net_pnl ?? d.pnl ?? 0)
-      const gross = new BN(d.grossPnl ?? d.gross_pnl ?? d.gross ?? 0)
-      const fees = new BN(d.fees ?? d.totalFees ?? d.total_fees ?? 0)
-      const longPnl = new BN(d.longPnl ?? d.long_pnl ?? 0)
-      const shortPnl = new BN(d.shortPnl ?? d.short_pnl ?? 0)
+      const pnl = new BN(i.totalPnl ?? 0)
+      const gross = new BN(i.gross ?? 0)
+      const fees = new BN(i.fees ?? 0)
+      const longPnl = new BN(i.longPnl ?? 0)
+      const shortPnl = new BN(i.shortPnl ?? 0)
 
-      const executedTrades = d.totalTrades ?? d.total_trades ?? d.executedTrades ?? d.executed_trades ?? 0
-      const profitableTrades = d.winningTrades ?? d.winning_trades ?? d.profitableTrades ?? d.profitable_trades ?? 0
-      const losingTrades = d.losingTrades ?? d.losing_trades ?? (executedTrades - profitableTrades)
-
-      const winRate = executedTrades > 0 ? profitableTrades / executedTrades : 0
-      const longWinRate = d.longWinRate ?? d.long_win_rate ?? '0'
-      const shortWinRate = d.shortWinRate ?? d.short_win_rate ?? '0'
-
-      const tradeDuration = d.avgHoldingTime ?? d.avg_holding_time ?? d.tradeDuration ?? d.trade_duration ?? 0
-      const minDuration = d.minHoldingTime ?? d.min_holding_time ?? d.minDuration ?? d.min_duration ?? 0
-      const maxDuration = d.maxHoldingTime ?? d.max_holding_time ?? d.maxDuration ?? d.max_duration ?? 0
+      const executedTrades = i.total ?? 0
+      const profitableTrades = i.winning ?? 0
+      const losingTrades = executedTrades - profitableTrades
 
       const pnlStatus = formatUPnlStatus(pnl)
 
-      const rawBestTrades: any[] = d.bestTrades ?? d.best_trades ?? d.topTrades ?? d.top_trades ?? []
-      const bestTrades = rawBestTrades.map((t: any) => {
-        const bnPnl = new BN(t.pnl ?? t.closedPnl ?? t.closed_pnl ?? 0)
+      const bestTrades = (i.bestTrades || []).map((d: any) => {
+        const bnPnl = new BN(d.pnl ?? 0)
         const ps = formatUPnlStatus(bnPnl)
         return {
-          coin: t.coin ?? t.symbol ?? '',
-          createTs: t.createTs ?? t.create_ts ?? t.time ?? t.closeTime ?? t.close_time ?? 0,
-          direction: String(t.direction ?? t.dir ?? '').toLowerCase().includes('long') ? 'long' : 'short',
-          duration: t.duration ?? t.holdingTime ?? t.holding_time ?? 0,
+          coin: d.coin,
+          createTs: (d.createAt ?? 0) * 1000,
+          direction: d.direction,
+          duration: Math.round((d.duration ?? 0) / 1000),
           pnl: bnPnl.toFixed(decimalPlaces.__uPnl__),
           pnlStatus: ps,
           pnlStatusClassname: formatStatusClassName(ps),
         }
       })
 
-      const rawAssets: any[] = d.performanceAssets ?? d.performance_assets ?? d.assetPerformance ?? d.asset_performance ?? []
-      const performanceAssets = rawAssets.map((a: any) => {
+      const performanceAssets = (i.performanceAssets || []).map((a: any) => {
         const bnPnl = new BN(a.pnl ?? 0)
         const bnFees = new BN(a.fees ?? 0)
         const ps = formatUPnlStatus(bnPnl)
         const fs = formatUPnlStatus(bnFees)
         return {
           address,
-          coin: a.coin ?? a.symbol ?? '',
+          coin: a.coin,
           fees: bnFees.toFixed(decimalPlaces.__COMMON__),
           feesStatus: fs,
           feesStatusClassname: formatStatusClassName(fs),
@@ -86,7 +76,7 @@ export const discoverTradingStatistics: TDiscoverTradingStatistics = {
           pnlStatus: ps,
           pnlStatusClassname: formatStatusClassName(ps),
           netPnL: bnPnl.plus(bnFees).toFixed(decimalPlaces.__COMMON__),
-          trades: a.trades ?? a.total_trades ?? 0,
+          trades: a.trades,
         }
       })
 
@@ -100,16 +90,14 @@ export const discoverTradingStatistics: TDiscoverTradingStatistics = {
         executedTrades,
         losingTrades,
         gross: gross.toFixed(decimalPlaces.__COMMON__),
-        winRate: typeof longWinRate === 'string' && d.winRate != null
-          ? String(d.winRate ?? d.win_rate ?? formatPer(winRate))
-          : formatPer(winRate),
-        longWinRate: String(longWinRate),
-        shortWinRate: String(shortWinRate),
-        lossRate: winRate === 0 ? '0' : formatPer(1 - winRate),
+        winRate: formatPer(i.winRate ?? 0),
+        longWinRate: formatPer(i.longWr ?? 0),
+        shortWinRate: formatPer(i.shortWr ?? 0),
+        lossRate: !i.winRate && !i.shortWr && !i.longWr ? '0' : formatPer(1 - (i.winRate ?? 0)),
         fees: fees.toFixed(decimalPlaces.__COMMON__),
-        tradeDuration,
-        minDuration,
-        maxDuration,
+        tradeDuration: i.tradeDuration ?? 0,
+        minDuration: i.minDuration ?? 0,
+        maxDuration: i.maxDuration ?? 0,
         bestTrades,
         performanceAssets,
       }
