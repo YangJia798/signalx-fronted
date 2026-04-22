@@ -9,6 +9,8 @@ import { userPrivateWallet, TUserPrivateWallet } from './user/private-wallet'
 import { userWalletDeposit, TUserWalletDeposit } from './user/wallet-deposit'
 import { userCreatePrivateWallet, TUserCreatePrivateWallet } from './user/create-private-wallet'
 import { userDeletePrivateWallet, TUserDeletePrivateWallet } from './user/delete-private-wallet'
+import { userHyperliquidAgentAuthorize, TUserHyperliquidAgentAuthorize } from './user/hyperliquid-agent-authorize'
+import { userAsterAgentAuthorize, TUserAsterAgentAuthorize } from './user/aster-agent-authorize'
 import { userEvmLogin, TUserEvmLogin } from './user/evm-login'
 import { userEvmSignMessage, TUserEvmSignMessage } from './user/evm-sign-message'
 import { userSetFundPassword, TUserSetFundPassword } from './user/set-fund-password'
@@ -72,7 +74,7 @@ import { asterOrderLimitSell, TAsterOrderLimitSell } from './aster/order-limit-s
 export * from './utils'
 
 export type TReqStore =
-  TUserTgLogin & TUserInfo & TUserTgCode & TUserExportPrivateKey & TUserImportPrivateWallet & TUserPrivateWallet & TUserWalletDeposit & TUserCreatePrivateWallet & TUserDeletePrivateWallet & TUserEvmLogin & TUserEvmSignMessage & TUserSetFundPassword & TUserBindEmail &
+  TUserTgLogin & TUserInfo & TUserTgCode & TUserExportPrivateKey & TUserImportPrivateWallet & TUserPrivateWallet & TUserWalletDeposit & TUserCreatePrivateWallet & TUserDeletePrivateWallet & TUserHyperliquidAgentAuthorize & TUserAsterAgentAuthorize & TUserEvmLogin & TUserEvmSignMessage & TUserSetFundPassword & TUserBindEmail &
   TRewardUserLv & TRewardUserInfo & TRewardDetailedList &
   TCopyTryTradingClosePosition & TCopyTradingCreateCopyTrading & TCopyTradingUpdateCopyTrading & TCopyTradingMyCopyTrading & TCopyTradingMyPosition & TCopyTradingTargetPosition & TCopyTradingRemoveMyCopyTrading & TCopyTradingFindByAddress &
   TLeaderboardProfitList & TLeaderboardCoinList & TLeaderboardSearchProfit & TLeaderboardPointOverallList & TLeaderboardPointReferralList &
@@ -86,6 +88,7 @@ const reqStore = {
   // Use
   ...userTgLogin, ...userInfo, ...userTgCode, ...userExportPrivateKey, ...userImportPrivateWallet, ...userPrivateWallet, ...userWalletDeposit,
   ...userCreatePrivateWallet, ...userDeletePrivateWallet,
+  ...userHyperliquidAgentAuthorize, ...userAsterAgentAuthorize,
   ...userEvmLogin, ...userEvmSignMessage,
   ...userSetFundPassword, ...userBindEmail,
   // Reward
