@@ -102,10 +102,22 @@ const ModalExportPrivateKey = () => {
     }
     setDecrypting(true)
     try {
+      // Extract organizationId from the bundle itself to avoid mismatch
+      let organizationId = privateWalletStore.exportOrganizationId
+      try {
+        const parsed = JSON.parse(bundle)
+        if (parsed?.data) {
+          const signedData = JSON.parse(new TextDecoder().decode(
+            Uint8Array.from(parsed.data.match(/.{2}/g)!.map((b: string) => parseInt(b, 16)))
+          ))
+          if (signedData?.organizationId) organizationId = signedData.organizationId
+        }
+      } catch { /* use stored organizationId as fallback */ }
+
       const privateKeyHex = await decryptExportBundle({
         exportBundle: bundle,
         embeddedKey: privateWalletStore.exportKeypairPrivateKey,
-        organizationId: privateWalletStore.exportOrganizationId,
+        organizationId,
         returnMnemonic: false,
       })
       const privateKey = privateKeyHex.startsWith('0x') ? privateKeyHex : `0x${privateKeyHex}`
