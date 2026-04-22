@@ -1,7 +1,7 @@
 import BN from 'bignumber.js'
 
 import { merge, formatPer } from '@/utils'
-import { hyperApi } from '@/stores/req/helper'
+import { officialHyperbotApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TDiscoverTradingStatisticsStore } from '@/stores'
 
 import { formatUPnlStatus, formatStatusClassName } from '../utils'
@@ -27,135 +27,86 @@ export const discoverTradingStatistics: TDiscoverTradingStatistics = {
     try {
       const address = discoverTradingStatisticsStore.address
       const period = +discoverTradingStatisticsStore.selectedCycleValue
-      const startTime = period > 0 ? Date.now() - period * 24 * 60 * 60 * 1000 : undefined
 
-      const res = await hyperApi.post('/info', {
-        type: startTime ? 'userFillsByTime' : 'userFills',
-        user: address,
-        ...(startTime ? { startTime } : {})
+      const res = await officialHyperbotApi.get('/leaderboard/smart/detailed-trading-statistics', {
+        params: { address, period }
       })
 
-      const fills: any[] = res.data || []
+      const d = res.data?.data ?? res.data ?? {}
       const { decimalPlaces } = constants
 
-      // Duration matching: open time per coin, reused for all partial closes of same position
-      const positionOpenTime: Record<string, number> = {}
-      const durationByTid = new Map<number, number>()
-      const sortedFills = [...fills].sort((a: any, b: any) => a.time - b.time)
-      sortedFills.forEach((f: any) => {
-        const coin = f.coin
-        const dir = f.dir || ''
-        if (dir.includes('Open')) {
-          // New position opened — reset open time for this coin
-          positionOpenTime[coin] = f.time
-        } else if (dir.includes('Close') && parseFloat(f.closedPnl) !== 0) {
-          const openTime = positionOpenTime[coin]
-          durationByTid.set(f.tid, openTime !== undefined ? f.time - openTime : 0)
-          // Don't clear openTime — partial closes still reference the same entry
+      const pnl = new BN(d.netPnl ?? d.net_pnl ?? d.pnl ?? 0)
+      const gross = new BN(d.grossPnl ?? d.gross_pnl ?? d.gross ?? 0)
+      const fees = new BN(d.fees ?? d.totalFees ?? d.total_fees ?? 0)
+      const longPnl = new BN(d.longPnl ?? d.long_pnl ?? 0)
+      const shortPnl = new BN(d.shortPnl ?? d.short_pnl ?? 0)
+
+      const executedTrades = d.totalTrades ?? d.total_trades ?? d.executedTrades ?? d.executed_trades ?? 0
+      const profitableTrades = d.winningTrades ?? d.winning_trades ?? d.profitableTrades ?? d.profitable_trades ?? 0
+      const losingTrades = d.losingTrades ?? d.losing_trades ?? (executedTrades - profitableTrades)
+
+      const winRate = executedTrades > 0 ? profitableTrades / executedTrades : 0
+      const longWinRate = d.longWinRate ?? d.long_win_rate ?? '0'
+      const shortWinRate = d.shortWinRate ?? d.short_win_rate ?? '0'
+
+      const tradeDuration = d.avgHoldingTime ?? d.avg_holding_time ?? d.tradeDuration ?? d.trade_duration ?? 0
+      const minDuration = d.minHoldingTime ?? d.min_holding_time ?? d.minDuration ?? d.min_duration ?? 0
+      const maxDuration = d.maxHoldingTime ?? d.max_holding_time ?? d.maxDuration ?? d.max_duration ?? 0
+
+      const pnlStatus = formatUPnlStatus(pnl)
+
+      const rawBestTrades: any[] = d.bestTrades ?? d.best_trades ?? d.topTrades ?? d.top_trades ?? []
+      const bestTrades = rawBestTrades.map((t: any) => {
+        const bnPnl = new BN(t.pnl ?? t.closedPnl ?? t.closed_pnl ?? 0)
+        const ps = formatUPnlStatus(bnPnl)
+        return {
+          coin: t.coin ?? t.symbol ?? '',
+          createTs: t.createTs ?? t.create_ts ?? t.time ?? t.closeTime ?? t.close_time ?? 0,
+          direction: String(t.direction ?? t.dir ?? '').toLowerCase().includes('long') ? 'long' : 'short',
+          duration: t.duration ?? t.holdingTime ?? t.holding_time ?? 0,
+          pnl: bnPnl.toFixed(decimalPlaces.__uPnl__),
+          pnlStatus: ps,
+          pnlStatusClassname: formatStatusClassName(ps),
         }
       })
 
-      // Closing fills have non-zero closedPnl
-      const closingFills = fills.filter(f => parseFloat(f.closedPnl) !== 0)
-
-      let grossPnl = new BN(0)
-      let longPnl = new BN(0)
-      let shortPnl = new BN(0)
-      let totalFees = new BN(0)
-      let winning = 0
-      const coinMap: Record<string, { pnl: BN, fees: BN, trades: number }> = {}
-
-      closingFills.forEach((f: any) => {
-        const pnl = new BN(f.closedPnl)
-        const fee = new BN(f.fee)
-        const dir: string = f.dir || ''
-
-        grossPnl = grossPnl.plus(pnl)
-        totalFees = totalFees.plus(fee)
-        if (dir.includes('Long')) longPnl = longPnl.plus(pnl)
-        else if (dir.includes('Short')) shortPnl = shortPnl.plus(pnl)
-        if (pnl.gt(0)) winning++
-
-        if (!coinMap[f.coin]) coinMap[f.coin] = { pnl: new BN(0), fees: new BN(0), trades: 0 }
-        coinMap[f.coin].pnl = coinMap[f.coin].pnl.plus(pnl)
-        coinMap[f.coin].fees = coinMap[f.coin].fees.plus(fee)
-        coinMap[f.coin].trades++
-      })
-
-      // Add fees from opening fills too
-      fills.forEach((f: any) => {
-        if (parseFloat(f.closedPnl) === 0) {
-          totalFees = totalFees.plus(new BN(f.fee))
+      const rawAssets: any[] = d.performanceAssets ?? d.performance_assets ?? d.assetPerformance ?? d.asset_performance ?? []
+      const performanceAssets = rawAssets.map((a: any) => {
+        const bnPnl = new BN(a.pnl ?? 0)
+        const bnFees = new BN(a.fees ?? 0)
+        const ps = formatUPnlStatus(bnPnl)
+        const fs = formatUPnlStatus(bnFees)
+        return {
+          address,
+          coin: a.coin ?? a.symbol ?? '',
+          fees: bnFees.toFixed(decimalPlaces.__COMMON__),
+          feesStatus: fs,
+          feesStatusClassname: formatStatusClassName(fs),
+          pnl: bnPnl.toFixed(decimalPlaces.__uPnl__),
+          pnlStatus: ps,
+          pnlStatusClassname: formatStatusClassName(ps),
+          netPnL: bnPnl.plus(bnFees).toFixed(decimalPlaces.__COMMON__),
+          trades: a.trades ?? a.total_trades ?? 0,
         }
       })
-
-      const totalPnl = grossPnl.plus(totalFees)
-      const total = closingFills.length
-      const winRate = total > 0 ? winning / total : 0
-      const pnlStatus = formatUPnlStatus(totalPnl)
-
-      // Duration stats (seconds)
-      const allDurationsMs = closingFills.map(f => durationByTid.get(f.tid) ?? 0)
-      const positiveDurations = allDurationsMs.filter(d => d > 0)
-      const tradeDuration = positiveDurations.length > 0
-        ? Math.round(positiveDurations.reduce((s, d) => s + d, 0) / positiveDurations.length / 1000)
-        : 0
-      const minDuration = positiveDurations.length > 0 ? Math.round(Math.min(...positiveDurations) / 1000) : 0
-      const maxDuration = positiveDurations.length > 0 ? Math.round(Math.max(...positiveDurations) / 1000) : 0
-
-      const bestTrades = [...closingFills]
-        .sort((a: any, b: any) => parseFloat(b.closedPnl) - parseFloat(a.closedPnl))
-        .slice(0, 10)
-        .map((f: any) => {
-          const bnPnl = new BN(f.closedPnl)
-          const ps = formatUPnlStatus(bnPnl)
-          return {
-            coin: f.coin,
-            createTs: f.time,
-            direction: (f.dir || '').toLowerCase().includes('long') ? 'long' : 'short',
-            duration: Math.round((durationByTid.get(f.tid) ?? 0) / 1000),
-            pnl: bnPnl.toFixed(decimalPlaces.__uPnl__),
-            pnlStatus: ps,
-            pnlStatusClassname: formatStatusClassName(ps),
-          }
-        })
-
-      const performanceAssets = Object.entries(coinMap)
-        .sort((a, b) => b[1].pnl.minus(a[1].pnl).toNumber())
-        .map(([coin, data]) => {
-          const bnPnl = data.pnl
-          const bnFees = data.fees
-          const ps = formatUPnlStatus(bnPnl)
-          const fs = formatUPnlStatus(bnFees)
-          return {
-            address,
-            coin,
-            fees: bnFees.toFixed(decimalPlaces.__COMMON__),
-            feesStatus: fs,
-            feesStatusClassname: formatStatusClassName(fs),
-            pnl: bnPnl.toFixed(decimalPlaces.__uPnl__),
-            pnlStatus: ps,
-            pnlStatusClassname: formatStatusClassName(ps),
-            netPnL: bnPnl.plus(bnFees).toFixed(decimalPlaces.__COMMON__),
-            trades: data.trades,
-          }
-        })
 
       result.data = {
-        pnl: totalPnl.toFixed(decimalPlaces.__uPnl__),
+        pnl: pnl.toFixed(decimalPlaces.__uPnl__),
         pnlStatus,
         pnlStatusClassname: formatStatusClassName(pnlStatus),
         longPnl: longPnl.toFixed(decimalPlaces.__uPnl__),
         shortPnl: shortPnl.toFixed(decimalPlaces.__uPnl__),
-        profitableTrades: winning,
-        executedTrades: total,
-        losingTrades: total - winning,
-        gross: grossPnl.toFixed(decimalPlaces.__COMMON__),
-        winRate: formatPer(winRate),
-        longWinRate: '0',
-        shortWinRate: '0',
+        profitableTrades,
+        executedTrades,
+        losingTrades,
+        gross: gross.toFixed(decimalPlaces.__COMMON__),
+        winRate: typeof longWinRate === 'string' && d.winRate != null
+          ? String(d.winRate ?? d.win_rate ?? formatPer(winRate))
+          : formatPer(winRate),
+        longWinRate: String(longWinRate),
+        shortWinRate: String(shortWinRate),
         lossRate: winRate === 0 ? '0' : formatPer(1 - winRate),
-        fees: totalFees.toFixed(decimalPlaces.__COMMON__),
+        fees: fees.toFixed(decimalPlaces.__COMMON__),
         tradeDuration,
         minDuration,
         maxDuration,
