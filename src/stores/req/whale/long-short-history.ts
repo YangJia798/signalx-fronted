@@ -30,14 +30,16 @@ export const whaleLongShortHistory: TWhaleLongShortHistory = {
 
       const raw: any[] = res.data.data || []
       result.data = {
-        longShortRatioHistory: raw.map(s => ({
-          time: s.time > 1e12 ? Math.floor(s.time / 1000) : s.time,
-          value: Number(s.longRatio),
-          longRatio: Number(s.longRatio),
-          shortRatio: Number(s.shortRatio ?? (1 - s.longRatio)),
-          longValue: s.longValue ?? 0,
-          shortValue: s.shortValue ?? 0,
-        })),
+        longShortRatioHistory: raw
+          .map(s => ({
+            time: s.time > 1e12 ? Math.floor(s.time / 1000) : s.time,
+            value: Number(s.longRatio),
+            longRatio: Number(s.longRatio),
+            shortRatio: Number(s.shortRatio ?? (1 - s.longRatio)),
+            longValue: s.longValue ?? 0,
+            shortValue: s.shortValue ?? 0,
+          }))
+          .sort((a, b) => a.time - b.time),
       }
       result.error = false
       whalePositionsStore.longShortRatioHistory = result.data.longShortRatioHistory
