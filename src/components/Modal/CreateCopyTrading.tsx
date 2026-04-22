@@ -259,8 +259,8 @@ const ModalCreateCopyTrading = () => {
             </div>
           </div>
 
-          <div className='flex-grow-1 d-flex flex-column position-relative' style={{ minHeight: '360px', overflow: 'hidden' }}>
-            <ColumnList height={320} columns={targetPosition} data={copyTradingStore.copyTradingTargetPositionList} busy={false} renderItem={renderPositionItem} className='h-100 bg-transparent' />
+          <div className='flex-grow-1 d-flex flex-column position-relative' style={{ maxHeight: '360px', overflowY: 'auto' }}>
+            <ColumnList height={undefined} columns={targetPosition} data={copyTradingStore.copyTradingTargetPositionList} busy={false} renderItem={renderPositionItem} className='bg-transparent' />
 
           </div>
         </div>
