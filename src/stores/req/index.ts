@@ -15,6 +15,7 @@ import { userEvmLogin, TUserEvmLogin } from './user/evm-login'
 import { userEvmSignMessage, TUserEvmSignMessage } from './user/evm-sign-message'
 import { userSetFundPassword, TUserSetFundPassword } from './user/set-fund-password'
 import { userBindEmail, TUserBindEmail } from './user/bind-email'
+import { asterDepositWithdrawHistory, TAsterDepositWithdrawHistory } from './user/aster-deposit-withdraw-history'
 
 import { rewardUserLv, TRewardUserLv } from './reward/user-lv'
 import { rewardUserInfo, TRewardUserInfo} from './reward/user-info'
@@ -82,7 +83,7 @@ export type TReqStore =
   TNewsLatest &
   TTrackingAddressPosition & TTrackingRemove & TTrackingCreate &
   TDiscoverList & TDiscoverTradingStatistics & TDiscoverKolList & TDiscoverKolTagging & TDiscoverKolVote &
-  THyperClearinghouseState & THyperUserFills & THyperUserTWAP & THyperUserNonFunding & THyperUserOpenOrdersAdditional & THyperUserSpotClearinghouseState & THyperSpotMetaAndAssetCtxs & THyperUserPortfolio & TDiscoverRecommend & THyperPerpMetaAndAssetCtxs & THyperUserHistoricalOrders & THyperOrderLimitBuy & THyperOrderLimitSell & THyperOrderCancel & THyperOrderTpSl & TAsterOrderLimitBuy & TAsterOrderLimitSell
+  THyperClearinghouseState & THyperUserFills & THyperUserTWAP & THyperUserNonFunding & THyperUserOpenOrdersAdditional & THyperUserSpotClearinghouseState & THyperSpotMetaAndAssetCtxs & THyperUserPortfolio & TDiscoverRecommend & THyperPerpMetaAndAssetCtxs & THyperUserHistoricalOrders & THyperOrderLimitBuy & THyperOrderLimitSell & THyperOrderCancel & THyperOrderTpSl & TAsterOrderLimitBuy & TAsterOrderLimitSell & TAsterDepositWithdrawHistory
 
 const reqStore = {
   // Use
@@ -113,7 +114,7 @@ const reqStore = {
   ...hyperUserNonFunding, ...hyperUserOpenOrdersAdditional, ...hyperUserSpotClearinghouseState,
   ...hyperSpotMetaAndAssetCtxs, ...hyperUserPortfolio, ...hyperPerpMetaAndAssetCtxs, ...hyperUserHistoricalOrders, ...hyperOrderLimitBuy, ...hyperOrderLimitSell, ...hyperOrderCancel, ...hyperOrderTpSl,
   // Aster
-  ...asterOrderLimitBuy, ...asterOrderLimitSell
+  ...asterOrderLimitBuy, ...asterOrderLimitSell, ...asterDepositWithdrawHistory
 }
 
 export const useReqStore = createStore<TReqStore>(reqStore)

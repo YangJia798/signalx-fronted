@@ -7,7 +7,7 @@ import { formatNumber } from '@/utils'
 import TabSwitch from '@/components/Tab/Switch'
 import { useHyperWSContext } from '@/components/Hyper/WSContext';
 
-import TraderDetailsNonFunding from '@/views/TraderDetails/NonFunding'
+import TradeDepositsWithdrawals from '@/views/Trade/DepositsWithdrawals'
 import TraderDetailsTWAP from '@/views/TraderDetails/TWAP'
 import TraderDetailsRecentFills from '@/views/TraderDetails/RecentFills'
 import { TraderDetailsOpenOrdersAdditional } from '@/views/TraderDetails/OpenOrdersAdditional'
@@ -121,7 +121,7 @@ const Trade = () => {
             }
             {
               tradeStore.recordTabId === 'depositsAndWithdrawals' &&
-                <TraderDetailsNonFunding address={tradeStore.address} className='col' />
+                <TradeDepositsWithdrawals className='col' />
             }
           </div>
 
