@@ -73,8 +73,19 @@ const TradeKLine = () => {
     ma20: ISeriesApi<"Line"> | null,
   }>({ candle: null, volume: null, ma5: null, ma10: null, ma20: null })
 
+  // activeInterval gives instant button highlight; interval drives the data fetch (debounced)
   const [interval, setInterval] = useState('15m')
+  const [activeInterval, setActiveInterval] = useState('15m')
+  const [loading, setLoading] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
   const { sendMessage, lastMessage, readyState } = useHyperWSContext()
+
+  const handleIntervalChange = (value: string) => {
+    setActiveInterval(value)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => setInterval(value), 300)
+  }
 
   // Track state for updates
   const candleDataRef = useRef<CandlestickData[]>([])
@@ -172,8 +183,14 @@ const TradeKLine = () => {
     // coin is read from the proxy here so store tracks it
     if (!coin) return
 
+    // Cancel any previous in-flight request
+    if (abortRef.current) abortRef.current.abort()
+    abortRef.current = new AbortController()
+    const signal = abortRef.current.signal
+
     let cancelled = false
     let retryTimer: ReturnType<typeof setTimeout> | null = null
+    setLoading(true)
 
     const loadData = async () => {
       // Wait for chart if not yet ready (handles mount race)
@@ -203,7 +220,8 @@ const TradeKLine = () => {
               startTime,
               endTime,
               limit
-            }
+            },
+            signal,
           })
 
           if (cancelled || !chartRef.current) return
@@ -250,7 +268,7 @@ const TradeKLine = () => {
           const res = await hyperApi.post('/info', {
             type: 'candleSnapshot',
             req: { coin, interval, startTime, endTime }
-          })
+          }, { signal })
 
           if (cancelled || !chartRef.current) return
 
@@ -289,8 +307,11 @@ const TradeKLine = () => {
             }
           }
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (err?.name === 'CanceledError' || err?.name === 'AbortError' || err?.code === 'ERR_CANCELED') return
         console.error('K-Line: Failed to fetch candles', err)
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     }
 
@@ -429,9 +450,9 @@ const TradeKLine = () => {
         {INTERVAL_MAP.map((item) => (
           <div
             key={item.value}
-            className={`cursor-pointer font-size-12 px-2 py-1 br-3 transition-2 ${interval === item.value ? 'color-text-main fw-500' : 'color-secondary hover-bg-gray'}`}
-            style={{ background: interval === item.value ? 'rgba(255,255,255,0.08)' : 'transparent' }}
-            onClick={() => setInterval(item.value)}
+            className={`cursor-pointer font-size-12 px-2 py-1 br-3 transition-2 ${activeInterval === item.value ? 'color-text-main fw-500' : 'color-secondary hover-bg-gray'}`}
+            style={{ background: activeInterval === item.value ? 'rgba(255,255,255,0.08)' : 'transparent' }}
+            onClick={() => handleIntervalChange(item.value)}
           >
             {item.label}
           </div>
@@ -439,7 +460,15 @@ const TradeKLine = () => {
       </div>
 
       {/* Chart Container */}
-      <div ref={chartContainerRef} className="flex-grow-1 w-100" style={{ minHeight: '400px', flex: '1 1 auto' }} />
+      <div className="position-relative flex-grow-1 w-100" style={{ minHeight: '400px', flex: '1 1 auto' }}>
+        <div ref={chartContainerRef} className="w-100 h-100" />
+        {loading && (
+          <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style={{ background: 'rgba(0,0,0,0.35)', zIndex: 10 }}>
+            <div style={{ width: 28, height: 28, border: '3px solid rgba(255,255,255,0.15)', borderTopColor: 'rgba(255,255,255,0.7)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+          </div>
+        )}
+      </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }
