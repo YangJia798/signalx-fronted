@@ -32,6 +32,7 @@ const ModalDeposit = () => {
 
     if (error) return
 
+    reqStore.userPrivateWallet(accountStore, privateWalletStore)
     handleClose()
   };
 
