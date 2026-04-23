@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation, withTranslation, Trans } from 'react-i18next'
 
 import { formatNumber, sortArrayByKey, merge } from '@/utils'
-import { constants, useTraderDetailsPositionsStore, useReqStore, useTradeStore, useTraderDetailsOpenOrdersAdditionalStore } from '@/stores'
+import { constants, useTraderDetailsPositionsStore, useReqStore, useTradeStore, useTraderDetailsOpenOrdersAdditionalStore, useAccountStore } from '@/stores'
 import ColumnList from '@/components/Column/List'
 import PositionItemUPnl from '@/components/PositionItem/UPnl'
 import PositionItemDirectionLeverage from '@/components/PositionItem/DirectionLeverage'
@@ -13,10 +13,11 @@ import HyperAutoUpdatePerpMetaAndMarket from '@/components/Hyper/AutoUpdatePerpM
 import ModalTPSL from '@/components/Modal/TPSL'
 import ModalClosePosition from '@/components/Modal/ClosePosition'
 
-const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, className = '', isOwnWallet = false }) => {
+const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, className = '', isOwnWallet = false, platform = 'hyperliquid', walletId = null as number | null }) => {
   const traderDetailsPositionsStore = useTraderDetailsPositionsStore()
   const reqStore = useReqStore()
   const tradeStore = useTradeStore()
+  const accountStore = useAccountStore()
   const traderDetailsOpenOrdersAdditionalStore = useTraderDetailsOpenOrdersAdditionalStore()
 
   const { t, i18n } = useTranslation()
@@ -167,17 +168,22 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
   // init
   useEffect(() => {
     const asyncFunc = async () => {
-      if (!(address)) {
+      if (!address) {
         traderDetailsPositionsStore.reset()
         return
       }
 
       if (!unUpdate) {
-        const { data, error } = await reqStore.hyperClearinghouseState(address)
+        let data: any, error: boolean
+
+        if (platform === 'aster' && walletId != null) {
+          ;({ data, error } = await reqStore.asterAccountPositions(accountStore, walletId))
+        } else {
+          ;({ data, error } = await reqStore.hyperClearinghouseState(address))
+        }
 
         if (error) return
 
-        // update
         traderDetailsPositionsStore.list = data.positions
         traderDetailsPositionsStore.summary = data.summary
       }
@@ -191,7 +197,7 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
         traderDetailsPositionsStore.reset()
       }
     }
-  }, [address, tradeStore.refreshTick])
+  }, [address, platform, walletId, tradeStore.refreshTick])
 
   return (
     <>

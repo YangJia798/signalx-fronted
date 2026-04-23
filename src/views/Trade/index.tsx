@@ -51,8 +51,16 @@ const Trade = () => {
     if (privateWalletStore.list.length > 0) {
       const activeWallet = privateWalletStore.list[privateWalletStore.operaWalletIdx === -1 ? 0 : privateWalletStore.operaWalletIdx] || privateWalletStore.list[0];
       tradeStore.address = activeWallet?.address || '';
+      tradeStore.platform = (activeWallet?.platform === 'aster' ? 'aster' : 'hyperliquid');
+      tradeStore.walletId = activeWallet?.walletId ?? null;
+      // Aster 没有 TWAP，切换平台时重置到 positions tab 避免空白
+      if (tradeStore.platform === 'aster' && tradeStore.recordTabId === 'twap') {
+        tradeStore.recordTabId = 'positions';
+      }
     } else {
       tradeStore.address = '';
+      tradeStore.platform = 'hyperliquid';
+      tradeStore.walletId = null;
     }
   }, [privateWalletStore.list, privateWalletStore.operaWalletIdx])
 
@@ -92,28 +100,32 @@ const Trade = () => {
           <div className='d-flex flex-column br-3 overflow-hidden glass-container' style={{ flex: '1 1 0', minWidth: 0, minHeight: '220px' }}>
             <TabSwitch
               labelSuffixes={[` (${traderDetailsPositionsStore.list.length})`, ` (${traderDetailsOpenOrdersAdditionalStore.list.length})`]}
-              data={tradeStore.recordTabs}
+              data={tradeStore.recordTabs.filter(t => !(tradeStore.platform === 'aster' && t.id === 'twap'))}
               currId={tradeStore.recordTabId}
               onClick={(item) => tradeStore.recordTabId = item.id} />
             <TraderDetailsPositions
               address={tradeStore.address}
+              platform={tradeStore.platform}
+              walletId={tradeStore.walletId}
               isOwnWallet
               className={`col ${tradeStore.recordTabId === 'positions' ? '' : 'd-none'}`} />
             <TraderDetailsOpenOrdersAdditional
               address={tradeStore.address}
+              platform={tradeStore.platform}
+              walletId={tradeStore.walletId}
               filterCoin={tradeStore.coin}
               className={`col ${tradeStore.recordTabId === 'openOrders' ? '' : 'd-none'}`} />
             {
               tradeStore.recordTabId === 'historicalOrders' &&
-                <TraderDetailsHistoricalOrders address={tradeStore.address} filterCoin={tradeStore.coin} />
+                <TraderDetailsHistoricalOrders address={tradeStore.address} platform={tradeStore.platform} walletId={tradeStore.walletId} filterCoin={tradeStore.coin} />
             }
             {
               tradeStore.recordTabId === 'recentFills' &&
-                <TraderDetailsRecentFills address={tradeStore.address} filterCoin={tradeStore.coin} className='col' />
+                <TraderDetailsRecentFills address={tradeStore.address} platform={tradeStore.platform} walletId={tradeStore.walletId} filterCoin={tradeStore.coin} className='col' />
             }
             {
               tradeStore.recordTabId === 'completedTrades' &&
-                <TraderDetailsCompletedTrades address={tradeStore.address} filterCoin={tradeStore.coin} className='col' />
+                <TraderDetailsCompletedTrades address={tradeStore.address} platform={tradeStore.platform} walletId={tradeStore.walletId} filterCoin={tradeStore.coin} className='col' />
             }
             {
               tradeStore.recordTabId === 'twap' &&

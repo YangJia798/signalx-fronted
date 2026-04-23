@@ -21,8 +21,10 @@ export type TTradeStore = {
   DEFAULT_COIN: string
   coin: string // 交易币，大写
 
-  // 当前链接的钱包地址
+  // 当前激活钱包
   address: string
+  platform: 'hyperliquid' | 'aster'
+  walletId: number | null
 
   sideTabId: string
   sideTabs: Array<TTabItem>
@@ -41,6 +43,8 @@ const DEFAULT = {
   coin: '',
 
   address: '',
+  platform: 'hyperliquid' as 'hyperliquid' | 'aster',
+  walletId: null as number | null,
 
   sideTabId: 'orderBook',
   sideTabs: [

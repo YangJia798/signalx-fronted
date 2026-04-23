@@ -2,7 +2,7 @@ import { useEffect, FC, HTMLProps, useImperativeHandle, forwardRef } from 'react
 import { useTranslation, withTranslation, Trans } from 'react-i18next'
 
 import { formatNumber, sortArrayByKey, merge } from '@/utils'
-import { constants, useTraderDetailsHistoricalOrdersStore, useReqStore, formatSideByRaw } from '@/stores'
+import { constants, useTraderDetailsHistoricalOrdersStore, useReqStore, formatSideByRaw, useAccountStore } from '@/stores'
 import ColumnList from '@/components/Column/List'
 import PositionItemUPnl from '@/components/PositionItem/UPnl'
 import PositionItemDirectionLeverage from '@/components/PositionItem/DirectionLeverage'
@@ -27,6 +27,8 @@ interface TraderDetailsHistoricalOrdersProps extends HTMLProps<HTMLDivElement> {
   unReset?: boolean // 组件销毁时不触发原本针对数据源的清理流程
   className?: string
   displayedRecordsMessage?: number
+  platform?: 'hyperliquid' | 'aster'
+  walletId?: number | null
 }
 
 const TraderDetailsHistoricalOrders: FC<TraderDetailsHistoricalOrdersProps> = ({
@@ -35,10 +37,13 @@ const TraderDetailsHistoricalOrders: FC<TraderDetailsHistoricalOrdersProps> = ({
   autoRefreshing = true,
   unReset = false,
   className = '',
-  displayedRecordsMessage = 2000
+  displayedRecordsMessage = 2000,
+  platform = 'hyperliquid',
+  walletId = null,
 }) => {
   const traderDetailsHistoricalOrdersStore = useTraderDetailsHistoricalOrdersStore()
   const reqStore = useReqStore()
+  const accountStore = useAccountStore()
 
   const { sendMessage, lastMessage, readyState } = useHyperWSContext()
   const { t, i18n } = useTranslation()
@@ -150,11 +155,16 @@ const TraderDetailsHistoricalOrders: FC<TraderDetailsHistoricalOrdersProps> = ({
   }
 
   const handleOpenOrdersByApi = async () => {
-    const { data, error } = await reqStore.hyperUserHistoricalOrders(traderDetailsHistoricalOrdersStore.address)
+    let data: any, error: boolean
+
+    if (platform === 'aster' && walletId != null) {
+      ;({ data, error } = await reqStore.asterHistoricalOrders(accountStore, walletId))
+    } else {
+      ;({ data, error } = await reqStore.hyperUserHistoricalOrders(traderDetailsHistoricalOrdersStore.address))
+    }
 
     if (error) return
 
-    // update
     traderDetailsHistoricalOrdersStore.list = data.list
   }
 
@@ -202,7 +212,7 @@ console.log('-his', address)
     asyncFunc()
 
     return onCleanUp
-  }, [readyState, address, autoRefreshing])
+  }, [readyState, address, platform, walletId, autoRefreshing])
 
   // 处理原始数据
   useEffect(() => {

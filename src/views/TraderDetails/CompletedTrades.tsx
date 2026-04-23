@@ -2,17 +2,18 @@ import { useEffect } from 'react'
 import { useTranslation, withTranslation, Trans } from 'react-i18next'
 
 import { formatNumber, sortArrayByKey, merge } from '@/utils'
-import { constants, useTraderDetailsCompletedTradesStore, useReqStore, useTradeStore } from '@/stores'
+import { constants, useTraderDetailsCompletedTradesStore, useReqStore, useTradeStore, useAccountStore } from '@/stores'
 import ColumnList from '@/components/Column/List'
 import TimeAgo from '@/components/TimeAgo'
 import PositionItemTx from '@/components/PositionItem/Tx'
 import PositionItemSide from '@/components/PositionItem/Side'
 import PositionItemCommonPnl from '@/components/PositionItem/CommonPnl'
 
-const TraderDetailsCompletedTrades = ({ address, filterCoin = '', displayedRecordsMessage = 2000, className = '' }) => {
+const TraderDetailsCompletedTrades = ({ address, filterCoin = '', displayedRecordsMessage = 2000, className = '', platform = 'hyperliquid', walletId = null as number | null }) => {
   const traderDetailsCompletedTradesStore = useTraderDetailsCompletedTradesStore()
   const reqStore = useReqStore()
   const tradeStore = useTradeStore()
+  const accountStore = useAccountStore()
 
   const { t, i18n } = useTranslation()
 
@@ -85,7 +86,13 @@ const TraderDetailsCompletedTrades = ({ address, filterCoin = '', displayedRecor
         return
       }
 
-      const { data, error } = await reqStore.hyperUserFills(address)
+      let data: any, error: boolean
+
+      if (platform === 'aster' && walletId != null) {
+        ;({ data, error } = await reqStore.asterUserFills(accountStore, walletId))
+      } else {
+        ;({ data, error } = await reqStore.hyperUserFills(address))
+      }
 
       if (error) return
 
@@ -99,7 +106,7 @@ const TraderDetailsCompletedTrades = ({ address, filterCoin = '', displayedRecor
     return () => {
       traderDetailsCompletedTradesStore.reset()
     }
-  }, [address, tradeStore.refreshTick])
+  }, [address, platform, walletId, tradeStore.refreshTick])
 
   return (
     <ColumnList

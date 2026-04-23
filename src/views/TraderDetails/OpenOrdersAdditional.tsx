@@ -3,7 +3,7 @@ import { useTranslation, withTranslation, Trans } from 'react-i18next'
 import { message } from 'antd'
 
 import { formatNumber, sortArrayByKey, merge } from '@/utils'
-import { constants, useTraderDetailsOpenOrdersAdditionalStore, useReqStore, formatSideByRaw, useTradeStore, usePrivateWalletStore } from '@/stores'
+import { constants, useTraderDetailsOpenOrdersAdditionalStore, useReqStore, formatSideByRaw, useTradeStore, usePrivateWalletStore, useAccountStore } from '@/stores'
 import ColumnList from '@/components/Column/List'
 import PositionItemUPnl from '@/components/PositionItem/UPnl'
 import PositionItemDirectionLeverage from '@/components/PositionItem/DirectionLeverage'
@@ -22,6 +22,8 @@ interface TraderDetailsOpenOrdersAdditionalProps extends HTMLProps<HTMLDivElemen
   unReset?: boolean
   className?: string
   isOwnWallet?: boolean
+  platform?: 'hyperliquid' | 'aster'
+  walletId?: number | null
 }
 
 export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditionalProps> = ({
@@ -31,10 +33,13 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
   unReset = false,
   className = '',
   isOwnWallet = false,
+  platform = 'hyperliquid',
+  walletId = null,
 }) => {
   const traderDetailsOpenOrdersAdditionalStore = useTraderDetailsOpenOrdersAdditionalStore()
   const reqStore = useReqStore()
   const tradeStore = useTradeStore()
+  const accountStore = useAccountStore()
 
   const privateWalletStore = usePrivateWalletStore()
   const { sendMessage, lastMessage, readyState } = useHyperWSContext()
@@ -208,11 +213,16 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
   }
 
   const handleOpenOrdersByApi = async () => {
-    const { data, error } = await reqStore.hyperUserOpenOrdersAdditional(traderDetailsOpenOrdersAdditionalStore.address)
+    let data: any, error: boolean
+
+    if (platform === 'aster' && walletId != null) {
+      ;({ data, error } = await reqStore.asterOpenOrders(accountStore, walletId))
+    } else {
+      ;({ data, error } = await reqStore.hyperUserOpenOrdersAdditional(traderDetailsOpenOrdersAdditionalStore.address))
+    }
 
     if (error) return
 
-    // update
     traderDetailsOpenOrdersAdditionalStore.list = data.list
   }
 
@@ -270,11 +280,11 @@ export const TraderDetailsOpenOrdersAdditional: FC<TraderDetailsOpenOrdersAdditi
         traderDetailsOpenOrdersAdditionalStore.reset()
       }
     }
-  }, [address, tradeStore.refreshTick])
+  }, [address, platform, walletId, tradeStore.refreshTick])
 
-  // WS 订阅（只有 WS 连接时才订阅，用于实时增量更新）
+  // WS 订阅（只有 WS 连接时才订阅，用于实时增量更新；Aster 不走 Hyper WS）
   useEffect(() => {
-    if (!address || readyState !== ReadyState.OPEN) return
+    if (!address || readyState !== ReadyState.OPEN || platform === 'aster') return
 
     handleSendMessage()
 

@@ -2,16 +2,17 @@ import { useEffect } from 'react'
 import { useTranslation, withTranslation, Trans } from 'react-i18next'
 
 import { formatNumber, sortArrayByKey, merge } from '@/utils'
-import { constants, useTraderDetailsRecentFillsStore, useReqStore } from '@/stores'
+import { constants, useTraderDetailsRecentFillsStore, useReqStore, useAccountStore, useTradeStore } from '@/stores'
 import ColumnList from '@/components/Column/List'
 import TimeAgo from '@/components/TimeAgo'
 import PositionItemTx from '@/components/PositionItem/Tx'
 import PositionItemSide from '@/components/PositionItem/Side'
 import PositionItemCommonPnl from '@/components/PositionItem/CommonPnl'
 
-const TraderDetailsRecentFills = ({ address, filterCoin = '', displayedRecordsMessage = 2000, className = '' }) => {
+const TraderDetailsRecentFills = ({ address, filterCoin = '', displayedRecordsMessage = 2000, className = '', platform = 'hyperliquid', walletId = null as number | null }) => {
   const traderDetailsRecentFillsStore = useTraderDetailsRecentFillsStore()
   const reqStore = useReqStore()
+  const accountStore = useAccountStore()
 
   const { t, i18n } = useTranslation()
 
@@ -78,7 +79,13 @@ const TraderDetailsRecentFills = ({ address, filterCoin = '', displayedRecordsMe
         return
       }
 
-      const { data, error } = await reqStore.hyperUserFills(address)
+      let data: any, error: boolean
+
+      if (platform === 'aster' && walletId != null) {
+        ;({ data, error } = await reqStore.asterUserFills(accountStore, walletId))
+      } else {
+        ;({ data, error } = await reqStore.hyperUserFills(address))
+      }
 
       if (error) return
 
@@ -92,7 +99,7 @@ const TraderDetailsRecentFills = ({ address, filterCoin = '', displayedRecordsMe
     return () => {
       traderDetailsRecentFillsStore.reset()
     }
-  }, [address])
+  }, [address, platform, walletId])
 
   return (
     <ColumnList
