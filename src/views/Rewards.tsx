@@ -168,7 +168,7 @@ const Rewards = () => {
                   <h2 className='fw-bold'>{t('rewards.headline')}</h2>
                   <span className='h5 color-secondary col-12 col-md-10 text-center text-md-start'>{t('rewards.subheadline')}</span>
                   <div className="mt-1">
-                    <Button href='https://signalxbots-organization.gitbook.io/signalxbots-organization/signalxbot-official/points-system' className='br-4 border-w-2 fw-500 gap-2' ghost type='dashed'  target='_blank'>{t('common.learnMore')}<IOutlineExport2 className="w-20" /></Button>
+                    <Button className='br-4 border-w-2 fw-500 gap-2' ghost type='dashed' onClick={() => message.info(t('message.iterating', '正在迭代中，敬请期待'))}>{t('common.learnMore')}<IOutlineExport2 className="w-20" /></Button>
                   </div>
                 </div>
               </div>
