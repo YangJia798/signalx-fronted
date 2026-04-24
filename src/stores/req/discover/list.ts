@@ -149,7 +149,7 @@ export const discoverList: TDiscoverList = {
 
       result.data = {
         last: page,
-        isEnd: rows.length < discoverStore.size || discoverStore.current * discoverStore.size >= total,
+        isEnd: rows.length < discoverStore.size,
         total,
       }
       result.error = false
