@@ -1,10 +1,8 @@
 import { useEffect } from 'react';
-import { useSwitchChain } from 'wagmi';
-import { Input, Button, message } from 'antd';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { useTranslation, withTranslation, Trans } from 'react-i18next'
+import { Input, message } from 'antd';
+import { useTranslation } from 'react-i18next'
 
-import { formatNumber, urlSafeBase58Decode } from '@/utils';
+import { urlSafeBase58Decode } from '@/utils';
 import { useAccountStore, useTrackingAddressPositionStore, useTrackingCreateStore, useReqStore } from '@/stores';
 import BaseModal from './Base';
 
@@ -13,7 +11,7 @@ const ModalTrackingBatchImport = () => {
   const reqStore = useReqStore()
   const accountStore = useAccountStore()
   const trackingAddressPositionStore = useTrackingAddressPositionStore()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
 
   const handleClose = () => {
 
@@ -33,7 +31,7 @@ const ModalTrackingBatchImport = () => {
         }
       })
     } catch (error) {
-      console.log(error)
+      console.error(error)
       message.error(t('message.batchImportInvalidFormat'))
     }
 

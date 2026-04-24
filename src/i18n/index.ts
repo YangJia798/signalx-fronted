@@ -18,7 +18,6 @@ i18n
 			en: { translation: enUSLocale },
 		},
 		fallbackLng: constants.app.INIT_I18N,
-		preload: constants.app.I18NS.map((item) => item.key),
     react: {
       transSupportBasicHtmlNodes: true,
       transKeepBasicHtmlNodesFor: ['br', 'em', 'span', 'i', 'strong'],

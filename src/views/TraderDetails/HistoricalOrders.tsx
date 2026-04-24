@@ -208,7 +208,6 @@ const TraderDetailsHistoricalOrders: FC<TraderDetailsHistoricalOrdersProps> = ({
 
       await onInitUpdate()
     }
-console.log('-his', address)
     asyncFunc()
 
     return onCleanUp

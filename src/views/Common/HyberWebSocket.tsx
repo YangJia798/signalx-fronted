@@ -6,14 +6,9 @@ import WebSocketConnection from '@/components/Hyper/WS';
 const WebSocket = () => {
   const commonStore = useCommonStore()
 
-  const handleMessage = (event: MessageEvent) => {
-    const data = JSON.parse(event.data);
-    console.log('收到消息:', data);
-  };
+  const handleMessage = (_event: MessageEvent) => {};
 
-  const handleOpen = () => {
-    console.log('WebSocket连接已打开');
-  };
+  const handleOpen = () => {};
 
     // 创建ref
   const wsRef = useRef<{

@@ -1,10 +1,10 @@
-import { Button, Popconfirm } from 'antd'
-import { useEffect, useState } from 'react'; // 新增导入
-import { useTranslation, withTranslation, Trans } from 'react-i18next'
+import { Popconfirm } from 'antd'
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next'
 import { isAddress } from 'viem'
 
-import { IOutlineTrash, IOutlineEyeSlash, IOutlineNotification, IOutlineArrowUp1, IOutlineCloseNotification, IOutlineChart2, IOutlineEdit, IOutlineShare,  } from '@/components/icon'
-import { constants, useReqStore, useDiscoverTradingStatisticsStore, useTrackingCreateStore, useAccountStore, useTrackingAddressPositionStore, useCopyTradingStore, useDiscoverStore } from '@/stores'
+import { IOutlineTrash, IOutlineNotification, IOutlineArrowUp1, IOutlineCloseNotification, IOutlineChart2, IOutlineEdit, IOutlineShare } from '@/components/icon'
+import { constants, useReqStore, useDiscoverTradingStatisticsStore, useTrackingCreateStore, useAccountStore, useTrackingAddressPositionStore, useCopyTradingStore } from '@/stores'
 import PositionItemPnl from '@/components/PositionItem/Pnl'
 import PositionItemMarginUsedRatio from '@/components/PositionItem/MarginUsedRatio'
 import PositionItemAddress from '@/components/PositionItem/Address'
@@ -18,10 +18,9 @@ const TrackingAddressPosition = ({ item }) => {
   const accountStore = useAccountStore()
   const trackingAddressPositionStore = useTrackingAddressPositionStore()
   const copyTradingStore = useCopyTradingStore()
-  const discoverStore = useDiscoverStore()
   const discoverTradingStatisticsStore = useDiscoverTradingStatisticsStore()
   const trackingCreateStore = useTrackingCreateStore()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
 
   const [isCollapsed, setIsCollapsed] = useState(true)
 
@@ -57,7 +56,7 @@ const TrackingAddressPosition = ({ item }) => {
       cache[item.address] = result
       localStorage.set(STORAGE_KEY, cache)
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
 
     setIsCollapsed(result);

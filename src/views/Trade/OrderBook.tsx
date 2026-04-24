@@ -1,20 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import BN from 'bignumber.js'
-import { Progress } from 'antd';
-import { useTranslation, withTranslation, Trans } from 'react-i18next'
-import { useParams } from 'react-router-dom';
 
-import { useTradeOrderBookStore, useTradeStore, useHyperStore } from '@/stores'
-import { merge, formatNumber } from '@/utils'
+import { useTradeOrderBookStore, useHyperStore } from '@/stores'
+import { merge } from '@/utils'
 import { useHyperWSContext, ReadyState } from '@/components/Hyper/WSContext';
 import AreaDepth from '@/components/Area/Depth'
 
 const TradeOrderBook = ({ coin, unReset = false }) => {
-  const tradeStore = useTradeStore()
   const hyperStore = useHyperStore()
   const tradeOrderBookStore = useTradeOrderBookStore()
 
-  const { t, i18n } = useTranslation()
   const { sendMessage, lastMessage, readyState } = useHyperWSContext()
 
   const handleDepthByRaw = (raw: Array<any>) => {
@@ -159,15 +154,7 @@ const TradeOrderBook = ({ coin, unReset = false }) => {
       coin={tradeOrderBookStore.coin}
       levels={tradeOrderBookStore.levels}
       sizeDecimals={hyperStore.perpMeta[coin.replace(/USDT?1?$/, '')]?.sizeDecimals ?? hyperStore.DEFAULT_PERP_META.sizeDecimals}
-      orders={[
-        { limitPrice: '104610', side: 'buy' },
-        { limitPrice: '102001', side: 'buy' },
-        { limitPrice: '105640', side: 'sell' },
-      ]}
       buyDepth={tradeOrderBookStore.buyDepth}
-      onClickPrice={(price) => console.log(price)}
-      onClickSize={(size) => console.log(size)}
-      onClickTotalSize={(totalSize) => console.log(totalSize)}
       sellDepth={tradeOrderBookStore.sellDepth}
       markPrice={hyperStore.perpMarket[coin]?.markPrice} />
   )
