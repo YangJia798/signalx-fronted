@@ -1,7 +1,7 @@
 import BN from 'bignumber.js'
 
 import { merge, formatPer } from '@/utils'
-import { officialHyperbotApi } from '@/stores/req/helper'
+import { baseApi } from '@/stores/req/helper'
 import { constants, TAccountStore, TDiscoverStore } from '@/stores'
 import i18n from '@/i18n'
 
@@ -141,7 +141,7 @@ export const discoverList: TDiscoverList = {
         selects: [...DISCOVER_SELECTS],
       }
 
-      const res = await officialHyperbotApi.post(DISCOVER_ENDPOINT, payload)
+      const res = await baseApi.post(DISCOVER_ENDPOINT, payload)
       const rows: any[] = res.data?.data?.list || []
       const total = Number(res.data?.data?.total || 0)
       const startRank = (discoverStore.current - 1) * discoverStore.size
