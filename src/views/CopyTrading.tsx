@@ -100,21 +100,23 @@ const CopyTrading = () => {
       case 'operator':
         const hasBalance = new BN(item.balance || 0).gt(0)
         const isAuthorizing = authorizingWalletId === String(item.walletId)
+        const isAster = item.platform === 'aster'
+        const authorizeDisabled = isAster ? isAuthorizing : (!hasBalance || isAuthorizing)
         return (
           <div className="d-flex align-items-center justify-content-end gap-2 w-100">
             {item.importWallet !== 1 && (
               <>
                 <button
                   className="border-0 fw-500 font-size-12 transition-2 d-none d-md-block"
-                  disabled={!hasBalance || isAuthorizing}
+                  disabled={authorizeDisabled}
                   style={{
                     background: 'rgba(255,255,255,0.06)',
                     borderRadius: '24px',
                     padding: '6px 16px',
-                    color: !hasBalance ? 'rgba(255,255,255,0.35)' : '#00d1b2',
+                    color: authorizeDisabled ? 'rgba(255,255,255,0.35)' : '#00d1b2',
                     whiteSpace: 'nowrap',
                     flexShrink: 0,
-                    cursor: !hasBalance || isAuthorizing ? 'not-allowed' : 'pointer',
+                    cursor: authorizeDisabled ? 'not-allowed' : 'pointer',
                     opacity: isAuthorizing ? 0.75 : 1,
                   }}
                   onClick={(e) => {
@@ -284,7 +286,7 @@ const CopyTrading = () => {
   }
 
   const handleAuthorizeWallet = async (item: any) => {
-    if (!new BN(item.balance || 0).gt(0)) return
+    if (item.platform !== 'aster' && !new BN(item.balance || 0).gt(0)) return
 
     setAuthorizingWalletId(String(item.walletId))
 
