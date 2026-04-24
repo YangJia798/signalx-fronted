@@ -11,7 +11,6 @@ import { constants, useReqStore, useRewardDetailedListStore, useAccountStore, us
 import DropdownMenu from '@/components/Dropdown/Menu'
 import ColumnList from '@/components/Column/List'
 import TimeAgo from '@/components/TimeAgo'
-import Busy from '@/components/Busy'
 import Avatar from '@/components/Avatar'
 import ButtonIcon from '@/components/ButtonIcon'
 import ColumnNoData from "@/components/Column/NoData"
@@ -179,7 +178,7 @@ const Rewards = () => {
             </div>
           </div>
 
-          <Busy spinning={reqStore.rewardUserLvBusy || reqStore.rewardUserInfoBusy}>
+          <div>
             <div className="d-flex align-items-center gap-4 col mb-3">
               <Avatar href={accountStore.tgHeadIco} name={accountStore.tgLastName} size='xlg' />
               <div className="d-flex flex-column gap-2 col">
@@ -239,7 +238,7 @@ const Rewards = () => {
                 </div>
               </div>
             </div>
-          </Busy>
+          </div>
         </div>
 
         <div className="container-xl d-flex flex-wrap px-3 gap-3 gap-md-4 px-md-4 my-3 my-md-5 py-0 align-items-start">
@@ -263,20 +262,17 @@ const Rewards = () => {
             <div className="d-flex flex-wrap gap-4 align-items-center justify-content-between col">
               <h4 className="fw-bold">{t('rewards.referralRecords')}</h4>
             </div>
-            <Busy spinning={reqStore.rewardUserInfoBusy}>
-              <div className='d-flex flex-column gap-3'>
-                <ColumnList
-                  className='br-3'
-                  noDataSize='small'
-                  columns={referralRecordsList}
-                  data={rewardStore.referralRecords.filter((item, idx) => idx >= (rewardStore.referralRecordCurrent - 1) * rewardStore.referralRecordPageSize && idx < rewardStore.referralRecordCurrent * rewardStore.referralRecordPageSize)}
-                  busy={reqStore.rewardUserInfoBusy}
-                  renderItem={renderReferralRecordsListItem} />
-                <Pagination size="small" simple current={rewardStore.referralRecordCurrent} pageSize={rewardStore.referralRecordPageSize} total={rewardStore.referralRecords.length}
-                  className="justify-content-center"
-                  onChange={(page) => rewardStore.referralRecordCurrent = page} />
-              </div>
-            </Busy>
+            <div className='d-flex flex-column gap-3'>
+              <ColumnList
+                className='br-3'
+                noDataSize='small'
+                columns={referralRecordsList}
+                data={rewardStore.referralRecords.filter((item, idx) => idx >= (rewardStore.referralRecordCurrent - 1) * rewardStore.referralRecordPageSize && idx < rewardStore.referralRecordCurrent * rewardStore.referralRecordPageSize)}
+                renderItem={renderReferralRecordsListItem} />
+              <Pagination size="small" simple current={rewardStore.referralRecordCurrent} pageSize={rewardStore.referralRecordPageSize} total={rewardStore.referralRecords.length}
+                className="justify-content-center"
+                onChange={(page) => rewardStore.referralRecordCurrent = page} />
+            </div>
           </div>
         </div>
 
@@ -308,17 +304,14 @@ const Rewards = () => {
             </div>
           </div>
 
-          <Busy spinning={reqStore.discoverListBusy}>
-            <div className='d-flex flex-column gap-1'>
-              <ColumnList className='br-3'
-                columns={rewardsList}
-                data={rewardDetailedListStore.list}
-                busy={reqStore.whalePositionsBusy}
-                pageCurrent={rewardDetailedListStore.current}
-                pageSize={rewardDetailedListStore.size}
-                renderItem={renderRewardsListItem} />
-            </div>
-          </Busy>
+          <div className='d-flex flex-column gap-1'>
+            <ColumnList className='br-3'
+              columns={rewardsList}
+              data={rewardDetailedListStore.list}
+              pageCurrent={rewardDetailedListStore.current}
+              pageSize={rewardDetailedListStore.size}
+              renderItem={renderRewardsListItem} />
+          </div>
         </div>
       </div>
 
