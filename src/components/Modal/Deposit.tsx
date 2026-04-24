@@ -14,8 +14,7 @@ import WalletChainIcon from '@/components/Wallet/ChainIcon';
 const ModalDeposit = () => {
   const privateWalletStore = usePrivateWalletStore();
   const accountStore = useAccountStore()
-  const reqStore = useReqStore()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [step, setStep] = useState(1);
   const [asterNetwork, setAsterNetwork] = useState('bsc');
 
@@ -27,13 +26,9 @@ const ModalDeposit = () => {
     }, 300);
   };
 
-  const handleSubmit = async () => {
-    const { error } = await reqStore.userWalletDeposit(accountStore, privateWalletStore)
-
-    if (error) return
-
-    reqStore.userPrivateWallet(accountStore, privateWalletStore)
-    handleClose()
+  const handleSubmit = () => {
+    handleClose();
+    message.info(t('message.waitingSystemConfirmation', '已提交，等待系统确认，预计 1-40 分钟到账'));
   };
 
   // init
