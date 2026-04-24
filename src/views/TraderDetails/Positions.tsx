@@ -207,7 +207,11 @@ const TraderDetailsPositions = ({ address, unUpdate = false, unReset = false, cl
         headClassName="ps-4 pe-4 py-3 gap-3"
         rowClassName="ps-4 pe-4 py-3 gap-3"
         data={traderDetailsPositionsStore.list}
-        busy={reqStore.hyperClearinghouseStateInit || !unUpdate && reqStore.hyperClearinghouseStateBusy}
+        busy={!address
+          ? false
+          : platform === 'aster'
+            ? reqStore.asterAccountPositionsBusy
+            : (reqStore.hyperClearinghouseStateInit || (!unUpdate && reqStore.hyperClearinghouseStateBusy))}
         sortColumnId={traderDetailsPositionsStore.sortColumnId}
         renderItem={renderPositionItem}
         onChangeSort={handleChangeSort} />

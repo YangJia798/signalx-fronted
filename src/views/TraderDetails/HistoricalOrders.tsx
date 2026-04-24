@@ -240,7 +240,11 @@ console.log('-his', address)
       columns={column}
       className={className}
       data={traderDetailsHistoricalOrdersStore.list}
-      busy={reqStore.hyperUserHistoricalOrdersInit || reqStore.hyperUserHistoricalOrdersBusy}
+      busy={!address
+          ? false
+          : platform === 'aster'
+            ? reqStore.asterHistoricalOrdersBusy
+            : (reqStore.hyperUserHistoricalOrdersInit || reqStore.hyperUserHistoricalOrdersBusy)}
       sortColumnId={traderDetailsHistoricalOrdersStore.sortColumnId}
       pageCurrent={traderDetailsHistoricalOrdersStore.current}
       onPageChange={pageNumber => traderDetailsHistoricalOrdersStore.current = pageNumber }
